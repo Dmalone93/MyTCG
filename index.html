@@ -46,6 +46,9 @@
       <div style="display:flex; gap:9px; align-items:center;">
         <button onClick="{{ openSettings }}" title="Settings" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:17px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">⚙</button>
         <button onClick="{{ openShare }}" title="Share collection" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:15px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></button>
+        <button onClick="{{ openLookup }}" title="Quick value lookup" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Lookup
+        </button>
         <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
         </button>
@@ -401,6 +404,97 @@
           </div>
           <sc-if value="{{ scanNoMatch }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 12px; text-align:center; color:#8C939D; font-size:13.5px;">No catalog match for that code. Try scanning again, or type the name in the add row.</div></sc-if>
         </sc-if>
+
+        <sc-if value="{{ scanShowAdded }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:16px; padding:28px 12px;">
+            <div style="width:56px; height:56px; border-radius:50%; background:#E6F6EC; display:flex; align-items:center; justify-content:center;">
+              <span style="font-size:28px; color:#2B9A66;">✓</span>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Card added!</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:13px; color:#3E63DD; font-weight:600;">{{ scanAutoName }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D; margin-top:2px;">{{ scanAutoNumber }}</div>
+            </div>
+            <div style="display:flex; gap:9px; width:100%;">
+              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Scan another</button>
+              <button onClick="{{ closeScan }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">Done</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== LOOKUP MODAL ===== -->
+  <sc-if value="{{ lookupOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeLookup }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Quick lookup</div><div style="font-size:12px; color:#8C939D;">Scan or search to check a card's value</div></div>
+        </div>
+        <button onClick="{{ closeLookup }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+      </div>
+
+      <div style="padding:16px 20px 20px; overflow-y:auto;">
+        <sc-if value="{{ lookupShowSearch }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative; margin-bottom:14px;">
+            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">⌕</span>
+            <input value="{{ lookupQuery }}" onInput="{{ onLookupQuery }}" placeholder="Type a card name or number…" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:13px 14px 13px 34px; font-size:14px;" />
+          </div>
+          <div style="display:flex; gap:9px; margin-bottom:14px;">
+            <label style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan with camera
+              <input ref="{{ lookupFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onLookupFile }}" style="display:none;" />
+            </label>
+          </div>
+          <sc-if value="{{ lookupResults.length }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:46vh; overflow-y:auto;">
+              <sc-for list="{{ lookupResults }}" as="lr" hint-placeholder-count="3">
+                <button onClick="{{ lr.onSelect }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:10px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
+                  <span style="position:relative; width:30px; height:42px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ lr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ lr.number }}</span>
+                  <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ lr.name }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ lr.priceFmt }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ lookupShowCard }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; gap:16px; margin-bottom:18px;">
+            <div style="position:relative; width:120px; height:167px; flex:none; border-radius:10px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 9px,#EEF0F3 9px,#EEF0F3 18px);">
+              <sc-if value="{{ lookupCard.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lookupCard.image }}'); background-size:cover; background-position:center;"></span></sc-if>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              <div style="font-weight:600; font-size:17px; line-height:1.25;">{{ lookupCard.name }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D;">{{ lookupCard.number }} · {{ lookupCard.set }}</div>
+              <div style="font-size:12.5px; color:#69707A;">{{ lookupCard.rarity }}</div>
+              <div style="margin-top:auto; display:flex; gap:16px;">
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Market</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#2B9A66;">{{ lookupCard.priceFmt }}</div></div>
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Graded PSA 10</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#3E63DD;">{{ lookupCard.gradedFmt }}</div></div>
+              </div>
+            </div>
+          </div>
+
+          <sc-if value="{{ lookupHasOwned }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#F4F7FF; border:1px solid #DCE6FB; border-radius:11px; padding:13px 15px; margin-bottom:14px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D; margin-bottom:8px;">In your collection</div>
+              <div style="display:flex; gap:20px;">
+                <div><div style="font-size:11px; color:#69707A;">Qty</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.qty }}</div></div>
+                <div><div style="font-size:11px; color:#69707A;">Paid</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.paidFmt }}</div></div>
+                <div><div style="font-size:11px; color:#69707A;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600; color:{{ lookupOwned.plColor }};">{{ lookupOwned.plFmt }}</div></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex; gap:9px;">
+            <button onClick="{{ lookupBack }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Search again</button>
+            <button onClick="{{ lookupAddCard }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">+ Add to collection</button>
+          </div>
+        </sc-if>
       </div>
     </div>
   </sc-if>
@@ -521,6 +615,7 @@ class Component extends DCLogic {
     this.scanVideoRef = React.createRef();
     this.scanFileRef = React.createRef();
     this.qrCanvasRef = React.createRef();
+    this.lookupFileRef = React.createRef();
     this._scanStream = null;
     this.state = {
       cards: [],
@@ -540,8 +635,9 @@ class Component extends DCLogic {
       filterField: null, filterValue: null,
       importMsg: '', importOk: true,
       scanOpen:false, scanStage:'capture', scanCamReady:false, scanProcessMsg:'',
-      scanDetected:'', scanCandidates:[], scanNote:'', scanNoteOk:true,
+      scanDetected:'', scanCandidates:[], scanNote:'', scanNoteOk:true, scanAutoAdded:null,
       shareOpen:false, shareCopied:false, sharedCards:null,
+      lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
     };
   }
@@ -799,7 +895,7 @@ class Component extends DCLogic {
     setTimeout(() => this.startCamera(), 60);
   }
   closeScan(){ this.stopCamera(); this.setState({ scanOpen:false }); }
-  scanAgain(){ this.setState({ scanStage:'capture', scanDetected:'', scanCandidates:[], scanNote:'' }); setTimeout(()=>this.startCamera(),60); }
+  scanAgain(){ this.setState({ scanStage:'capture', scanDetected:'', scanCandidates:[], scanNote:'', scanAutoAdded:null }); setTimeout(()=>this.startCamera(),60); }
 
   startCamera(){
     const video = this.scanVideoRef.current;
@@ -962,10 +1058,24 @@ class Component extends DCLogic {
     if (!detected) detected = '\u2014 (no text found)';
     matches = matches.slice(0,12);
 
+    // auto-add if we have a confident match (exact number match with 1 result,
+    // or top fuzzy match with high score and clear gap to second)
+    const exactNumberMatch = code && matches.length === 1 && norm(matches[0].number) === norm(code);
+    if (exactNumberMatch) {
+      this.scanAutoAdd(matches[0], detected);
+      return;
+    }
+
     this.setState({ scanStage:'results', scanDetected:detected,
       scanCandidates: matches.map(c => ({ number:c.number, name:c.name,
         priceFmt: c.price ? this.money(c.price) : '\u2014', hasImage:!!c.image, image:c.image||'',
         onPick: ()=>this.scanPick(c) })) });
+  }
+
+  scanAutoAdd(card, detected){
+    this.stopCamera();
+    this.pickInto('new', card);
+    this.setState({ scanStage:'added', scanDetected:detected, scanAutoAdded:card });
   }
 
   scanPick(card){ this.stopCamera(); this.setState({ scanOpen:false }); this.pickInto('new', card); }
@@ -1166,6 +1276,68 @@ class Component extends DCLogic {
   dismissShared(){
     this.setState({ sharedCards: null });
     window.history.replaceState(null, '', window.location.pathname);
+  }
+
+  // ---- quick lookup ----
+  openLookup(){
+    this.ensureCatalog();
+    this.setState({ lookupOpen:true, lookupStage:'search', lookupQuery:'', lookupCard:null });
+  }
+  closeLookup(){ this.setState({ lookupOpen:false }); }
+  onLookupQuery(e){ this.setState({ lookupQuery: e.target.value }); }
+
+  lookupSelect(card){
+    this.setState({ lookupStage:'detail', lookupCard:card });
+  }
+
+  lookupBack(){ this.setState({ lookupStage:'search', lookupCard:null }); }
+
+  lookupAddCard(){
+    const card = this.state.lookupCard;
+    if (!card) return;
+    this.pickInto('new', card);
+    this.setState({ lookupOpen:false });
+  }
+
+  onLookupFile(e){
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1400; const scale = Math.min(1, maxW/img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      this.lookupRunOCR(this.preprocess(canvas));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); };
+    img.src = url;
+    e.target.value = '';
+  }
+
+  lookupRunOCR(canvas){
+    if (!window.Tesseract) return;
+    this.setState({ lookupQuery:'Scanning…' });
+    window.Tesseract.recognize(canvas, 'eng', {}).then(res => {
+      const text = (res && res.data && res.data.text) || '';
+      const code = this.extractCode(text);
+      const names = this.extractNames(text);
+      const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
+      const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      let matches = [];
+      if (code) {
+        const cn = norm(code);
+        matches = source.filter(c => norm(c.number) === cn);
+        if (matches.length === 1) { this.lookupSelect(matches[0]); return; }
+      }
+      if (!matches.length && names.length) {
+        this.setState({ lookupQuery: names[0] || '' });
+      } else if (code) {
+        this.setState({ lookupQuery: code });
+      }
+    }).catch(() => {});
   }
 
   openSettings(){ this.setState({ settingsOpen:true }); }
@@ -1592,7 +1764,8 @@ class Component extends DCLogic {
       onPreviewImgLoad:()=>this.onPreviewImgLoad(), onPreviewImgError:()=>this.onPreviewImgError(),
       scanOpen:S.scanOpen, openScan:()=>this.openScan(), closeScan:()=>this.closeScan(),
       scanVideoRef:this.scanVideoRef, scanFileRef:this.scanFileRef,
-      scanShowCapture:S.scanStage==='capture', scanProcessing:S.scanStage==='processing', scanShowResults:S.scanStage==='results',
+      scanShowCapture:S.scanStage==='capture', scanProcessing:S.scanStage==='processing', scanShowResults:S.scanStage==='results', scanShowAdded:S.scanStage==='added',
+      scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
       scanCamReady:S.scanCamReady, scanCamConnecting:S.scanStage==='capture' && !S.scanCamReady && !S.scanNote,
       scanVideoDisplay:S.scanCamReady?'block':'none', scanUploadFlex:S.scanCamReady?'none':'1',
       scanProcessMsg:S.scanProcessMsg, scanDetected:S.scanDetected, scanCandidates:S.scanCandidates,
@@ -1623,6 +1796,40 @@ class Component extends DCLogic {
       shareNote: this._shareNote || 'Anyone with this QR or link can view your collection',
       isSharedView: !!S.sharedCards,
       importShared:()=>this.importShared(), dismissShared:()=>this.dismissShared(),
+      lookupOpen:S.lookupOpen, openLookup:()=>this.openLookup(), closeLookup:()=>this.closeLookup(),
+      lookupFileRef:this.lookupFileRef, onLookupFile:(e)=>this.onLookupFile(e),
+      lookupQuery:S.lookupQuery, onLookupQuery:(e)=>this.onLookupQuery(e),
+      lookupShowSearch:S.lookupStage==='search', lookupShowCard:S.lookupStage==='detail',
+      lookupResults: (() => {
+        if (S.lookupStage !== 'search') return [];
+        const lq = (S.lookupQuery||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+        if (lq.length < 2) return [];
+        const src = liveReady ? this._catalog : this.localCards();
+        const n2 = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+        return src.filter(c => n2(c.name+c.number).includes(lq)).slice(0,20).map(c => ({
+          number:c.number, name:c.name, priceFmt: c.price ? this.money(c.price) : '\u2014',
+          hasImage:!!c.image, image:c.image||'',
+          onSelect:()=>this.lookupSelect(c),
+        }));
+      })(),
+      lookupCard: S.lookupCard ? {
+        name:S.lookupCard.name, number:S.lookupCard.number, set:S.lookupCard.set,
+        rarity:S.lookupCard.rarity||'', hasImage:!!S.lookupCard.image, image:S.lookupCard.image||'',
+        priceFmt: S.lookupCard.price ? this.money(S.lookupCard.price) : '\u2014',
+        gradedFmt: S.lookupCard.graded ? this.money(S.lookupCard.graded) : '\u2014',
+      } : {},
+      lookupHasOwned: S.lookupCard ? all.some(c => c.number && c.number === S.lookupCard.number) : false,
+      lookupOwned: (() => {
+        if (!S.lookupCard) return {};
+        const owned = all.filter(c => c.number && c.number === S.lookupCard.number);
+        if (!owned.length) return {};
+        const totalQtyO = owned.reduce((s,c)=>s+c.qty,0);
+        const totalPaid = owned.reduce((s,c)=>s+c.purchasePrice*c.qty,0);
+        const totalVal = owned.reduce((s,c)=>s+c.rawValue*c.qty,0);
+        const plO = totalVal - totalPaid;
+        return { qty:totalQtyO, paidFmt:this.money(totalPaid), plFmt:this.signed(plO), plColor: plO>=0?GAIN:LOSS };
+      })(),
+      lookupBack:()=>this.lookupBack(), lookupAddCard:()=>this.lookupAddCard(),
       gameOptions:[{key:'onepiece',label:'One Piece'},{key:'pokemon',label:'Pokémon'},{key:'yugioh',label:'Yu-Gi-Oh!'}],
       langOptions:['EN','JP'],
       rarityOptions:['Leader','Common','Uncommon','Rare','Super Rare','Secret Rare','Special / Alt-Art','Manga Rare','Special Illustration Rare','Ultra Rare','Promo'],
