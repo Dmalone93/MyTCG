@@ -941,24 +941,24 @@ class Component extends DCLogic {
 
   startAutoScan(){
     this.stopAutoScan();
-    this._autoScanning = false;
+    this._scanGen = 0;
     if (!this.hasVisionKey()) {
       this.setState({ scanStatusMsg:'Add a Vision API key in Settings to enable scanning' });
       return;
     }
-    this._autoScanTimer = setInterval(() => {
-      if (this._autoScanning) return;
-      if (this.state.scanStage !== 'capture') return;
-      if (!this._scanStream) return;
-      const v = this.scanVideoRef.current;
-      if (!v || !v.videoWidth) return;
-      this._autoScanning = true;
-      this.scanFrameVision(v);
-    }, 1200);
+    // fire first scan immediately
+    this._fireAutoScan();
+    this._autoScanTimer = setInterval(() => this._fireAutoScan(), 800);
+  }
+  _fireAutoScan(){
+    if (this.state.scanStage !== 'capture' || !this._scanStream) return;
+    const v = this.scanVideoRef.current;
+    if (!v || !v.videoWidth) return;
+    this.scanFrameVision(v);
   }
   stopAutoScan(){
     if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
-    this._autoScanning = false;
+    this._scanGen = (this._scanGen||0) + 1;
   }
 
   canvasToBase64(canvas, quality){
@@ -1007,33 +1007,29 @@ class Component extends DCLogic {
   }
 
   scanFrameVision(v){
+    const gen = this._scanGen;
     const vw = v.videoWidth, vh = v.videoHeight;
-    // send smaller image for speed — 640px wide is plenty for text detection
+    // crop to just the card guide area (center 68% x 90%) then scale to 480px
+    const cx = Math.round(vw * 0.16), cy = Math.round(vh * 0.05);
+    const cw = Math.round(vw * 0.68), ch = Math.round(vh * 0.90);
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(640, vw);
-    canvas.height = Math.round(canvas.width * vh / vw);
-    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    const b64 = this.canvasToBase64(canvas, 0.55);
+    canvas.width = 480;
+    canvas.height = Math.round(480 * ch / cw);
+    canvas.getContext('2d').drawImage(v, cx, cy, cw, ch, 0, 0, canvas.width, canvas.height);
+    const b64 = this.canvasToBase64(canvas, 0.45);
     this.callVisionAPI(b64).then(text => {
-      this._autoScanning = false;
-      if (this.state.scanStage !== 'capture') return;
+      if (gen !== this._scanGen || this.state.scanStage !== 'capture') return;
       const codes = this.extractAllCodes(text);
       if (codes.length) {
         this.stopAutoScan();
         this.handleScanCode(codes[0]);
-      } else {
-        this.setState({ scanStatusMsg:'Scanning\u2026 hold the card steady' });
       }
     }).catch(err => {
-      this._autoScanning = false;
-      if (this.state.scanStage !== 'capture') return;
+      if (gen !== this._scanGen) return;
       const msg = String(err&&err.message||err||'');
       if (msg.includes('403') || msg.includes('401') || msg.includes('billing')){
         this.stopAutoScan();
         this.setState({ scanStatusMsg:msg.length > 80 ? msg.slice(0,80)+'\u2026' : msg });
-      } else {
-        // transient error — keep scanning
-        this.setState({ scanStatusMsg:'Scanning\u2026' });
       }
     });
   }
