@@ -363,11 +363,11 @@
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
           <!-- camera -->
-          <div style="position:relative; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
+          <div style="position:relative; aspect-ratio:3/4; border-radius:13px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
             <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; left:4%; bottom:6%; width:42%; height:14%; border:2px solid rgba(62,99,221,.9); border-radius:6px; box-shadow:0 0 12px rgba(62,99,221,.3);"></div>
-              <div style="position:absolute; left:4%; bottom:3%; font-family:'Geist Mono',monospace; font-size:10px; color:rgba(255,255,255,.7); padding:2px 6px;">card number here</div>
+              <div style="position:absolute; right:4%; bottom:4%; width:46%; height:10%; border:2px solid rgba(62,99,221,.9); border-radius:6px; box-shadow:0 0 12px rgba(62,99,221,.3);"></div>
+              <div style="position:absolute; right:4%; bottom:1.5%; font-family:'Geist Mono',monospace; font-size:10px; color:rgba(255,255,255,.7); padding:2px 6px;">card number here ↑</div>
             </sc-if>
             <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera\u2026</div></sc-if>
             <sc-if value="{{ scanStatusMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.65); padding:5px 12px; border-radius:8px; white-space:nowrap;">{{ scanStatusMsg }}</div></sc-if>
@@ -947,15 +947,15 @@ class Component extends DCLogic {
     this._autoScanning = false;
   }
 
-  // crop the bottom-left corner where OPTCG card numbers always are
-  cropBottomLeft(source, srcW, srcH){
-    // bottom 12% height, left 45% width — this is JUST the card number area
-    const cropW = Math.round(srcW * 0.45);
-    const cropH = Math.round(srcH * 0.12);
-    const cropX = 0;
+  // crop the bottom-right corner where OPTCG card numbers always are
+  cropCardNumber(source, srcW, srcH){
+    // bottom 15% height, right 50% width — the card number area
+    const cropW = Math.round(srcW * 0.50);
+    const cropH = Math.round(srcH * 0.15);
+    const cropX = srcW - cropW;
     const cropY = srcH - cropH;
-    // scale up to 600px wide so the tiny text becomes large for OCR
-    const targetW = 600;
+    // scale up to 800px wide so the tiny text becomes large for OCR
+    const targetW = 800;
     const scale = targetW / cropW;
     const canvas = document.createElement('canvas');
     canvas.width = targetW;
@@ -1012,13 +1012,15 @@ class Component extends DCLogic {
   }
 
   scanFrame(v){
-    const crop = this.cropBottomLeft(v, v.videoWidth, v.videoHeight);
+    const crop = this.cropCardNumber(v, v.videoWidth, v.videoHeight);
     const normal = this.binarize(crop, false);
     const inverted = this.binarize(crop, true);
-    const opts = { tessedit_pageseg_mode:'7', tessedit_char_whitelist:'OPSTEBRP0123456789- ' };
+    // run 3 passes: normal with whitelist, inverted with whitelist, normal without whitelist
+    const wl = { tessedit_pageseg_mode:'6' };
     Promise.all([
-      window.Tesseract.recognize(normal,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-      window.Tesseract.recognize(inverted,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+      window.Tesseract.recognize(normal,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+      window.Tesseract.recognize(inverted,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+      window.Tesseract.recognize(crop,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
     ]).then(results => {
       this._autoScanning = false;
       if (this.state.scanStage !== 'capture') return;
@@ -1043,13 +1045,14 @@ class Component extends DCLogic {
       URL.revokeObjectURL(url);
       this.stopCamera();
       this.setState({ scanStatusMsg:'Reading\u2026' });
-      const crop = this.cropBottomLeft(img, img.width, img.height);
+      const crop = this.cropCardNumber(img, img.width, img.height);
       const normal = this.binarize(crop, false);
       const inverted = this.binarize(crop, true);
-      const opts = { tessedit_pageseg_mode:'7', tessedit_char_whitelist:'OPSTEBRP0123456789- ' };
+      const wl = { tessedit_pageseg_mode:'6' };
       Promise.all([
-        window.Tesseract.recognize(normal,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-        window.Tesseract.recognize(inverted,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+        window.Tesseract.recognize(normal,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+        window.Tesseract.recognize(inverted,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+        window.Tesseract.recognize(crop,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
       ]).then(results => {
         for (const text of results){
           const code = this.extractCode(text);
