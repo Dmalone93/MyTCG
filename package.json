@@ -4,10 +4,14 @@
   "description": "A sleek, spreadsheet-style tracker for your One Piece TCG collection. Add cards as fast as typing in a row, track spend vs. market value, profit/loss, and graded upside, and look cards up against the live community catalog.",
   "main": "support.js",
   "scripts": {
+    "dev": "live-server --port=3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
 }

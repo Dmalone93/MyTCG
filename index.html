@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
@@ -27,6 +28,7 @@
   @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
   @keyframes slideIn{ from{ transform:translateX(100%); } to{ transform:none; } }
   @keyframes popDrop{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </helmet>
 
@@ -36,9 +38,6 @@
     <!-- ===== HEADER ===== -->
     <header style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px;">
       <div style="display:flex; align-items:center; gap:12px;">
-        <div style="width:34px; height:34px; border-radius:9px; background:#3E63DD; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(62,99,221,.30); flex:none;">
-          <span style="color:#fff; font-weight:700; font-size:15px; letter-spacing:-.02em;">V</span>
-        </div>
         <div style="display:flex; align-items:baseline; gap:11px;">
           <h1 style="font-weight:600; font-size:22px; line-height:1; margin:0; letter-spacing:-.025em;">{{ headingLabel }}</h1>
           <span style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:.18em; color:#A2A8B2; text-transform:uppercase;">TCG&nbsp;Vault</span>
@@ -46,6 +45,7 @@
       </div>
       <div style="display:flex; gap:9px; align-items:center;">
         <button onClick="{{ openSettings }}" title="Settings" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:17px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">⚙</button>
+        <button onClick="{{ openShare }}" title="Share collection" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:15px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></button>
         <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
         </button>
@@ -352,7 +352,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Frame the card number (e.g. OP06-101)</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Point at the whole card — we'll read the name &amp; number</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
@@ -362,8 +362,8 @@
           <div style="position:relative; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#0E1116;">
             <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:74%; height:30%; border:2px solid rgba(255,255,255,.9); border-radius:10px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
-              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Center the card number in the box</div>
+              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:52%; height:78%; border:2px solid rgba(255,255,255,.9); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
+              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Center the whole card in the frame</div>
             </sc-if>
             <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera…</div></sc-if>
           </div>
@@ -474,6 +474,37 @@
       </div>
     </div>
   </sc-if>
+
+  <!-- ===== SHARE QR MODAL ===== -->
+  <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeShare }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(380px,92vw); background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Share collection</div><div style="font-size:12px; color:#8C939D;">Scan to view this collection</div></div>
+        </div>
+        <button onClick="{{ closeShare }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+      </div>
+      <div style="padding:24px 20px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+        <div ref="{{ qrCanvasRef }}" style="background:#fff; padding:12px; border-radius:12px; border:1px solid #EFF0F3;"></div>
+        <div style="text-align:center;">
+          <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:#13161B;">{{ shareCardCount }} cards · {{ shareValueFmt }}</div>
+          <div style="font-size:12px; color:#8C939D; margin-top:4px;">{{ shareNote }}</div>
+        </div>
+        <button onClick="{{ copyShareLink }}" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">{{ copyLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== SHARED VIEW BANNER ===== -->
+  <sc-if value="{{ isSharedView }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#3E63DD; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; font-size:14px; font-weight:600; box-shadow:0 -4px 20px rgba(62,99,221,.3);">
+      <span>Viewing a shared collection ({{ shareCardCount }} cards)</span>
+      <button onClick="{{ importShared }}" style="border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15); color:#fff; border-radius:9px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(255,255,255,.25);">Import to my collection</button>
+      <button onClick="{{ dismissShared }}" style="border:none; background:none; color:rgba(255,255,255,.7); font-size:18px; cursor:pointer; line-height:0; padding:4px;">×</button>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -489,6 +520,7 @@ class Component extends DCLogic {
     this.previewCapRef = React.createRef();
     this.scanVideoRef = React.createRef();
     this.scanFileRef = React.createRef();
+    this.qrCanvasRef = React.createRef();
     this._scanStream = null;
     this.state = {
       cards: [],
@@ -509,6 +541,7 @@ class Component extends DCLogic {
       importMsg: '', importOk: true,
       scanOpen:false, scanStage:'capture', scanCamReady:false, scanProcessMsg:'',
       scanDetected:'', scanCandidates:[], scanNote:'', scanNoteOk:true,
+      shareOpen:false, shareCopied:false, sharedCards:null,
       loaded: false,
     };
   }
@@ -537,9 +570,9 @@ class Component extends DCLogic {
       this.setState({ cards, monthlyBudget: data.monthlyBudget ?? 400,
         view, game: 'all',
         settings: { ...this.defaultSettings(), ...(data.settings||{}) }, loaded:true },
-        () => this.loadCatalog());
+        () => { this.loadCatalog(); this.loadSharedFromHash(); });
     } else {
-      this.setState({ cards: this.seed(), loaded:true }, () => this.loadCatalog());
+      this.setState({ cards: this.seed(), loaded:true }, () => { this.loadCatalog(); this.loadSharedFromHash(); });
     }
   }
 
@@ -795,8 +828,8 @@ class Component extends DCLogic {
     const v = this.scanVideoRef.current;
     if (!v || !v.videoWidth){ return; }
     const vw = v.videoWidth, vh = v.videoHeight;
-    // crop the central guide band (matches the on-screen box: 74% wide, 30% tall)
-    const cw = vw*0.78, ch = vh*0.34, cx = (vw-cw)/2, cy = (vh-ch)/2;
+    // capture full frame for whole-card recognition
+    const cw = vw, ch = vh, cx = 0, cy = 0;
     const canvas = document.createElement('canvas');
     const scale = Math.min(3, 1100/cw);
     canvas.width = Math.round(cw*scale); canvas.height = Math.round(ch*scale);
@@ -832,7 +865,8 @@ class Component extends DCLogic {
       const d = im.data;
       for (let i=0;i<d.length;i+=4){
         let g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        g = g < 120 ? 0 : 255;
+        // increase contrast but keep grayscale for better name recognition
+        g = Math.min(255, Math.max(0, (g - 128) * 1.8 + 128));
         d[i]=d[i+1]=d[i+2]=g;
       }
       ctx.putImageData(im,0,0);
@@ -846,9 +880,7 @@ class Component extends DCLogic {
       this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Text reader is still loading \u2014 give it a second and try again.', scanNoteOk:false });
       return;
     }
-    window.Tesseract.recognize(canvas, 'eng', {
-      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ',
-    }).then(res => {
+    window.Tesseract.recognize(canvas, 'eng', {}).then(res => {
       const text = (res && res.data && res.data.text) || '';
       this.handleOCR(text);
     }).catch(() => {
@@ -871,20 +903,66 @@ class Component extends DCLogic {
     return '';
   }
 
+  fuzzyMatch(query, target){
+    const q = query.toLowerCase().replace(/[^a-z0-9]/g,'');
+    const t = target.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if (!q || !t) return 0;
+    if (t === q) return 1;
+    if (t.includes(q)) return 0.85;
+    if (q.includes(t)) return 0.7;
+    const bigrams = s => { const b = new Set(); for (let i=0;i<s.length-1;i++) b.add(s.slice(i,i+2)); return b; };
+    const qb = bigrams(q), tb = bigrams(t);
+    let inter = 0; qb.forEach(b => { if (tb.has(b)) inter++; });
+    return (2*inter) / (qb.size + tb.size);
+  }
+
+  extractNames(text){
+    const lines = String(text||'').split(/\n/).map(l => l.trim()).filter(l => l.length >= 3);
+    return lines.filter(l => /[A-Za-z]{2,}/.test(l)).map(l => l.replace(/[^A-Za-z\s.''\\-]/g,' ').replace(/\s+/g,' ').trim()).filter(l => l.length >= 3);
+  }
+
   handleOCR(text){
     const code = this.extractCode(text);
-    const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    if (!code){
-      this.setState({ scanStage:'results', scanDetected:'\u2014 (no code found)', scanCandidates:[] });
-      return;
-    }
+    const extractedNames = this.extractNames(text);
     const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
-    const cn = norm(code);
-    let matches = source.filter(c => norm(c.number) === cn);
-    if (!matches.length) matches = source.filter(c => norm(c.number).indexOf(cn) === 0);
-    if (!matches.length) matches = source.filter(c => norm(c.number).includes(cn));
+    const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+
+    let matches = [];
+    let detected = '';
+
+    if (code) {
+      const cn = norm(code);
+      matches = source.filter(c => norm(c.number) === cn);
+      if (!matches.length) matches = source.filter(c => norm(c.number).indexOf(cn) === 0);
+      if (!matches.length) matches = source.filter(c => norm(c.number).includes(cn));
+      detected = code;
+    }
+
+    if (!matches.length && extractedNames.length) {
+      const scored = [];
+      for (const card of source) {
+        let bestScore = 0;
+        for (const name of extractedNames) {
+          const s = this.fuzzyMatch(name, card.name);
+          if (s > bestScore) bestScore = s;
+        }
+        if (bestScore >= 0.35) scored.push({ card, score: bestScore });
+      }
+      scored.sort((a,b) => b.score - a.score);
+      const seen = new Set();
+      matches = [];
+      for (const s of scored) {
+        const key = s.card.number + '|' + s.card.name;
+        if (!seen.has(key)) { seen.add(key); matches.push(s.card); }
+        if (matches.length >= 12) break;
+      }
+      if (!detected && extractedNames.length) detected = extractedNames.slice(0,2).join(', ');
+    }
+
+    if (!detected) detected = '\u2014 (no text found)';
     matches = matches.slice(0,12);
-    this.setState({ scanStage:'results', scanDetected:code,
+
+    this.setState({ scanStage:'results', scanDetected:detected,
       scanCandidates: matches.map(c => ({ number:c.number, name:c.name,
         priceFmt: c.price ? this.money(c.price) : '\u2014', hasImage:!!c.image, image:c.image||'',
         onPick: ()=>this.scanPick(c) })) });
@@ -893,6 +971,202 @@ class Component extends DCLogic {
   scanPick(card){ this.stopCamera(); this.setState({ scanOpen:false }); this.pickInto('new', card); }
 
   componentWillUnmount(){ this.stopCamera(); }
+
+  // ---- share / QR ----
+  compressCollection(){
+    const cards = this.state.sharedCards || this.state.cards;
+    const compact = cards.map(c => [c.name,c.number,c.set,c.rarity||'',c.language||'EN',c.qty||1,c.rawValue||0,c.gradedValue||0,c.purchasePrice||0].join('\t'));
+    return compact.join('\n');
+  }
+
+  encodeShareData(text){
+    try {
+      const bytes = new TextEncoder().encode(text);
+      const cs = new CompressionStream('deflate');
+      const writer = cs.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const reader = cs.readable.getReader();
+      const chunks = [];
+      const pump = () => reader.read().then(({done,value}) => { if (!done) { chunks.push(value); return pump(); } });
+      return pump().then(() => {
+        const all = new Uint8Array(chunks.reduce((s,c)=>s+c.length,0));
+        let off = 0; chunks.forEach(c => { all.set(c, off); off += c.length; });
+        let bin = ''; all.forEach(b => bin += String.fromCharCode(b));
+        return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      });
+    } catch(e) {
+      // fallback: base64 without compression
+      let bin = ''; new TextEncoder().encode(text).forEach(b => bin += String.fromCharCode(b));
+      return Promise.resolve(btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
+    }
+  }
+
+  decodeShareData(encoded){
+    try {
+      const pad = encoded.length % 4; const padded = encoded.replace(/-/g,'+').replace(/_/g,'/') + '===='.slice(pad||4);
+      const bin = atob(padded);
+      const bytes = new Uint8Array(bin.length);
+      for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+      const ds = new DecompressionStream('deflate');
+      const writer = ds.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const reader = ds.readable.getReader();
+      const chunks = [];
+      const pump = () => reader.read().then(({done,value}) => { if (!done) { chunks.push(value); return pump(); } });
+      return pump().then(() => {
+        const all = new Uint8Array(chunks.reduce((s,c)=>s+c.length,0));
+        let off = 0; chunks.forEach(c => { all.set(c, off); off += c.length; });
+        return new TextDecoder().decode(all);
+      });
+    } catch(e) {
+      // fallback: base64 without decompression
+      try {
+        const pad = encoded.length % 4; const padded = encoded.replace(/-/g,'+').replace(/_/g,'/') + '===='.slice(pad||4);
+        const bin = atob(padded);
+        const bytes = new Uint8Array(bin.length);
+        for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+        return Promise.resolve(new TextDecoder().decode(bytes));
+      } catch(e2) { return Promise.resolve(''); }
+    }
+  }
+
+  parseShareData(text){
+    if (!text) return [];
+    return text.split('\n').filter(l=>l.trim()).map((line,i) => {
+      const p = line.split('\t');
+      return {
+        id:'shared'+i+Date.now(), game:'onepiece',
+        name:p[0]||'', number:p[1]||'', set:p[2]||'', rarity:p[3]||'',
+        language:p[4]||'EN', qty:parseInt(p[5])||1,
+        rawValue:parseFloat(p[6])||0, gradedValue:parseFloat(p[7])||0,
+        purchasePrice:parseFloat(p[8])||0,
+        condition:'Near Mint', dateAcquired:new Date().toISOString().slice(0,10),
+        source:'', image:'',
+      };
+    });
+  }
+
+  openShare(){
+    this.setState({ shareOpen:true, shareCopied:false }, () => this.renderQR());
+  }
+
+  closeShare(){ this.setState({ shareOpen:false }); }
+
+  renderQR(){
+    const container = this.qrCanvasRef.current;
+    if (!container || !window.qrcode) return;
+    const text = this.compressCollection();
+    this.encodeShareData(text).then(encoded => {
+      const url = window.location.origin + window.location.pathname + '#shared=' + encoded;
+      // check if URL is too long for QR (max ~2953 chars for alphanumeric)
+      if (url.length > 2800) {
+        // truncate to fit: take first N cards
+        const cards = this.state.cards;
+        let n = cards.length;
+        const tryEncode = (count) => {
+          const subset = cards.slice(0, count);
+          const compact = subset.map(c => [c.name,c.number,c.set,c.rarity||'',c.language||'EN',c.qty||1,c.rawValue||0,c.gradedValue||0,c.purchasePrice||0].join('\t')).join('\n');
+          return this.encodeShareData(compact);
+        };
+        // binary search for max cards that fit
+        const fitQR = (lo, hi) => {
+          if (lo >= hi) return tryEncode(lo).then(enc => {
+            this._shareUrl = window.location.origin + window.location.pathname + '#shared=' + enc;
+            this._shareNote = lo < cards.length ? 'Showing '+lo+' of '+cards.length+' cards (QR size limit)' : '';
+            this.doRenderQR(this._shareUrl);
+            this.forceUpdate();
+          });
+          const mid = Math.floor((lo+hi+1)/2);
+          return tryEncode(mid).then(enc => {
+            const testUrl = window.location.origin + window.location.pathname + '#shared=' + enc;
+            if (testUrl.length <= 2800) return fitQR(mid, hi);
+            return fitQR(lo, mid-1);
+          });
+        };
+        fitQR(1, n);
+      } else {
+        this._shareUrl = url;
+        this._shareNote = '';
+        this.doRenderQR(url);
+      }
+    });
+  }
+
+  doRenderQR(url){
+    const container = this.qrCanvasRef.current;
+    if (!container) return;
+    container.innerHTML = '';
+    try {
+      const qr = window.qrcode(0, 'L');
+      qr.addData(url);
+      qr.make();
+      const size = 220;
+      const mods = qr.getModuleCount();
+      const cellSize = size / mods;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0,0,size,size);
+      ctx.fillStyle = '#13161B';
+      for (let r=0;r<mods;r++) for (let c=0;c<mods;c++) {
+        if (qr.isDark(r,c)) ctx.fillRect(Math.floor(c*cellSize), Math.floor(r*cellSize), Math.ceil(cellSize), Math.ceil(cellSize));
+      }
+      canvas.style.width = '220px';
+      canvas.style.height = '220px';
+      canvas.style.display = 'block';
+      container.appendChild(canvas);
+    } catch(e) {
+      container.textContent = 'Could not generate QR code (collection may be too large).';
+    }
+  }
+
+  copyShareLink(){
+    const url = this._shareUrl;
+    if (!url) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        this.setState({ shareCopied:true });
+        setTimeout(() => this.setState({ shareCopied:false }), 2000);
+      }).catch(() => {});
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); this.setState({ shareCopied:true }); setTimeout(() => this.setState({ shareCopied:false }), 2000); } catch(e){}
+      ta.remove();
+    }
+  }
+
+  loadSharedFromHash(){
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('shared=')) return;
+    const encoded = hash.split('shared=')[1];
+    if (!encoded) return;
+    this.decodeShareData(encoded).then(text => {
+      const cards = this.parseShareData(text);
+      if (cards.length) {
+        this.setState({ sharedCards: cards });
+      }
+    });
+  }
+
+  importShared(){
+    const shared = this.state.sharedCards;
+    if (!shared || !shared.length) return;
+    const newCards = shared.map((c,i) => ({ ...c, id:'imp'+Date.now()+i+Math.random().toString(36).slice(2,5) }));
+    this.persist({ cards: [...newCards, ...this.state.cards] });
+    this.setState({ sharedCards: null });
+    window.history.replaceState(null, '', window.location.pathname);
+    this.enrichImages();
+  }
+
+  dismissShared(){
+    this.setState({ sharedCards: null });
+    window.history.replaceState(null, '', window.location.pathname);
+  }
 
   openSettings(){ this.setState({ settingsOpen:true }); }
   closeSettings(){ this.setState({ settingsOpen:false }); }
@@ -1095,7 +1369,7 @@ class Component extends DCLogic {
   renderVals(){
     const S = this.state;
     const st = S.settings;
-    const all = S.cards;
+    const all = S.sharedCards || S.cards;
     const GAIN='#2B9A66', LOSS='#DC3B43', GAINBG='#E6F6EC', LOSSBG='#FEEBEC';
     const ACC='#3E63DD';
     const basisGraded = st.plBasis === 'graded';
@@ -1111,7 +1385,7 @@ class Component extends DCLogic {
         border: active?ACC:'#E5E7EB', shadow: active?'0 1px 2px rgba(62,99,221,.28)':'none',
         onClick: () => this.setGame(k) };
     });
-    const headingLabel = S.game==='all' ? 'My collection' : this.gameMeta(S.game).label;
+    const headingLabel = S.game==='all' ? 'MyTCG' : this.gameMeta(S.game).label;
 
     const q = S.search.trim().toLowerCase();
     let fcards = all.filter(c => S.game==='all' || c.game===S.game);
@@ -1341,6 +1615,14 @@ class Component extends DCLogic {
       refreshCatalog:()=>this.refreshCatalog(), resetSample:()=>this.resetSample(), clearAll:()=>this.clearAll(),
       onImportFile:(e)=>this.onImportFile(e), exportCsv:()=>this.exportCsv(), downloadTemplate:()=>this.downloadTemplate(),
       importMsg:S.importMsg, importColor: S.importOk?GAIN:LOSS, importBg: S.importOk?GAINBG:LOSSBG,
+      shareOpen:S.shareOpen, openShare:()=>this.openShare(), closeShare:()=>this.closeShare(),
+      qrCanvasRef:this.qrCanvasRef, copyShareLink:()=>this.copyShareLink(),
+      copyLabel: S.shareCopied ? 'Copied!' : 'Copy link',
+      shareCardCount: S.sharedCards ? S.sharedCards.length : all.length,
+      shareValueFmt: this.money(S.sharedCards ? S.sharedCards.reduce((s,c)=>s+c.rawValue*c.qty,0) : totalRaw),
+      shareNote: this._shareNote || 'Anyone with this QR or link can view your collection',
+      isSharedView: !!S.sharedCards,
+      importShared:()=>this.importShared(), dismissShared:()=>this.dismissShared(),
       gameOptions:[{key:'onepiece',label:'One Piece'},{key:'pokemon',label:'Pokémon'},{key:'yugioh',label:'Yu-Gi-Oh!'}],
       langOptions:['EN','JP'],
       rarityOptions:['Leader','Common','Uncommon','Rare','Super Rare','Secret Rare','Special / Alt-Art','Manga Rare','Special Illustration Rare','Ultra Rare','Promo'],
