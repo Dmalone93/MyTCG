@@ -355,7 +355,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Fill the frame with the card — number at the bottom</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Hold the card up — auto-detects when it sees the number</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
@@ -373,7 +373,7 @@
           </div>
           <div style="display:flex; gap:9px; margin-top:14px;">
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ doCapture }}" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14.5px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;"><span style="width:14px; height:14px; border-radius:50%; border:3px solid #fff;"></span> Capture</button>
+              <button onClick="{{ doCapture }}" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14.5px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;"><span style="width:14px; height:14px; border-radius:50%; border:3px solid #fff;"></span> Capture now</button>
             </sc-if>
             <label style="flex:{{ scanUploadFlex }}; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">Upload a photo<input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" /></label>
           </div>
@@ -901,25 +901,80 @@ class Component extends DCLogic {
   startCamera(){
     const video = this.scanVideoRef.current;
     if (!video) return;
-    if (this._scanStream) { this.setState({ scanCamReady:true }); return; }
+    if (this._scanStream) { this.setState({ scanCamReady:true }); this.startAutoScan(); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       this.setState({ scanCamReady:false, scanNote:'Camera isn\u2019t available here \u2014 use \u201cUpload a photo\u201d instead (works great on desktop, or snap the card on your phone).', scanNoteOk:true });
       return;
     }
-    navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false })
+    navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:960 } }, audio:false })
       .then(stream => {
         this._scanStream = stream;
         const v = this.scanVideoRef.current;
         if (!v){ stream.getTracks().forEach(t=>t.stop()); this._scanStream=null; return; }
         v.srcObject = stream;
         v.play && v.play().catch(()=>{});
-        this.setState({ scanCamReady:true, scanNote:'' });
+        this.setState({ scanCamReady:true, scanNote:'Hold the card steady \u2014 scanning automatically\u2026', scanNoteOk:true });
+        this.startAutoScan();
       })
       .catch(() => {
         this.setState({ scanCamReady:false, scanNote:'Couldn\u2019t open the camera (permission blocked or unavailable in this view). Use \u201cUpload a photo\u201d \u2014 take a clear shot of the card and it\u2019ll read the number.', scanNoteOk:true });
       });
   }
-  stopCamera(){ if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; } }
+  stopCamera(){
+    this.stopAutoScan();
+    if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; }
+  }
+
+  startAutoScan(){
+    this.stopAutoScan();
+    this._autoScanning = false;
+    this._autoScanTimer = setInterval(() => {
+      if (this._autoScanning) return; // previous scan still running
+      if (this.state.scanStage !== 'capture') return;
+      if (!this._scanStream) return;
+      const v = this.scanVideoRef.current;
+      if (!v || !v.videoWidth) return;
+      this._autoScanning = true;
+      this.autoScanFrame(v);
+    }, 1500);
+  }
+  stopAutoScan(){
+    if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
+    this._autoScanning = false;
+  }
+
+  autoScanFrame(v){
+    const vw = v.videoWidth, vh = v.videoHeight;
+    // just crop bottom 35% for quick number check
+    const numH = Math.round(vh * 0.35);
+    const numY = vh - numH;
+    const targetW = 1200;
+    const scale = targetW / vw;
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = Math.round(numH * scale);
+    canvas.getContext('2d').drawImage(v, 0, numY, vw, numH, 0, 0, canvas.width, canvas.height);
+
+    const variants = this.makeVariants(canvas);
+    // quick OCR on both variants
+    Promise.all(variants.map(c => window.Tesseract.recognize(c, 'eng', { tessedit_pageseg_mode:'6' }).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>'')
+    )).then(results => {
+      this._autoScanning = false;
+      if (this.state.scanStage !== 'capture') return;
+      for (const text of results) {
+        const code = this.extractCode(text);
+        if (code) {
+          // found a card number! stop auto-scan and process
+          this.stopAutoScan();
+          this.setState({ scanNote:'' });
+          this.handleOCR(results.join('\n'));
+          return;
+        }
+      }
+      // no code found — keep scanning (update note)
+      this.setState({ scanNote:'Scanning\u2026 hold the card number visible at the bottom', scanNoteOk:true });
+    }).catch(() => { this._autoScanning = false; });
+  }
 
   doCapture(){
     const v = this.scanVideoRef.current;
@@ -927,23 +982,25 @@ class Component extends DCLogic {
     const vw = v.videoWidth, vh = v.videoHeight;
     this.stopCamera();
 
-    // crop bottom 35% for card number (it's always printed at the bottom)
+    // crop bottom 35% for card number — scale to fixed 1200px wide
     const numH = Math.round(vh * 0.35);
     const numY = vh - numH;
+    const targetW = 1200;
+    const numScale = targetW / vw;
     const numCanvas = document.createElement('canvas');
-    const numScale = Math.min(3, 1200 / vw);
-    numCanvas.width = Math.round(vw * numScale);
+    numCanvas.width = targetW;
     numCanvas.height = Math.round(numH * numScale);
     numCanvas.getContext('2d').drawImage(v, 0, numY, vw, numH, 0, 0, numCanvas.width, numCanvas.height);
 
-    // also capture full frame for name matching fallback
+    // full frame for name fallback — scale to 800px wide
     const fullCanvas = document.createElement('canvas');
-    const fullScale = Math.min(2, 900 / vw);
-    fullCanvas.width = Math.round(vw * fullScale);
+    const fullTargetW = 800;
+    const fullScale = fullTargetW / vw;
+    fullCanvas.width = fullTargetW;
     fullCanvas.height = Math.round(vh * fullScale);
     fullCanvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, fullCanvas.width, fullCanvas.height);
 
-    this.runDualOCR(this.preprocessForNumber(numCanvas), this.preprocess(fullCanvas));
+    this.runDualOCR(numCanvas, fullCanvas);
   }
 
   onScanFile(e){
@@ -956,52 +1013,82 @@ class Component extends DCLogic {
       URL.revokeObjectURL(url);
       this.stopCamera();
 
-      // crop bottom 35% for card number
+      // crop bottom 35% for card number — scale to fixed 1200px wide for consistent OCR
       const numH = Math.round(h * 0.35);
       const numY = h - numH;
+      const targetW = 1200;
+      const numScale = targetW / w;
       const numCanvas = document.createElement('canvas');
-      const numScale = Math.min(3, 1200 / w);
-      numCanvas.width = Math.round(w * numScale);
+      numCanvas.width = targetW;
       numCanvas.height = Math.round(numH * numScale);
       numCanvas.getContext('2d').drawImage(img, 0, numY, w, numH, 0, 0, numCanvas.width, numCanvas.height);
 
-      // full image for name fallback
+      // full image for name fallback — scale to 800px wide
       const fullCanvas = document.createElement('canvas');
-      const fullScale = Math.min(2, 900 / w);
-      fullCanvas.width = Math.round(w * fullScale);
+      const fullTargetW = 800;
+      const fullScale = fullTargetW / w;
+      fullCanvas.width = fullTargetW;
       fullCanvas.height = Math.round(h * fullScale);
       fullCanvas.getContext('2d').drawImage(img, 0, 0, w, h, 0, 0, fullCanvas.width, fullCanvas.height);
 
-      this.runDualOCR(this.preprocessForNumber(numCanvas), this.preprocess(fullCanvas));
+      this.runDualOCR(numCanvas, fullCanvas);
     };
     img.onerror = () => { URL.revokeObjectURL(url); this.setState({ scanStage:'capture', scanNote:'Couldn\u2019t read that image. Try another photo.', scanNoteOk:false }); };
     img.src = url;
     e.target.value = '';
   }
 
-  preprocessForNumber(canvas){
-    // aggressive binarization — optimized for reading small card-number text
-    try {
+  makeVariants(canvas){
+    // create multiple preprocessed versions to handle different card styles
+    const w = canvas.width, h = canvas.height;
+    const variants = [];
+
+    const getGray = (canvas) => {
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const gray = new Uint8Array(im.data.length/4);
+      for (let i=0;i<gray.length;i++) gray[i] = Math.round(0.299*im.data[i*4]+0.587*im.data[i*4+1]+0.114*im.data[i*4+2]);
+      return { im, gray, ctx };
+    };
+
+    const binarize = (srcCanvas, invert) => {
+      const c = document.createElement('canvas');
+      c.width = srcCanvas.width; c.height = srcCanvas.height;
+      c.getContext('2d').drawImage(srcCanvas, 0, 0);
+      const { im, gray, ctx } = getGray(c);
+      // compute Otsu's threshold
+      let hist = new Array(256).fill(0);
+      gray.forEach(v => hist[v]++);
+      const total = gray.length;
+      let sumAll = 0; for (let i=0;i<256;i++) sumAll += i*hist[i];
+      let sumB=0, wB=0, best=0, thresh=128;
+      for (let t=0;t<256;t++){
+        wB += hist[t]; if (!wB) continue;
+        const wF = total - wB; if (!wF) break;
+        sumB += t*hist[t];
+        const mB = sumB/wB, mF = (sumAll-sumB)/wF;
+        const between = wB*wF*(mB-mF)*(mB-mF);
+        if (between > best) { best = between; thresh = t; }
+      }
       const d = im.data;
-      // adaptive threshold: compute average brightness
-      let sum = 0;
-      for (let i=0;i<d.length;i+=4) sum += 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-      const avg = sum / (d.length/4);
-      const thresh = Math.min(140, Math.max(80, avg * 0.65));
-      for (let i=0;i<d.length;i+=4){
-        const g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        const v = g < thresh ? 0 : 255;
-        d[i]=d[i+1]=d[i+2]=v;
+      for (let i=0;i<gray.length;i++){
+        const v = invert ? (gray[i] > thresh ? 0 : 255) : (gray[i] < thresh ? 0 : 255);
+        d[i*4]=d[i*4+1]=d[i*4+2]=v;
       }
       ctx.putImageData(im,0,0);
-    } catch(e){}
-    return canvas;
+      return c;
+    };
+
+    // variant 1: normal binarization (dark text on light bg)
+    variants.push(binarize(canvas, false));
+    // variant 2: inverted (light text on dark bg)
+    variants.push(binarize(canvas, true));
+
+    return variants;
   }
 
   preprocess(canvas){
-    // lighter preprocessing for name text — just convert to grayscale with mild contrast
+    // just grayscale for name text
     try {
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -1021,24 +1108,31 @@ class Component extends DCLogic {
       this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Text reader is still loading \u2014 give it a second and try again.', scanNoteOk:false });
       return;
     }
-    // first pass: read the cropped bottom for card number (with whitelist for accuracy)
-    window.Tesseract.recognize(numberCanvas, 'eng', {
-      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ',
-    }).then(numRes => {
-      const numText = (numRes && numRes.data && numRes.data.text) || '';
-      const code = this.extractCode(numText);
-      if (code) {
-        // got a card number — try to match immediately
-        this.handleOCR(numText);
+
+    const variants = this.makeVariants(numberCanvas);
+    const ocrOpts = { tessedit_pageseg_mode:'6' };
+
+    // run OCR on both normal and inverted versions in parallel
+    Promise.all(variants.map(v => window.Tesseract.recognize(v, 'eng', ocrOpts).then(r => (r&&r.data&&r.data.text)||'').catch(()=>'')
+    )).then(results => {
+      // try to extract code from each result
+      let bestCode = '';
+      let allText = results.join('\n');
+      for (const text of results) {
+        const code = this.extractCode(text);
+        if (code) { bestCode = code; break; }
+      }
+
+      if (bestCode) {
+        this.handleOCR(allText);
       } else {
-        // no code found in number region — fall back to full card OCR for name
+        // no code from number region — try full card for name
         this.setState({ scanProcessMsg:'Reading card name\u2026' });
-        window.Tesseract.recognize(fullCanvas, 'eng', {}).then(fullRes => {
+        window.Tesseract.recognize(this.preprocess(fullCanvas), 'eng', {}).then(fullRes => {
           const fullText = (fullRes && fullRes.data && fullRes.data.text) || '';
-          // combine both OCR results
-          this.handleOCR(numText + '\n' + fullText);
+          this.handleOCR(allText + '\n' + fullText);
         }).catch(() => {
-          this.handleOCR(numText);
+          this.handleOCR(allText);
         });
       }
     }).catch(() => {
