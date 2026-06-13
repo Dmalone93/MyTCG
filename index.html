@@ -954,15 +954,15 @@ class Component extends DCLogic {
       if (!v || !v.videoWidth) return;
       this._autoScanning = true;
       this.scanFrameVision(v);
-    }, 2500);
+    }, 1200);
   }
   stopAutoScan(){
     if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
     this._autoScanning = false;
   }
 
-  canvasToBase64(canvas){
-    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+  canvasToBase64(canvas, quality){
+    return canvas.toDataURL('image/jpeg', quality||0.7).split(',')[1];
   }
 
   callVisionAPI(base64){
@@ -1008,11 +1008,12 @@ class Component extends DCLogic {
 
   scanFrameVision(v){
     const vw = v.videoWidth, vh = v.videoHeight;
+    // send smaller image for speed — 640px wide is plenty for text detection
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(1024, vw);
+    canvas.width = Math.min(640, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    const b64 = this.canvasToBase64(canvas);
+    const b64 = this.canvasToBase64(canvas, 0.55);
     this.callVisionAPI(b64).then(text => {
       this._autoScanning = false;
       if (this.state.scanStage !== 'capture') return;
@@ -1025,9 +1026,15 @@ class Component extends DCLogic {
       }
     }).catch(err => {
       this._autoScanning = false;
+      if (this.state.scanStage !== 'capture') return;
       const msg = String(err&&err.message||err||'');
-      this.stopAutoScan();
-      this.setState({ scanStatusMsg:msg.length > 80 ? msg.slice(0,80)+'\u2026' : msg });
+      if (msg.includes('403') || msg.includes('401') || msg.includes('billing')){
+        this.stopAutoScan();
+        this.setState({ scanStatusMsg:msg.length > 80 ? msg.slice(0,80)+'\u2026' : msg });
+      } else {
+        // transient error — keep scanning
+        this.setState({ scanStatusMsg:'Scanning\u2026' });
+      }
     });
   }
 
