@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:#F5F6F8; font-family:'Geist',-apple-system,'Segoe UI',sans-serif; color:#13161B; -webkit-font-smoothing:antialiased; }
+  input,select,button,textarea{ font-family:inherit; color:inherit; }
+  ::placeholder{ color:#B0B6BF; }
+  .cellinput:focus{ outline:2px solid #3E63DD; outline-offset:-2px; background:#fff !important; border-radius:4px; }
+  input:focus,select:focus{ outline:2px solid #3E63DD; outline-offset:-1px; }
+  select.cellinput{ outline-offset:-2px; }
+  ::-webkit-scrollbar{ width:11px; height:11px; }
+  ::-webkit-scrollbar-thumb{ background:#D6D9DF; border-radius:8px; border:3px solid #FFFFFF; }
+  ::-webkit-scrollbar-track{ background:#FFFFFF; }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes slideIn{ from{ transform:translateX(100%); } to{ transform:none; } }
+  @keyframes popDrop{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+</style>
+</helmet>
+
+<div style="min-height:100vh; padding:clamp(14px,3.5vw,22px) clamp(12px,3.5vw,20px) 64px;">
+  <div style="max-width:1280px; margin:0 auto;">
+
+    <!-- ===== HEADER ===== -->
+    <header style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:34px; height:34px; border-radius:9px; background:#3E63DD; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(62,99,221,.30); flex:none;">
+          <span style="color:#fff; font-weight:700; font-size:15px; letter-spacing:-.02em;">V</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:11px;">
+          <h1 style="font-weight:600; font-size:22px; line-height:1; margin:0; letter-spacing:-.025em;">{{ headingLabel }}</h1>
+          <span style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:.18em; color:#A2A8B2; text-transform:uppercase;">TCG&nbsp;Vault</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:9px; align-items:center;">
+        <button onClick="{{ openSettings }}" title="Settings" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:17px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">⚙</button>
+        <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
+        </button>
+        <button onClick="{{ focusNew }}" style="display:inline-flex; align-items:center; gap:7px; background:#3E63DD; color:#fff; border:none; border-radius:10px; padding:11px 17px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.10), 0 2px 8px rgba(62,99,221,.22);" style-hover="background:#3358D4;">
+          <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== METRIC STRIP ===== -->
+    <div style="display:flex; flex-wrap:wrap; align-items:stretch; background:#fff; border:1px solid #E5E7EB; border-radius:13px; box-shadow:0 1px 2px rgba(16,24,40,.04); overflow:hidden; margin-bottom:13px;">
+      <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Cards</div>
+        <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ rowCount }} <span style="font-size:12px; color:#9DA3AD; font-weight:500;">· {{ totalQty }} copies</span></div>
+      </div>
+      <sc-if value="{{ showSpent }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Spent</div>
+          <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ totalSpentFmt }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showRaw }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Raw value</div>
+          <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ totalRawFmt }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showPL }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; min-width:140px; padding:13px 18px; border-right:1px solid #EFF0F3;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Profit / Loss</div>
+          <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+            <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em; color:{{ plColor }};">{{ plFmt }}</span>
+            <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:12px; color:{{ plColor }}; background:{{ plBg }}; padding:2px 7px; border-radius:6px;">{{ plPctFmt }}</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showGraded }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; min-width:120px; padding:13px 18px;">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">If graded · PSA 10</div>
+          <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em; color:#2B9A66;">{{ totalGradedFmt }}</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-bottom:11px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; width:100%;">
+        <sc-if value="{{ filterActive }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid #C7D2F5; background:#EAEEFB; color:#3E63DD; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
+        </sc-if>
+        <div style="position:relative; display:flex; align-items:center;">
+          <span style="position:absolute; left:11px; color:#A2A8B2; font-size:13px; pointer-events:none;">⌕</span>
+          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid #E5E7EB; background:#fff; border-radius:9px; padding:9px 12px 9px 30px; font-size:13.5px; width:190px; max-width:46vw;" />
+        </div>
+        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid #E5E7EB; background:#fff; border-radius:9px; padding:9px 11px; font-size:13.5px; cursor:pointer;">
+          <option value="order">Sort: Sheet order</option>
+          <option value="value">Sort: Value ↓</option>
+          <option value="spent">Sort: Spent ↓</option>
+          <option value="pl">Sort: Profit/Loss ↓</option>
+          <option value="recent">Sort: Recent</option>
+          <option value="name">Sort: Name A–Z</option>
+        </select>
+        <div style="display:flex; border:1px solid #E5E7EB; background:#fff; border-radius:9px; overflow:hidden;">
+          <sc-for list="{{ viewTabs }}" as="v" hint-placeholder-count="2">
+            <button onClick="{{ v.onClick }}" style="border:none; background:{{ v.bg }}; color:{{ v.fg }}; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;">{{ v.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ toggleInsights }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid {{ insightsBorder }}; background:{{ insightsBg }}; color:{{ insightsFg }}; border-radius:9px; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;">
+          Trends <span style="font-size:10px; transform:{{ insightsChevron }}; transition:transform .15s;">▾</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== INSIGHTS (collapsible) ===== -->
+    <sc-if value="{{ insightsOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:13px; margin-bottom:16px; animation:fadeIn .2s ease;">
+        <sc-if value="{{ showChartCard }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:14px; padding:20px 20px 16px; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05); grid-column:1 / -1;">
+            <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px;">
+              <div>
+                <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Portfolio value</div>
+                <div style="display:flex; align-items:baseline; gap:11px; flex-wrap:wrap;">
+                  <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:clamp(26px,5vw,32px); letter-spacing:-.03em;">{{ totalRawFmt }}</span>
+                  <span style="display:inline-flex; align-items:center; gap:5px; font-family:'Geist Mono',monospace; font-weight:600; font-size:13px; color:{{ plColor }}; background:{{ plBg }}; padding:4px 9px; border-radius:8px;">{{ plArrow }} {{ plFmt }} <span style="opacity:.65;">({{ plPctFmt }})</span></span>
+                </div>
+                <div style="font-size:12.5px; color:#8C939D; margin-top:7px;">All-time, against {{ totalSpentFmt }} spent</div>
+              </div>
+              <div style="display:flex; gap:15px; align-items:center; padding-top:4px;">
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#69707A;"><span style="width:16px; height:3px; border-radius:2px; background:#2B9A66;"></span>Value</div>
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#69707A;"><span style="width:16px; border-top:2px dashed #B6BBC4;"></span>Spent</div>
+              </div>
+            </div>
+            <sc-if value="{{ hasChart }}" hint-placeholder-val="{{ true }}">
+              <svg viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; display:block; overflow:visible;">
+                <defs>
+                  <linearGradient id="valFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2B9A66" stop-opacity="0.20"></stop><stop offset="100%" stop-color="#2B9A66" stop-opacity="0"></stop></linearGradient>
+                  <linearGradient id="valStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1F8A5B"></stop><stop offset="100%" stop-color="#36B57E"></stop></linearGradient>
+                </defs>
+                <sc-for list="{{ gridLines }}" as="gl" hint-placeholder-count="3">
+                  <line x1="0" x2="720" y1="{{ gl.y }}" y2="{{ gl.y }}" stroke="#EEF0F2" stroke-width="1" stroke-dasharray="3 5"></line>
+                  <text x="0" y="{{ gl.ty }}" font-family="Geist Mono, monospace" font-size="10" fill="#BDC2CB">{{ gl.label }}</text>
+                </sc-for>
+                <path d="{{ valueArea }}" fill="url(#valFill)"></path>
+                <path d="{{ spentPath }}" fill="none" stroke="#B6BBC4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 5"></path>
+                <line x1="{{ valEndX }}" x2="{{ valEndX }}" y1="{{ valEndY }}" y2="{{ baseY }}" stroke="#2B9A66" stroke-width="1" stroke-dasharray="2 3" opacity="0.35"></line>
+                <path d="{{ valuePath }}" fill="none" stroke="url(#valStroke)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"></path>
+                <circle cx="{{ valEndX }}" cy="{{ valEndY }}" r="5" fill="#2B9A66" stroke="#fff" stroke-width="2.5"></circle>
+                <sc-for list="{{ xLabels }}" as="xl" hint-placeholder-count="5"><text x="{{ xl.x }}" y="214" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="#A2A8B2">{{ xl.label }}</text></sc-for>
+              </svg>
+            </sc-if>
+            <sc-if value="{{ noChart }}" hint-placeholder-val="{{ false }}"><div style="padding:36px 0; text-align:center; color:#8C939D; font-size:14px;">No cards yet — add one to see your value trend.</div></sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showBudgetCard }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:14px; padding:20px; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05); grid-column:1 / -1;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px;">
+              <div style="font-weight:600; font-size:15px; letter-spacing:-.01em;">{{ monthLabelLong }} budget</div>
+              <div style="display:flex; align-items:center; gap:6px; font-family:'Geist Mono',monospace; font-size:13px; color:#69707A;">{{ cur }}<input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="width:66px; border:1px solid #E5E7EB; border-radius:8px; padding:6px 8px; font-family:'Geist Mono',monospace; font-size:13px; text-align:right;" /></div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:24px;">
+              <div style="position:relative; width:108px; height:108px; flex:none;">
+                <svg width="108" height="108" viewBox="0 0 108 108">
+                  <circle cx="54" cy="54" r="46" fill="none" stroke="#EDEFF2" stroke-width="11"></circle>
+                  <circle cx="54" cy="54" r="46" fill="none" stroke="{{ budgetColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ budgetRingDash }} {{ budgetRingGap }}" transform="rotate(-90 54 54)"></circle>
+                </svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                  <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:21px; letter-spacing:-.02em; color:{{ budgetColor }};">{{ budgetPctLabel }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#A2A8B2; margin-top:1px;">used</span>
+                </div>
+              </div>
+              <div style="flex:1; min-width:210px;">
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                  <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:26px; letter-spacing:-.03em; color:{{ budgetColor }};">{{ monthSpentFmt }}</span>
+                  <span style="font-size:13px; color:#8C939D;">of {{ budgetFmt }}</span>
+                </div>
+                <div style="font-size:13px; margin-top:5px; color:{{ budgetColor }}; font-weight:500;">{{ budgetMsg }}</div>
+                <div style="display:flex; align-items:flex-end; gap:7px; height:62px; margin-top:16px;">
+                  <sc-for list="{{ budgetBars }}" as="b" hint-placeholder-count="6">
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                      <div style="width:100%; max-width:24px; height:{{ b.h }}px; min-height:3px; background:{{ b.color }}; border-radius:5px 5px 2px 2px;" title="{{ b.amountFmt }}"></div>
+                      <span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:{{ b.labelColor }};">{{ b.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ===== SHEET VIEW ===== -->
+    <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff; border:1px solid #E5E7EB; border-radius:13px; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.03);">
+        <div ref="{{ sheetScrollRef }}" style="max-height:calc(100vh - 250px); min-height:280px; overflow:auto;">
+          <table style="width:100%; border-collapse:separate; border-spacing:0; min-width:900px;">
+            <thead>
+              <tr>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:42px; font-family:'Geist Mono',monospace; font-size:10px; color:#B0B6BF; font-weight:600; text-align:center;">#</th>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 12px; min-width:200px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Card name</th>
+                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:64px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Lang</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:104px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">No.</th>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; min-width:150px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Set</th>
+                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:138px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Rarity</th></sc-if>
+                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:120px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Cond.</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:54px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">Qty</th>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hPaid }}</th>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hRaw }}</th>
+                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:90px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hGraded }}</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 12px; width:96px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">P/L</th>
+                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; padding:9px 6px; width:38px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ADD ROW -->
+              <tr style="background:#F4F7FF;">
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; text-align:center; color:#3E63DD; font-size:15px; font-weight:600; user-select:none;">+</td>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;">
+                  <input class="cellinput" ref="{{ newNameRef }}" value="{{ nr.name }}" onInput="{{ onDraftName }}" onFocus="{{ onDraftFocus }}" onBlur="{{ onNameBlur }}" onKeyDown="{{ onDraftKey }}" placeholder="Type a card name to add a row…" style="width:100%; border:none; background:transparent; padding:11px 12px; font-size:13.5px; font-weight:600;" />
+                  <sc-if value="{{ newPickerShow }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#fff; border:1px solid #D6D9DF; border-radius:11px; box-shadow:0 14px 40px rgba(16,24,40,.20); overflow:hidden; animation:popDrop .12s ease;">
+                      <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 11px; background:#FAFBFC; border-bottom:1px solid #EFF0F3;"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D;">One Piece catalog</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ pickerSourceColor }};">{{ pickerSourceLabel }}</span></div>
+                      <div style="max-height:288px; overflow-y:auto;">
+                      <sc-for list="{{ newPickerResults }}" as="p" hint-placeholder-count="4">
+                        <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:8px 11px; cursor:pointer;" style-hover="background:#F4F7FF;">
+                          <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 4px,#EEF0F3 4px,#EEF0F3 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                          <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:68px;">{{ p.number }}</span>
+                          <span style="flex:1; font-size:13px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
+                          <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
+                        </button>
+                      </sc-for>
+                      </div>
+                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#FAFBFC; border-top:1px solid #EFF0F3; font-family:'Geist Mono',monospace; font-size:10px; color:#A2A8B2; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
+                    </div>
+                  </sc-if>
+                </td>
+                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.language }}" onChange="{{ onDraftLang }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.number }}" onInput="{{ onDraftNumber }}" placeholder="OP01-…" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px;" /></td>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.set }}" onInput="{{ onDraftSet }}" placeholder="Set" style="width:100%; border:none; background:transparent; padding:11px 10px; font-size:13px;" /></td>
+                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.rarity }}" onChange="{{ onDraftRarity }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.condition }}" onChange="{{ onDraftCond }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" type="number" min="1" value="{{ nr.qty }}" onInput="{{ onDraftQty }}" onKeyDown="{{ onDraftKey }}" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.purchasePrice }}" onInput="{{ onDraftPaid }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.rawValue }}" onInput="{{ onDraftRaw }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.gradedValue }}" onInput="{{ onDraftGraded }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#2B9A66;" /></td></sc-if>
+                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; text-align:right; padding-right:12px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#B0B6BF;">—</span></td>
+                <td style="border-bottom:1px solid #E1E4E9; text-align:center;"><button onClick="{{ commitNew }}" title="Add row" style="border:none; background:#3E63DD; color:#fff; width:24px; height:24px; border-radius:7px; cursor:pointer; font-size:14px; line-height:0;">↵</button></td>
+              </tr>
+
+              <!-- DATA ROWS -->
+              <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
+                <tr style-hover="background:#FAFBFC;">
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; background:#FBFCFD; text-align:center; font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; user-select:none;">{{ c.rowNum }}</td>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;">
+                    <input class="cellinput" value="{{ c.name }}" onInput="{{ c.onName }}" onFocus="{{ c.onNameFocus }}" onBlur="{{ onNameBlur }}" style="width:100%; border:none; background:transparent; padding:10px 12px; font-size:13.5px; font-weight:600;" />
+                    <sc-if value="{{ c.showPicker }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#fff; border:1px solid #D6D9DF; border-radius:11px; box-shadow:0 14px 40px rgba(16,24,40,.20); overflow:hidden; animation:popDrop .12s ease;">
+                      <div style="max-height:288px; overflow-y:auto;">
+                        <sc-for list="{{ c.pickerResults }}" as="p" hint-placeholder-count="4">
+                          <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:8px 11px; cursor:pointer;" style-hover="background:#F4F7FF;">
+                            <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 4px,#EEF0F3 4px,#EEF0F3 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:68px;">{{ p.number }}</span>
+                            <span style="flex:1; font-size:13px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
+                            <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
+                          </button>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#FAFBFC; border-top:1px solid #EFF0F3; font-family:'Geist Mono',monospace; font-size:10px; color:#A2A8B2; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
+                      </div>
+                    </sc-if>
+                  </td>
+                  <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.language }}" onChange="{{ c.onLang }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-family:'Geist Mono',monospace; font-size:11.5px; font-weight:600; color:{{ c.langColor }}; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><input class="cellinput" value="{{ c.number }}" onInput="{{ c.onNumber }}" onMouseEnter="{{ c.onPreviewEnter }}" onMouseMove="{{ c.onPreviewMove }}" onMouseLeave="{{ c.onPreviewLeave }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; color:#69707A;" /><button onClick="{{ c.onFilterNumber }}" title="Show only this number" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#CBD0D8; padding:3px; line-height:0;" style-hover="color:#3E63DD;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><input class="cellinput" value="{{ c.set }}" onInput="{{ c.onSet }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-size:13px;" /><button onClick="{{ c.onFilterSet }}" title="Show only this set" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#CBD0D8; padding:3px; line-height:0;" style-hover="color:#3E63DD;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
+                  <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.rarity }}" onChange="{{ c.onRarity }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#69707A; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.condition }}" onChange="{{ c.onCond }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#69707A; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><input class="cellinput" type="number" min="1" value="{{ c.qty }}" onInput="{{ c.onQty }}" style="width:100%; border:none; background:transparent; padding:10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.purchasePrice }}" onInput="{{ c.onPaid }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.rawValue }}" onInput="{{ c.onRaw }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; font-weight:500;" /></td>
+                  <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.gradedValue }}" onInput="{{ c.onGraded }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#2B9A66;" /></td></sc-if>
+                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; text-align:right; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:12.5px; font-weight:600; color:{{ c.plColor }}; white-space:nowrap;">{{ c.plFmt }}</td>
+                  <td style="border-bottom:1px solid #F1F2F4; text-align:center;"><button onClick="{{ c.onDelete }}" title="Delete row" style="border:none; background:none; cursor:pointer; color:#C5CAD2; font-size:16px; padding:5px; border-radius:6px; line-height:0;" style-hover="background:#FEEBEC; color:#DC3B43;">×</button></td>
+                </tr>
+              </sc-for>
+
+              <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+                <tr><td colspan="20" style="padding:44px 24px; text-align:center; color:#8C939D; font-size:14px;">No cards match this filter. Type a name in the row above to add one.</td></tr>
+              </sc-if>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 14px; border-top:1px solid #EFF0F3; background:#FBFCFD; font-family:'Geist Mono',monospace; font-size:11px; color:#A2A8B2;">
+          <span>{{ rowCount }} rows · click any cell to edit</span>
+          <span>Paid {{ totalSpentFmt }} · Raw {{ totalRawFmt }} · <span style="color:{{ plColor }};">P/L {{ plFmt }}</span></span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== GALLERY VIEW ===== -->
+    <sc-if value="{{ isGallery }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(186px,1fr)); gap:13px;">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
+          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:13px; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.04); display:flex; flex-direction:column;">
+            <div style="position:relative; aspect-ratio:63/88; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 9px,#EEF0F3 9px,#EEF0F3 18px); display:flex; align-items:center; justify-content:center;">
+              <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ c.image }}'); background-size:cover; background-position:center;"></span></sc-if>
+              <span style="position:relative; z-index:1; font-family:'Geist Mono',monospace; font-size:11px; color:#9DA3AD; background:rgba(255,255,255,.92); padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">{{ c.placeholder }}</span>
+              <span style="position:absolute; top:9px; left:9px; z-index:2; width:9px; height:9px; border-radius:50%; background:{{ c.dot }}; box-shadow:0 0 0 2px rgba(255,255,255,.85);"></span>
+              <span style="position:absolute; top:8px; right:9px; z-index:2; font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ c.langColor }}; background:{{ c.langBg }}; padding:3px 6px; border-radius:6px; box-shadow:0 1px 2px rgba(16,24,40,.12);">{{ c.language }}</span>
+            </div>
+            <div style="padding:12px 13px 13px; display:flex; flex-direction:column; gap:8px; flex:1;">
+              <div>
+                <div style="font-weight:600; font-size:13.5px; line-height:1.25;">{{ c.name }}{{ c.qtyBadge }}</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; margin-top:3px;">{{ c.metaLine }}</div>
+              </div>
+              <div style="display:flex; justify-content:space-between; gap:6px; margin-top:auto; padding-top:8px; border-top:1px solid #EFF0F3;">
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Raw</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600;">{{ c.rawFmt }}</div></div>
+                <div style="text-align:right;"><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:{{ c.plColor }};">{{ c.plFmt }}</div></div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff; border:1px dashed #D6D9DF; border-radius:13px; padding:48px 24px; text-align:center; color:#69707A; font-size:14px;">No cards yet. Switch to the Sheet view to add some.</div>
+      </sc-if>
+    </sc-if>
+
+  </div>
+
+  <!-- ===== CARD HOVER PREVIEW ===== -->
+  <div ref="{{ previewRef }}" style="position:fixed; left:0; top:0; z-index:80; display:none; pointer-events:none; width:232px;">
+    <div style="background:#0E1116; border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:8px; box-shadow:0 24px 60px rgba(8,11,18,.5);">
+      <div style="aspect-ratio:63/88; border-radius:9px; overflow:hidden; background-color:#1A1E26; background-image:repeating-linear-gradient(135deg,#20242E 0px,#20242E 9px,#1A1E26 9px,#1A1E26 18px);">
+        <img ref="{{ previewImgRef }}" onLoad="{{ onPreviewImgLoad }}" onError="{{ onPreviewImgError }}" alt="" style="width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .18s;" />
+      </div>
+      <div ref="{{ previewCapRef }}" style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#C5CAD2; text-align:center; padding:7px 4px 3px; letter-spacing:.02em;"></div>
+    </div>
+  </div>
+
+  <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Frame the card number (e.g. OP06-101)</div></div>
+        </div>
+        <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+      </div>
+
+      <div style="padding:16px 20px 20px; overflow-y:auto;">
+        <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#0E1116;">
+            <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
+            <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:74%; height:30%; border:2px solid rgba(255,255,255,.9); border-radius:10px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
+              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Center the card number in the box</div>
+            </sc-if>
+            <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera…</div></sc-if>
+          </div>
+          <div style="display:flex; gap:9px; margin-top:14px;">
+            <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ doCapture }}" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14.5px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;"><span style="width:14px; height:14px; border-radius:50%; border:3px solid #fff;"></span> Capture</button>
+            </sc-if>
+            <label style="flex:{{ scanUploadFlex }}; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">Upload a photo<input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" /></label>
+          </div>
+          <sc-if value="{{ scanNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:{{ scanNoteColor }}; background:{{ scanNoteBg }}; padding:9px 12px; border-radius:9px; margin-top:11px; line-height:1.4;">{{ scanNote }}</div></sc-if>
+        </sc-if>
+
+        <sc-if value="{{ scanProcessing }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:14px; padding:36px 0;">
+            <span style="width:34px; height:34px; border-radius:50%; border:3px solid #E5E7EB; border-top-color:#3E63DD; animation:spin .8s linear infinite;"></span>
+            <div style="font-size:14px; color:#69707A;">{{ scanProcessMsg }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ scanShowResults }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:10px; padding:11px 13px; background:#F4F7FF; border:1px solid #DCE6FB; border-radius:11px; margin-bottom:13px;">
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D;">Detected</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600; color:#3E63DD;">{{ scanDetected }}</span>
+            <button onClick="{{ scanAgain }}" style="margin-left:auto; border:1px solid #C7D2F5; background:#fff; color:#3E63DD; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer;">Scan again</button>
+          </div>
+          <div style="max-height:46vh; overflow-y:auto; border:1px solid #EFF0F3; border-radius:11px;">
+            <sc-for list="{{ scanCandidates }}" as="p" hint-placeholder-count="3">
+              <button onClick="{{ p.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:9px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
+                <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ p.number }}</span>
+                <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
+                <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ scanNoMatch }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 12px; text-align:center; color:#8C939D; font-size:13.5px;">No catalog match for that code. Try scanning again, or type the name in the add row.</div></sc-if>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSettings }}" style="position:fixed; inset:0; background:rgba(19,22,27,.40); backdrop-filter:blur(2px); z-index:60; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; top:0; right:0; bottom:0; width:min(404px,92vw); background:#F5F6F8; z-index:61; box-shadow:-16px 0 48px rgba(16,24,40,.18); display:flex; flex-direction:column; animation:slideIn .22s cubic-bezier(.2,.7,.3,1);">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid #E5E7EB; background:#fff; flex:none;">
+        <h3 style="font-weight:600; font-size:18px; margin:0; letter-spacing:-.01em;">Settings</h3>
+        <button onClick="{{ closeSettings }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:6px 22px 36px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:22px 0 12px;">Display</div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:14px; font-weight:500; margin-bottom:8px;">Currency</div>
+          <div style="display:flex; gap:6px;">
+            <sc-for list="{{ currencyOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:10px 0; font-size:15px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <div style="font-size:14px; font-weight:500; margin-bottom:4px;">Profit / Loss compares against</div>
+          <div style="font-size:12.5px; color:#8C939D; margin-bottom:9px;">Raw market price, or the graded (PSA 10) ceiling.</div>
+          <div style="display:flex; gap:6px;">
+            <sc-for list="{{ basisOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:10px 0; font-size:13.5px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 6px;">Summary &amp; columns</div>
+        <sc-for list="{{ toggleRows }}" as="t" hint-placeholder-count="10">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid #EAEBEE;">
+            <span style="font-size:14px;">{{ t.label }}</span>
+            <button onClick="{{ t.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ t.bg }}; cursor:pointer; position:relative; transition:background .15s; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#fff; transform:{{ t.knobX }}; transition:transform .15s; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
+          </div>
+        </sc-for>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">One Piece card catalog</div>
+        <div style="background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div><div style="font-size:14px; font-weight:500;">Live catalog lookup</div><div style="font-size:12.5px; color:#8C939D; margin-top:2px;">Autocomplete real cards &amp; art (optcgapi.com)</div></div>
+            <button onClick="{{ liveApiToggle.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ liveApiToggle.bg }}; cursor:pointer; position:relative; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#fff; transform:{{ liveApiToggle.knobX }}; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:13px; padding-top:13px; border-top:1px solid #EFF0F3;">
+            <span style="display:inline-flex; align-items:center; gap:7px; font-family:'Geist Mono',monospace; font-size:12px; color:{{ apiStatusColor }};"><span style="width:8px; height:8px; border-radius:50%; background:{{ apiStatusColor }};"></span>{{ apiStatusText }}</span>
+            <button onClick="{{ refreshCatalog }}" style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:8px; padding:7px 13px; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Refresh</button>
+          </div>
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Monthly budget</div>
+        <div style="display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px 14px;">
+          <span style="font-family:'Geist Mono',monospace; font-size:15px; color:#69707A;">{{ cur }}</span>
+          <input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="flex:1; border:1px solid #D6D9DF; border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:15px;" />
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Import &amp; export</div>
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <label style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">Import from CSV<input type="file" accept=".csv,text/csv" onChange="{{ onImportFile }}" style="display:none;" /></label>
+          <div style="display:flex; gap:9px;">
+            <button onClick="{{ exportCsv }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Export CSV</button>
+            <button onClick="{{ downloadTemplate }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Blank template</button>
+          </div>
+          <sc-if value="{{ importMsg }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; font-weight:500; color:{{ importColor }}; background:{{ importBg }}; padding:9px 11px; border-radius:8px;">{{ importMsg }}</div></sc-if>
+          <div style="font-size:12px; color:#8C939D; line-height:1.45;">CSV columns: game, name, number, set, rarity, condition, language, purchasePrice, rawValue, gradedValue, dateAcquired, source, qty.</div>
+        </div>
+
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Collection</div>
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <button onClick="{{ resetSample }}" style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Reload sample collection</button>
+          <button onClick="{{ clearAll }}" style="border:1px solid #F5C0C4; background:#fff; color:#DC3B43; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#FEEBEC;">Clear all cards</button>
+          <div style="font-size:12px; color:#8C939D; line-height:1.45;">Everything is saved in this browser only. Values are what you enter — the catalog just helps you find cards, art, and a market price.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this._catalog = null;
+    this._loading = false;
+    this.newNameRef = React.createRef();
+    this.sheetScrollRef = React.createRef();
+    this.previewRef = React.createRef();
+    this.previewImgRef = React.createRef();
+    this.previewCapRef = React.createRef();
+    this.scanVideoRef = React.createRef();
+    this.scanFileRef = React.createRef();
+    this._scanStream = null;
+    this.state = {
+      cards: [],
+      game: 'all',
+      view: 'sheet',
+      search: '',
+      sortBy: 'order',
+      monthlyBudget: 400,
+      settings: this.defaultSettings(),
+      settingsOpen: false,
+      insightsOpen: false,
+      apiStatus: 'idle',
+      apiCount: 0,
+      newRow: this.blankRow(),
+      pickerFor: null,
+      pickerQuery: '',
+      filterField: null, filterValue: null,
+      importMsg: '', importOk: true,
+      scanOpen:false, scanStage:'capture', scanCamReady:false, scanProcessMsg:'',
+      scanDetected:'', scanCandidates:[], scanNote:'', scanNoteOk:true,
+      loaded: false,
+    };
+  }
+
+  defaultSettings(){
+    return { currency:'$', plBasis:'raw',
+      showSpent:true, showRaw:true, showPL:true, showGraded:true,
+      showChart:true, showBudget:true,
+      colLang:true, colRarity:true, colCond:true, colGraded:true,
+      liveApi:true };
+  }
+
+  blankRow(){
+    return { game:'onepiece', name:'', number:'', set:'', rarity:'Super Rare',
+      condition:'Near Mint', language:'EN', qty:'1',
+      purchasePrice:'', rawValue:'', gradedValue:'', image:'' };
+  }
+
+  componentDidMount(){
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem('tcg-vault-v1') || 'null'); } catch(e){}
+    if (data && Array.isArray(data.cards)) {
+      const cards = data.cards.map(c => ({ language:'EN', ...c })).filter(c => c.game==='onepiece');
+      let view = data.view || 'sheet';
+      if (view === 'table' || view === 'list') view = 'sheet';
+      this.setState({ cards, monthlyBudget: data.monthlyBudget ?? 400,
+        view, game: 'all',
+        settings: { ...this.defaultSettings(), ...(data.settings||{}) }, loaded:true },
+        () => this.loadCatalog());
+    } else {
+      this.setState({ cards: this.seed(), loaded:true }, () => this.loadCatalog());
+    }
+  }
+
+  persist(patch){
+    this.setState(patch, () => {
+      try {
+        localStorage.setItem('tcg-vault-v1', JSON.stringify({
+          cards: this.state.cards, monthlyBudget: this.state.monthlyBudget,
+          view: this.state.view, game: this.state.game, settings: this.state.settings,
+        }));
+      } catch(e){}
+    });
+  }
+
+  seed(){
+    const op='onepiece';
+    const raw = [
+      [op,'Monkey D. Luffy','OP01-024','Romance Dawn','Super Rare','Near Mint',25,18,120,'2025-03-12','TCGplayer',1,'EN'],
+      [op,'Roronoa Zoro','OP01-025','Romance Dawn','Super Rare','Near Mint',35,60,220,'2025-02-02','Local shop',1,'EN'],
+      [op,'Trafalgar Law','OP01-047','Romance Dawn','Leader','Lightly Played',12,9,55,'2025-01-20','eBay',1,'JP'],
+      [op,'Shanks','OP01-120','Romance Dawn','Secret Rare','Near Mint',220,190,850,'2025-05-18','eBay',1,'JP'],
+      [op,'Monkey D. Luffy','OP01-121','Romance Dawn','Secret Rare','Near Mint',260,320,1100,'2025-08-09','Whatnot',1,'EN'],
+      [op,'Nami','OP01-016','Romance Dawn','Super Rare','Near Mint',8,6,40,'2026-06-03','TCGplayer',2,'EN'],
+      [op,'Boa Hancock','OP02-051','Paramount War','Super Rare','Near Mint',28,35,150,'2025-04-22','Local shop',1,'JP'],
+      [op,'Portgas D. Ace','OP02-013','Paramount War','Super Rare','Near Mint',22,30,140,'2025-07-15','eBay',1,'EN'],
+      [op,'Sakazuki','OP02-093','Paramount War','Secret Rare','Lightly Played',60,45,200,'2025-09-01','Whatnot',1,'EN'],
+      [op,'Kozuki Oden','OP04-040','Kingdoms of Intrigue','Manga Rare','Near Mint',70,95,320,'2025-10-11','eBay',1,'JP'],
+      [op,'Yamato','OP04-112','Kingdoms of Intrigue','Manga Rare','Near Mint',110,130,480,'2026-06-07','Whatnot',1,'JP'],
+      [op,'Monkey D. Luffy','OP05-119','Awakening of the New Era','Manga Rare','Near Mint',140,120,520,'2025-12-20','TCGplayer',1,'EN'],
+      [op,'Nico Robin','OP05-118','Awakening of the New Era','Manga Rare','Near Mint',45,40,180,'2025-11-03','Local shop',1,'EN'],
+      [op,'Charlotte Katakuri','OP06-069','Wings of the Captain','Manga Rare','Near Mint',30,28,130,'2026-02-14','eBay',1,'JP'],
+      [op,'Eustass Kid','OP06-118','Wings of the Captain','Super Rare','Near Mint',9,12,60,'2026-06-09','TCGplayer',1,'EN'],
+      [op,'Gear 5 Luffy','OP07-119','500 Years in the Future','Secret Rare','Near Mint',300,380,1400,'2026-04-05','Whatnot',1,'JP'],
+      [op,'Sabo','OP07-079','500 Years in the Future','Super Rare','Near Mint',6,5,35,'2026-06-09','TCGplayer',1,'EN'],
+      [op,'Rebecca','OP05-061','Awakening of the New Era','Special / Alt-Art','Near Mint',15,22,90,'2026-06-11','Local shop',1,'EN'],
+    ];
+    return raw.map((r,i) => ({
+      id:'seed'+i, game:r[0], name:r[1], number:r[2], set:r[3], rarity:r[4], condition:r[5],
+      purchasePrice:r[6], rawValue:r[7], gradedValue:r[8], dateAcquired:r[9], source:r[10], qty:r[11],
+      language:r[12]||'EN', image:'',
+    }));
+  }
+
+  localCards(){
+    const r = [
+      ['OP01-001','Roronoa Zoro','Romance Dawn','Leader',5,40],
+      ['OP01-002','Trafalgar Law','Romance Dawn','Leader',4,35],
+      ['OP01-003','Monkey D. Luffy','Romance Dawn','Leader',6,45],
+      ['OP01-016','Nami','Romance Dawn','Super Rare',6,40],
+      ['OP01-024','Monkey D. Luffy','Romance Dawn','Super Rare',15,110],
+      ['OP01-025','Roronoa Zoro','Romance Dawn','Super Rare',55,210],
+      ['OP01-047','Trafalgar Law','Romance Dawn','Leader',12,55],
+      ['OP01-120','Shanks','Romance Dawn','Secret Rare',180,820],
+      ['OP01-121','Monkey D. Luffy','Romance Dawn','Secret Rare',300,1100],
+      ['OP02-013','Portgas D. Ace','Paramount War','Super Rare',28,140],
+      ['OP02-049','Marco','Paramount War','Super Rare',8,55],
+      ['OP02-051','Boa Hancock','Paramount War','Super Rare',32,150],
+      ['OP02-093','Sakazuki','Paramount War','Secret Rare',45,200],
+      ['OP03-076','Donquixote Doflamingo','Pillars of Strength','Super Rare',15,90],
+      ['OP03-108','Trafalgar Law','Pillars of Strength','Secret Rare',40,200],
+      ['OP04-040','Kozuki Oden','Kingdoms of Intrigue','Manga Rare',95,320],
+      ['OP04-056','Charlotte Katakuri','Kingdoms of Intrigue','Super Rare',10,60],
+      ['OP04-112','Yamato','Kingdoms of Intrigue','Manga Rare',130,480],
+      ['OP05-114','Vinsmoke Reiju','Awakening of the New Era','Super Rare',6,45],
+      ['OP05-118','Nico Robin','Awakening of the New Era','Manga Rare',40,180],
+      ['OP05-119','Monkey D. Luffy','Awakening of the New Era','Manga Rare',120,520],
+      ['OP06-069','Charlotte Katakuri','Wings of the Captain','Manga Rare',28,130],
+      ['OP06-118','Eustass"Captain"Kid','Wings of the Captain','Super Rare',12,60],
+      ['OP07-079','Sabo','500 Years in the Future','Super Rare',5,35],
+      ['OP07-119','Monkey D. Luffy','500 Years in the Future','Secret Rare',380,1400],
+      ['OP08-118','Jewelry Bonney','Two Legends','Secret Rare',30,150],
+      ['OP08-119','Bartholomew Kuma','Two Legends','Secret Rare',40,180],
+      ['OP09-051','Loki','Emperors in the New World','Super Rare',12,70],
+      ['EB01-061','Monkey D. Luffy','Memorial Collection','Super Rare',9,55],
+      ['ST01-012','Monkey D. Luffy','Straw Hat Crew','Super Rare',4,30],
+      ['P-001','Monkey D. Luffy','Promo','Promo',20,90],
+    ];
+    return r.map(c => ({ number:c[0], name:c[1], set:c[2], rarity:c[3], price:c[4], graded:c[5], image:'' }));
+  }
+
+  mapRarity(code){
+    if (!code) return '';
+    const c = String(code).trim().toUpperCase();
+    const m = { 'L':'Leader','C':'Common','UC':'Uncommon','R':'Rare','SR':'Super Rare',
+      'SEC':'Secret Rare','SP':'Special / Alt-Art','SPC':'Special / Alt-Art','MR':'Manga Rare',
+      'P':'Promo','PR':'Promo','PROMO':'Promo' };
+    return m[c] || code;
+  }
+
+  normCard(c){
+    const num = c.card_set_id || c.cardNumber || c.card_number || c.set_card_id || c.id || c.code || '';
+    let name = c.card_name || c.cardName || c.name || '';
+    name = String(name).replace(/\s*\(\d+\)\s*$/, '').trim();
+    const setName = c.set_name || c.setName || c.set || '';
+    const rarRaw = c.rarity || c.card_rarity || '';
+    const priceRaw = (c.market_price != null) ? c.market_price
+      : (c.price != null) ? c.price
+      : (c.inventory_price != null) ? c.inventory_price : null;
+    let price = 0;
+    if (priceRaw != null) { price = parseFloat(String(priceRaw).replace(/[^0-9.]/g,'')) || 0; }
+    const img = c.card_image || c.image_url || c.imageUrl || c.image || c.img || c.cardImage
+      || c.inventory_image || (c.images && (c.images.large || c.images.small)) || '';
+    return { number:String(num), name:String(name), set:String(setName),
+      rarity:this.mapRarity(rarRaw), price, graded: Math.round(price*4), image:String(img) };
+  }
+
+  enrichImages(){
+    if (!this._catalog || !this._catalog.length) return;
+    const map = {};
+    this._catalog.forEach(c => { if (c.image && c.number) map[c.number] = c.image; });
+    let changed = false;
+    const cards = this.state.cards.map(c => {
+      if (!c.image && c.game==='onepiece' && map[c.number]) { changed = true; return { ...c, image:map[c.number] }; }
+      return c;
+    });
+    if (changed) this.persist({ cards });
+  }
+
+  loadCatalog(force){
+    if (!this.state.settings.liveApi) return;
+    if (this._catalog && this._catalog.length && !force) return;
+    if (this._loading) return;
+    this._loading = true;
+    this._retries = force ? 0 : (this._retries || 0);
+    this.setState({ apiStatus:'loading' });
+    let done = false;
+    const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const to = setTimeout(() => { if (!done && ctrl) ctrl.abort(); }, 20000);
+    fetch('https://optcgapi.com/api/allSetCards/', ctrl ? { signal: ctrl.signal } : {})
+      .then(r => { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(data => {
+        done = true; clearTimeout(to);
+        const arr = Array.isArray(data) ? data : (data.results || data.data || data.cards || []);
+        const norm = arr.map(c => this.normCard(c)).filter(c => c.number && c.name);
+        if (!norm.length) throw new Error('empty');
+        this._catalog = norm; this._loading = false; this._retries = 0;
+        this.setState({ apiStatus:'live', apiCount:norm.length });
+        this.enrichImages();
+        this.loadDecks(force);
+      })
+      .catch(() => {
+        done = true; clearTimeout(to); this._loading = false;
+        const n = (this._retries || 0);
+        if (n < 4 && this.state.settings.liveApi) {
+          this._retries = n + 1;
+          this.setState({ apiStatus:'loading' });
+          setTimeout(() => this.loadCatalog(true), 1500 * (n + 1));
+        } else {
+          this.setState({ apiStatus:'offline' });
+        }
+      });
+  }
+
+  loadDecks(force){
+    if (this._decksLoaded && !force) return;
+    this._decksLoaded = true;
+    const ids = [];
+    for (let i=1;i<=33;i++) ids.push('ST-'+String(i).padStart(2,'0'));
+    const fetchJson = (u) => fetch(u).then(r => { if (!r.ok) throw 0; return r.json(); });
+    Promise.allSettled(ids.map(id => fetchJson('https://optcgapi.com/api/decks/'+id+'/'))).then(res => {
+      const extra = [];
+      res.forEach(r => {
+        if (r.status === 'fulfilled') {
+          const v = r.value;
+          const arr = Array.isArray(v) ? v : (v.results || v.data || v.cards || []);
+          arr.forEach(c => { const n = this.normCard(c); if (n.number && n.name) extra.push(n); });
+        }
+      });
+      if (!extra.length || !this._catalog) return;
+      const seen = new Set(this._catalog.map(c => c.number+'|'+c.name));
+      extra.forEach(c => { const k = c.number+'|'+c.name; if (!seen.has(k)) { seen.add(k); this._catalog.push(c); } });
+      this.setState({ apiCount:this._catalog.length });
+      this.enrichImages();
+    }).catch(()=>{});
+  }
+
+  refreshCatalog(){ this._catalog = null; this._decksLoaded = false; this.setState({ apiStatus:'idle' }); this.loadCatalog(true); }
+
+  // ---- top-level handlers ----
+  setGame(g){ this.persist({ game:g }); }
+  setView(v){ this.persist({ view:v }); }
+  onSearch(e){ this.setState({ search:e.target.value }); }
+  onSort(e){ this.persist({ sortBy:e.target.value }); }
+  setFilter(field, value){ this.setState({ filterField:field, filterValue:value, search:'' }); }
+  clearFilter(){ this.setState({ filterField:null, filterValue:null }); }
+  onBudget(e){ this.persist({ monthlyBudget: Math.max(0, parseFloat(e.target.value)||0) }); }
+  toggleInsights(){ this.setState(s => ({ insightsOpen: !s.insightsOpen })); }
+
+  // ---- card image hover preview ----
+  previewUrlFor(card){
+    if (!card) return '';
+    const num = String(card.number||'').toUpperCase().replace(/\s+/g,'');
+    if (/^(OP|ST|EB|P)[-\dA-Z]*\d/.test(num)) return 'https://optcgapi.com/media/static/Card_Images/'+num+'.jpg';
+    return card.image || '';
+  }
+  showPreview(url, name, number, e){
+    const box = this.previewRef && this.previewRef.current;
+    if (!box || !url) return;
+    const img = this.previewImgRef.current;
+    if (img.getAttribute('src') !== url) { img.style.opacity='0'; img.setAttribute('src', url); }
+    if (this.previewCapRef.current) this.previewCapRef.current.textContent = (number? number+'  ' : '') + (name||'');
+    box.style.display = 'block';
+    this.movePreview(e);
+  }
+  movePreview(e){
+    const box = this.previewRef && this.previewRef.current;
+    if (!box || box.style.display==='none') return;
+    const pad = 18, w = 232, h = 348;
+    let x = e.clientX + pad, y = e.clientY - 40;
+    if (x + w > window.innerWidth) x = e.clientX - w - pad;
+    if (x < pad) x = pad;
+    if (y + h > window.innerHeight) y = window.innerHeight - h - pad;
+    if (y < pad) y = pad;
+    box.style.left = x+'px'; box.style.top = y+'px';
+  }
+  hidePreview(){ const box = this.previewRef && this.previewRef.current; if (box) box.style.display='none'; }
+  onPreviewImgLoad(){ if (this.previewImgRef.current) this.previewImgRef.current.style.opacity='1'; }
+  onPreviewImgError(){ this.hidePreview(); }
+
+  // ---- scan ----
+  openScan(){
+    this.ensureCatalog();
+    this.setState({ scanOpen:true, scanStage:'capture', scanCamReady:false, scanDetected:'', scanCandidates:[], scanNote:'', scanProcessMsg:'' });
+    setTimeout(() => this.startCamera(), 60);
+  }
+  closeScan(){ this.stopCamera(); this.setState({ scanOpen:false }); }
+  scanAgain(){ this.setState({ scanStage:'capture', scanDetected:'', scanCandidates:[], scanNote:'' }); setTimeout(()=>this.startCamera(),60); }
+
+  startCamera(){
+    const video = this.scanVideoRef.current;
+    if (!video) return;
+    if (this._scanStream) { this.setState({ scanCamReady:true }); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      this.setState({ scanCamReady:false, scanNote:'Camera isn\u2019t available here \u2014 use \u201cUpload a photo\u201d instead (works great on desktop, or snap the card on your phone).', scanNoteOk:true });
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false })
+      .then(stream => {
+        this._scanStream = stream;
+        const v = this.scanVideoRef.current;
+        if (!v){ stream.getTracks().forEach(t=>t.stop()); this._scanStream=null; return; }
+        v.srcObject = stream;
+        v.play && v.play().catch(()=>{});
+        this.setState({ scanCamReady:true, scanNote:'' });
+      })
+      .catch(() => {
+        this.setState({ scanCamReady:false, scanNote:'Couldn\u2019t open the camera (permission blocked or unavailable in this view). Use \u201cUpload a photo\u201d \u2014 take a clear shot of the card and it\u2019ll read the number.', scanNoteOk:true });
+      });
+  }
+  stopCamera(){ if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; } }
+
+  doCapture(){
+    const v = this.scanVideoRef.current;
+    if (!v || !v.videoWidth){ return; }
+    const vw = v.videoWidth, vh = v.videoHeight;
+    // crop the central guide band (matches the on-screen box: 74% wide, 30% tall)
+    const cw = vw*0.78, ch = vh*0.34, cx = (vw-cw)/2, cy = (vh-ch)/2;
+    const canvas = document.createElement('canvas');
+    const scale = Math.min(3, 1100/cw);
+    canvas.width = Math.round(cw*scale); canvas.height = Math.round(ch*scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(v, cx, cy, cw, ch, 0, 0, canvas.width, canvas.height);
+    this.stopCamera();
+    this.runOCR(this.preprocess(canvas));
+  }
+
+  onScanFile(e){
+    const file = e.target.files && e.target.files[0];
+    if (!file){ return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1400; const scale = Math.min(1, maxW/img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      this.stopCamera();
+      this.runOCR(this.preprocess(canvas));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); this.setState({ scanStage:'capture', scanNote:'Couldn\u2019t read that image. Try another photo.', scanNoteOk:false }); };
+    img.src = url;
+    e.target.value = '';
+  }
+
+  preprocess(canvas){
+    try {
+      const ctx = canvas.getContext('2d');
+      const im = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d = im.data;
+      for (let i=0;i<d.length;i+=4){
+        let g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        g = g < 120 ? 0 : 255;
+        d[i]=d[i+1]=d[i+2]=g;
+      }
+      ctx.putImageData(im,0,0);
+    } catch(e){}
+    return canvas;
+  }
+
+  runOCR(canvas){
+    this.setState({ scanStage:'processing', scanProcessMsg:'Reading the card number\u2026' });
+    if (!window.Tesseract){
+      this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Text reader is still loading \u2014 give it a second and try again.', scanNoteOk:false });
+      return;
+    }
+    window.Tesseract.recognize(canvas, 'eng', {
+      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ',
+    }).then(res => {
+      const text = (res && res.data && res.data.text) || '';
+      this.handleOCR(text);
+    }).catch(() => {
+      this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Couldn\u2019t read that \u2014 try again with the number centered and in focus.', scanNoteOk:false });
+    });
+  }
+
+  extractCode(text){
+    const up = String(text||'').toUpperCase().replace(/[^A-Z0-9\-\s]/g,' ');
+    // OP06-101, ST29-008, EB01-061, PRB02-018, P-001 (tolerate O→0 in the digits)
+    let m = up.match(/\b(OP|0P|ST|EB|PRB|P)[\s\-]?[O0]?(\d{1,2})[\s\-]+([\dO]{2,3})\b/);
+    if (m){
+      let pre = m[1] === '0P' ? 'OP' : m[1];
+      const tail = m[3].replace(/O/g,'0');
+      if (pre === 'P' && m[2] && tail) return 'P-'+tail.padStart(3,'0');
+      return pre + m[2].replace(/O/g,'0').padStart(2,'0') + '-' + tail.padStart(3,'0');
+    }
+    m = up.match(/\bP[\s\-]?([\dO]{3})\b/);
+    if (m) return 'P-'+m[1].replace(/O/g,'0');
+    return '';
+  }
+
+  handleOCR(text){
+    const code = this.extractCode(text);
+    const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if (!code){
+      this.setState({ scanStage:'results', scanDetected:'\u2014 (no code found)', scanCandidates:[] });
+      return;
+    }
+    const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
+    const cn = norm(code);
+    let matches = source.filter(c => norm(c.number) === cn);
+    if (!matches.length) matches = source.filter(c => norm(c.number).indexOf(cn) === 0);
+    if (!matches.length) matches = source.filter(c => norm(c.number).includes(cn));
+    matches = matches.slice(0,12);
+    this.setState({ scanStage:'results', scanDetected:code,
+      scanCandidates: matches.map(c => ({ number:c.number, name:c.name,
+        priceFmt: c.price ? this.money(c.price) : '\u2014', hasImage:!!c.image, image:c.image||'',
+        onPick: ()=>this.scanPick(c) })) });
+  }
+
+  scanPick(card){ this.stopCamera(); this.setState({ scanOpen:false }); this.pickInto('new', card); }
+
+  componentWillUnmount(){ this.stopCamera(); }
+
+  openSettings(){ this.setState({ settingsOpen:true }); }
+  closeSettings(){ this.setState({ settingsOpen:false }); }
+  toggleSetting(key){
+    const next = { ...this.state.settings, [key]: !this.state.settings[key] };
+    this.persist({ settings: next });
+    if (key === 'liveApi' && next.liveApi) this.loadCatalog();
+  }
+  setSetting(key, val){ this.persist({ settings: { ...this.state.settings, [key]: val } }); }
+  resetSample(){ this.persist({ cards: this.seed() }); this.enrichImages(); }
+  clearAll(){ this.persist({ cards: [] }); }
+
+  focusNew(){ if (this.newNameRef.current) this.newNameRef.current.focus(); }
+
+  // ---- inline cell editing ----
+  setCardField(id, field, value){
+    const cards = this.state.cards.map(c => c.id===id ? { ...c, [field]: value } : c);
+    this.persist({ cards });
+  }
+  setCardNum(id, field, value){ this.setCardField(id, field, parseFloat(value)||0); }
+  onCardName(id, e){ const v = e.target.value; this.setCardField(id, 'name', v); this.setState({ pickerFor:id, pickerQuery:v }); }
+  ensureCatalog(){ if (this.state.settings.liveApi && (!this._catalog || !this._catalog.length) && !this._loading) { this._retries = 0; this.loadCatalog(true); } }
+  onCardNameFocus(id, name){ this.ensureCatalog(); this.setState({ pickerFor:id, pickerQuery:name||'' }); }
+  onNameBlur(){ const self = this; setTimeout(() => { self.setState({ pickerFor:null }); }, 180); }
+
+  // ---- add (draft) row ----
+  setDraft(field, value){ this.setState(s => ({ newRow:{ ...s.newRow, [field]:value } })); }
+  onDraftName(e){ const v = e.target.value; this.setState(s => ({ newRow:{ ...s.newRow, name:v }, pickerFor:'new', pickerQuery:v })); }
+  onDraftFocus(){ this.ensureCatalog(); this.setState(s => ({ pickerFor:'new', pickerQuery:s.newRow.name||'' })); }
+  onDraftKey(e){ if (e.key === 'Enter') { e.preventDefault(); this.commitNewRow(); } }
+
+  commitNewRow(){
+    const d = this.state.newRow;
+    if (!d.name || !d.name.trim()) { this.focusNew(); return; }
+    const card = {
+      id: 'c'+Date.now()+Math.random().toString(36).slice(2,6),
+      game: d.game, name: d.name.trim(), number: (d.number||'').trim(), set: (d.set||'').trim(),
+      rarity: d.rarity, condition: d.condition, language: d.language || 'EN',
+      purchasePrice: parseFloat(d.purchasePrice)||0, rawValue: parseFloat(d.rawValue)||0,
+      gradedValue: parseFloat(d.gradedValue)||0, dateAcquired: new Date().toISOString().slice(0,10),
+      source: '', qty: Math.max(1, parseInt(d.qty)||1), image: d.image||'',
+    };
+    this.persist({ cards: [card, ...this.state.cards], newRow: this.blankRow(), pickerFor:null, pickerQuery:'' });
+    const self = this; setTimeout(() => { if (self.sheetScrollRef.current) self.sheetScrollRef.current.scrollTop = 0; self.focusNew(); }, 30);
+  }
+
+  pickInto(id, card){
+    if (id === 'new') {
+      this.setState(s => ({
+        newRow: { ...s.newRow, game:'onepiece', name:card.name, number:card.number, set:card.set,
+          rarity: card.rarity || s.newRow.rarity,
+          rawValue: card.price ? String(card.price) : s.newRow.rawValue,
+          gradedValue: card.graded ? String(card.graded) : s.newRow.gradedValue,
+          image: card.image || s.newRow.image },
+        pickerFor:null, pickerQuery:'' }), () => this.commitNewRow());
+    } else {
+      const cards = this.state.cards.map(c => c.id===id ? { ...c, game:'onepiece', name:card.name,
+        number:card.number, set:card.set, rarity: card.rarity || c.rarity,
+        rawValue: card.price || c.rawValue, gradedValue: card.graded || c.gradedValue,
+        image: card.image || c.image } : c);
+      this.persist({ cards, pickerFor:null, pickerQuery:'' });
+    }
+  }
+
+  deleteCard(card){ this.persist({ cards: this.state.cards.filter(c => c.id !== card.id) }); }
+
+  // ---- CSV ----
+  parseCSV(text){
+    const rows = []; let field = '', row = [], inQ = false;
+    text = text.replace(/^\uFEFF/, '');
+    for (let i=0;i<text.length;i++){
+      const ch = text[i];
+      if (inQ){
+        if (ch === '"'){ if (text[i+1] === '"'){ field += '"'; i++; } else inQ = false; }
+        else field += ch;
+      } else {
+        if (ch === '"') inQ = true;
+        else if (ch === ','){ row.push(field); field=''; }
+        else if (ch === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+        else if (ch === '\r'){ /* skip */ }
+        else field += ch;
+      }
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(r => r.some(c => (c||'').trim() !== ''));
+  }
+
+  normGame(g){
+    const s = String(g||'').toLowerCase();
+    if (s.includes('pok')) return 'pokemon';
+    if (s.includes('yu') || s.includes('ygo')) return 'yugioh';
+    if (s.includes('one') || s === 'op' || s.startsWith('op')) return 'onepiece';
+    return 'onepiece';
+  }
+
+  normLang(l){ const s = String(l||'').toLowerCase(); if (s.includes('jp') || s.includes('jap') || s.includes('日')) return 'JP'; return 'EN'; }
+
+  onImportFile(e){
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rows = this.parseCSV(String(reader.result||''));
+        if (rows.length < 2){ this.setState({ importMsg:'That file looks empty.', importOk:false }); return; }
+        const head = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z]/g,''));
+        const idx = (names) => { for (const n of names){ const i = head.indexOf(n); if (i>=0) return i; } return -1; };
+        const ci = {
+          game:idx(['game']), name:idx(['name','cardname']), number:idx(['number','cardnumber','no']),
+          set:idx(['set','setname']), rarity:idx(['rarity']), condition:idx(['condition','cond']),
+          language:idx(['language','lang','edition']),
+          paid:idx(['purchaseprice','paid','price','cost']), raw:idx(['rawvalue','raw','marketvalue','market']),
+          graded:idx(['gradedvalue','graded']), date:idx(['dateacquired','date','acquired']),
+          source:idx(['source','where','wherebought']), qty:idx(['qty','quantity','count']),
+        };
+        if (ci.name < 0){ this.setState({ importMsg:'No "name" column found in that CSV.', importOk:false }); return; }
+        const get = (r,i) => i>=0 ? (r[i]||'').trim() : '';
+        const num = (v) => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n)?0:n; };
+        const added = [];
+        for (let i=1;i<rows.length;i++){
+          const r = rows[i];
+          const name = get(r, ci.name);
+          if (!name) continue;
+          added.push({
+            id:'imp'+Date.now()+i+Math.random().toString(36).slice(2,5),
+            game:this.normGame(get(r,ci.game)), name, number:get(r,ci.number), set:get(r,ci.set),
+            rarity:get(r,ci.rarity)||'Super Rare', condition:get(r,ci.condition)||'Near Mint',
+            language:this.normLang(get(r,ci.language)),
+            purchasePrice:num(get(r,ci.paid)), rawValue:num(get(r,ci.raw)), gradedValue:num(get(r,ci.graded)),
+            dateAcquired:get(r,ci.date)||new Date().toISOString().slice(0,10),
+            source:get(r,ci.source), qty:Math.max(1, parseInt(get(r,ci.qty))||1), image:'',
+          });
+        }
+        if (!added.length){ this.setState({ importMsg:'No rows with a card name found.', importOk:false }); return; }
+        this.persist({ cards: [...added, ...this.state.cards], importMsg:'Imported '+added.length+' card'+(added.length>1?'s':'')+'.', importOk:true });
+        this.enrichImages();
+      } catch(err){ this.setState({ importMsg:'Could not read that file.', importOk:false }); }
+    };
+    reader.onerror = () => this.setState({ importMsg:'Could not read that file.', importOk:false });
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  csvCell(v){ const s = String(v==null?'':v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+
+  download(filename, text){
+    try {
+      const blob = new Blob([text], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch(e){}
+  }
+
+  exportCsv(){
+    const cols = ['game','name','number','set','rarity','condition','language','purchasePrice','rawValue','gradedValue','dateAcquired','source','qty'];
+    const lines = [cols.join(',')];
+    this.state.cards.forEach(c => { lines.push(cols.map(k => this.csvCell(c[k])).join(',')); });
+    this.download('tcg-vault-collection.csv', lines.join('\n'));
+    this.setState({ importMsg:'Exported '+this.state.cards.length+' cards.', importOk:true });
+  }
+
+  downloadTemplate(){
+    const cols = ['game','name','number','set','rarity','condition','language','purchasePrice','rawValue','gradedValue','dateAcquired','source','qty'];
+    const sample = ['One Piece','Monkey D. Luffy','OP01-121','Romance Dawn','Secret Rare','Near Mint','EN','260','320','1100','2025-08-09','Whatnot','1'];
+    this.download('tcg-vault-template.csv', cols.join(',')+'\n'+sample.map(c=>this.csvCell(c)).join(','));
+  }
+
+  // ---- helpers ----
+  cur(){ return (this.state.settings && this.state.settings.currency) || '$'; }
+  money(n){ const r = Math.round(n); return this.cur() + Math.abs(r).toLocaleString('en-US'); }
+  signed(n){ const r = Math.round(n); return (r>=0?'+':'−') + this.cur() + Math.abs(r).toLocaleString('en-US'); }
+  monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+  monthShort(key){ const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const p=key.split('-'); return m[parseInt(p[1])-1]+' '+p[0].slice(2); }
+  monthMini(key){ const m=['J','F','M','A','M','J','J','A','S','O','N','D'];
+    const p=key.split('-'); return m[parseInt(p[1])-1]+p[0].slice(2); }
+  gameMeta(g){ return ({
+    onepiece:{ label:'One Piece', dot:'#E5484D' },
+    pokemon:{ label:'Pokémon', dot:'#D98E00' },
+    yugioh:{ label:'Yu-Gi-Oh!', dot:'#8E4EC6' },
+  }[g]) || { label:g, dot:'#8C939D' }; }
+  langMeta(l){ return l==='JP' ? { color:'#DC3B43', bg:'#FDECEC' } : { color:'#3E63DD', bg:'#EAEEFB' }; }
+
+  smooth(pts){
+    if (!pts || !pts.length) return '';
+    if (pts.length < 2) return 'M'+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1);
+    let dStr = 'M'+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1);
+    for (let i=0;i<pts.length-1;i++){
+      const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+      const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+      const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+      dStr += ' C'+c1x.toFixed(1)+' '+c1y.toFixed(1)+' '+c2x.toFixed(1)+' '+c2y.toFixed(1)+' '+p2.x.toFixed(1)+' '+p2.y.toFixed(1);
+    }
+    return dStr;
+  }
+
+  renderVals(){
+    const S = this.state;
+    const st = S.settings;
+    const all = S.cards;
+    const GAIN='#2B9A66', LOSS='#DC3B43', GAINBG='#E6F6EC', LOSSBG='#FEEBEC';
+    const ACC='#3E63DD';
+    const basisGraded = st.plBasis === 'graded';
+
+    const order = ['all','onepiece','pokemon','yugioh'];
+    const counts = { all: all.length, onepiece:0, pokemon:0, yugioh:0 };
+    all.forEach(c => { if (counts[c.game]!==undefined) counts[c.game]++; });
+    const gameTabs = order.map(k => {
+      const meta = k==='all' ? { label:'All games', dot:'#13161B' } : this.gameMeta(k);
+      const active = S.game===k;
+      return { label:meta.label, dot:meta.dot, count:counts[k]||0, active,
+        bg: active?ACC:'#fff', fg: active?'#fff':'#13161B',
+        border: active?ACC:'#E5E7EB', shadow: active?'0 1px 2px rgba(62,99,221,.28)':'none',
+        onClick: () => this.setGame(k) };
+    });
+    const headingLabel = S.game==='all' ? 'My collection' : this.gameMeta(S.game).label;
+
+    const q = S.search.trim().toLowerCase();
+    let fcards = all.filter(c => S.game==='all' || c.game===S.game);
+    if (q) fcards = fcards.filter(c => (c.name+' '+c.set+' '+c.number+' '+(c.language||'')).toLowerCase().includes(q));
+    if (S.filterField && S.filterValue!=null) fcards = fcards.filter(c => String(c[S.filterField]||'') === String(S.filterValue));
+    const sorters = {
+      value:(a,b)=> b.rawValue*b.qty - a.rawValue*a.qty,
+      spent:(a,b)=> b.purchasePrice*b.qty - a.purchasePrice*a.qty,
+      pl:(a,b)=> (b.rawValue-b.purchasePrice)*b.qty - (a.rawValue-a.purchasePrice)*a.qty,
+      recent:(a,b)=> (a.dateAcquired<b.dateAcquired?1:a.dateAcquired>b.dateAcquired?-1:0),
+      name:(a,b)=> a.name.localeCompare(b.name),
+    };
+    if (S.sortBy !== 'order' && sorters[S.sortBy]) fcards = fcards.slice().sort(sorters[S.sortBy]);
+
+    let totalSpent=0, totalRaw=0, totalGraded=0, totalQty=0;
+    fcards.forEach(c => { totalSpent+=c.purchasePrice*c.qty; totalRaw+=c.rawValue*c.qty;
+      totalGraded+=c.gradedValue*c.qty; totalQty+=c.qty; });
+    const plValue = basisGraded ? totalGraded : totalRaw;
+    const pl = plValue - totalSpent;
+    const plPct = totalSpent>0 ? (pl/totalSpent*100) : 0;
+    const up = pl>=0;
+
+    // picker results for the active row
+    const liveReady = st.liveApi && this._catalog && this._catalog.length;
+    const source = liveReady ? this._catalog : this.localCards();
+    const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const pq = (S.pickerQuery||'').trim();
+    const pqn = norm(pq);
+    const activeGame = S.pickerFor==='new' ? S.newRow.game
+      : (S.pickerFor ? (all.find(c=>c.id===S.pickerFor)||{}).game : null);
+    let results = [];
+    let resultsTotal = 0;
+    if (S.pickerFor && activeGame==='onepiece' && pqn.length>=1){
+      const matches = source.filter(c => norm(c.name+c.number).includes(pqn));
+      resultsTotal = matches.length;
+      matches.sort((a,b) => {
+        const an=norm(a.name), bn=norm(b.name), anum=norm(a.number), bnum=norm(b.number);
+        const rank = (nm,num) => {
+          if (num===pqn || nm===pqn) return 0;
+          if (num.startsWith(pqn)) return 1;
+          if (nm.startsWith(pqn)) return 2;
+          return 3;
+        };
+        const ra=rank(an,anum), rb=rank(bn,bnum);
+        if (ra!==rb) return ra-rb;
+        if (a.number!==b.number) return a.number<b.number?-1:1;
+        return (b.price||0)-(a.price||0);
+      });
+      results = matches.slice(0,40)
+        .map(c => ({ number:c.number, name:c.name, rarity:c.rarity||'—',
+          priceFmt: c.price ? this.money(c.price) : '—', hasImage:!!c.image, image:c.image||'',
+          onPick: (e)=>{ if(e&&e.preventDefault) e.preventDefault(); this.pickInto(S.pickerFor, c); } }));
+    }
+    const resultsMoreLabel = resultsTotal>results.length ? ('Showing '+results.length+' of '+resultsTotal+' — keep typing to narrow') : '';
+
+    const cards = fcards.map((c, i) => {
+      const m = this.gameMeta(c.game);
+      const lm = this.langMeta(c.language);
+      const cval = (basisGraded ? c.gradedValue : c.rawValue) * c.qty;
+      const cpl = cval - c.purchasePrice*c.qty;
+      const cup = cpl>=0;
+      const meta = [c.number, c.set].filter(Boolean).join(' · ');
+      return { ...c, rowNum:i+1, dot:m.dot, gameLabel:m.label,
+        langColor:lm.color, langBg:lm.bg,
+        metaLine: meta || m.label,
+        qtyBadge: c.qty>1 ? '  ×'+c.qty : '',
+        placeholder: c.number || m.label,
+        hasImage: !!c.image, image: c.image || '',
+        rawFmt: this.money(c.rawValue*c.qty),
+        plFmt: this.signed(cpl), plColor: cup?GAIN:LOSS, plBg: cup?GAINBG:LOSSBG,
+        showPicker: S.pickerFor===c.id && results.length>0,
+        pickerResults: S.pickerFor===c.id ? results : [],
+        onName:(e)=>this.onCardName(c.id,e), onNameFocus:()=>this.onCardNameFocus(c.id,c.name),
+        onGame:(e)=>this.setCardField(c.id,'game',e.target.value),
+        onLang:(e)=>this.setCardField(c.id,'language',e.target.value),
+        onNumber:(e)=>this.setCardField(c.id,'number',e.target.value),
+        onSet:(e)=>this.setCardField(c.id,'set',e.target.value),
+        onRarity:(e)=>this.setCardField(c.id,'rarity',e.target.value),
+        onCond:(e)=>this.setCardField(c.id,'condition',e.target.value),
+        onQty:(e)=>this.setCardField(c.id,'qty',Math.max(1,parseInt(e.target.value)||1)),
+        onPaid:(e)=>this.setCardNum(c.id,'purchasePrice',e.target.value),
+        onRaw:(e)=>this.setCardNum(c.id,'rawValue',e.target.value),
+        onGraded:(e)=>this.setCardNum(c.id,'gradedValue',e.target.value),
+        onFilterNumber:()=>this.setFilter('number', c.number),
+        onFilterSet:()=>this.setFilter('set', c.set),
+        previewUrl:this.previewUrlFor(c),
+        onPreviewEnter:(e)=>this.showPreview(this.previewUrlFor(c), c.name, c.number, e),
+        onPreviewMove:(e)=>this.movePreview(e),
+        onPreviewLeave:()=>this.hidePreview(),
+        onDelete:()=>this.deleteCard(c),
+      };
+    });
+
+    // chart
+    let hasChart=false, valuePath='', valueArea='', spentPath='', valEndX=0, valEndY=0, baseY=190, xLabels=[], gridLines=[];
+    if (fcards.length){
+      const now = new Date();
+      const curMonth = this.monthKey(now);
+      const validKeys = fcards.map(c => (c.dateAcquired||'').slice(0,7)).filter(k => /^\d{4}-\d{2}$/.test(k) && k <= curMonth).sort();
+      const startKey = validKeys.length ? validKeys[0] : curMonth;
+      let d = new Date(startKey+'-01');
+      const end = new Date(now.getFullYear(), now.getMonth(), 1);
+      const months = [];
+      while (d <= end && months.length < 240){ months.push(this.monthKey(d)); d = new Date(d.getFullYear(), d.getMonth()+1, 1); }
+      if (months.length === 0) months.push(curMonth);
+      if (months.length === 1) months.push(months[0]);
+      const valueSeries = months.map(mk => fcards.filter(c => c.dateAcquired.slice(0,7) <= mk).reduce((s,c)=>s+c.rawValue*c.qty,0));
+      const spentSeries = months.map(mk => fcards.filter(c => c.dateAcquired.slice(0,7) <= mk).reduce((s,c)=>s+c.purchasePrice*c.qty,0));
+      const W=720,H=220,padT=16,padB=30,padL=4,padR=4;
+      const iw=W-padL-padR, ih=H-padT-padB;
+      baseY = padT+ih;
+      const yMax = Math.max(1, ...valueSeries, ...spentSeries) * 1.12;
+      const X = i => months.length<=1 ? padL+iw/2 : padL + iw*i/(months.length-1);
+      const Y = v => padT + ih - (v/yMax)*ih;
+      const pts = s => s.map((v,i)=>({ x:X(i), y:Y(v) }));
+      valuePath = this.smooth(pts(valueSeries));
+      spentPath = this.smooth(pts(spentSeries));
+      valueArea = valuePath+' L '+X(months.length-1).toFixed(1)+' '+baseY.toFixed(1)+' L '+X(0).toFixed(1)+' '+baseY.toFixed(1)+' Z';
+      valEndX = X(months.length-1); valEndY = Y(valueSeries[valueSeries.length-1]);
+      const N = months.length; const step = N<=6 ? 1 : Math.ceil(N/6);
+      for (let i=0;i<N;i+=step) xLabels.push({ x:X(i), label:this.monthShort(months[i]) });
+      if (xLabels.length && xLabels[xLabels.length-1].label !== this.monthShort(months[N-1])) xLabels.push({ x:X(N-1), label:this.monthShort(months[N-1]) });
+      [1,0.5,0].forEach(fr => { const val = yMax*fr, y=Y(val); gridLines.push({ y:y.toFixed(1), ty:(y-5).toFixed(1), label:this.money(val) }); });
+      hasChart=true;
+    }
+
+    // budget
+    const now = new Date();
+    const curKey = this.monthKey(now);
+    const spendByMonth = {};
+    all.forEach(c => { const k=c.dateAcquired.slice(0,7); spendByMonth[k]=(spendByMonth[k]||0)+c.purchasePrice*c.qty; });
+    const monthSpent = spendByMonth[curKey]||0;
+    const budget = S.monthlyBudget;
+    const over = monthSpent > budget && budget>0;
+    const budgetPct = budget>0 ? Math.min(100, monthSpent/budget*100) : (monthSpent>0?100:0);
+    const budgetColor = over ? LOSS : (budgetPct>80 ? '#AB6400' : GAIN);
+    const remaining = budget - monthSpent;
+    const budgetMsg = budget<=0 ? 'Set a monthly budget to track spend.'
+      : over ? this.money(Math.abs(remaining))+' over budget this month'
+      : this.money(remaining)+' left this month';
+    const barMax = 50; const sixKeys = [];
+    for (let i=5;i>=0;i--){ const dd=new Date(now.getFullYear(), now.getMonth()-i, 1); sixKeys.push(this.monthKey(dd)); }
+    const peak = Math.max(budget, ...sixKeys.map(k=>spendByMonth[k]||0), 1);
+    const budgetBars = sixKeys.map(k => { const amt = spendByMonth[k]||0; const isCur = k===curKey; const isOver = budget>0 && amt>budget;
+      return { label:this.monthMini(k), amount:amt, amountFmt:this.money(amt), h: Math.round((amt/peak)*barMax),
+        color: isOver ? LOSS : (isCur ? ACC : '#C5CAD2'), labelColor: isCur ? '#13161B' : '#9DA3AD' }; });
+    const ringR=46, ringC=2*Math.PI*ringR;
+    const budgetRingDash=((budgetPct/100)*ringC).toFixed(1);
+    const budgetRingGap=(ringC-(budgetPct/100)*ringC).toFixed(1);
+    const budgetPctLabel=Math.round(budgetPct)+'%';
+
+    const mkToggle = (key) => ({ on:st[key], bg: st[key]?ACC:'#D2D6DC',
+      knobX: st[key]?'translateX(22px)':'translateX(2px)', onClick:()=>this.toggleSetting(key) });
+    const toggleRows = [
+      { key:'showSpent', label:'Summary: Total spent' },
+      { key:'showRaw', label:'Summary: Raw market value' },
+      { key:'showPL', label:'Summary: Profit / Loss' },
+      { key:'showGraded', label:'Summary: If graded (PSA 10)' },
+      { key:'showChart', label:'Trends: Value-over-time chart' },
+      { key:'showBudget', label:'Trends: Budget tracker' },
+      { key:'colLang', label:'Column: Language (EN / JP)' },
+      { key:'colRarity', label:'Column: Rarity' },
+      { key:'colCond', label:'Column: Condition' },
+      { key:'colGraded', label:'Column: Graded value' },
+    ].map(t => ({ label:t.label, ...mkToggle(t.key) }));
+    const currencyOpts = ['$','£','€','¥'].map(sym => { const a = st.currency===sym;
+      return { label:sym, bg: a?ACC:'#fff', fg: a?'#fff':'#13161B', border: a?ACC:'#D2D6DC', onClick:()=>this.setSetting('currency',sym) }; });
+    const basisOpts = [{k:'raw',l:'Raw value'},{k:'graded',l:'Graded value'}].map(o => { const a = st.plBasis===o.k;
+      return { label:o.l, bg: a?ACC:'#fff', fg: a?'#fff':'#13161B', border: a?ACC:'#D2D6DC', onClick:()=>this.setSetting('plBasis',o.k) }; });
+    const apiText = { idle:'Not loaded yet', loading:'Loading catalog…',
+      live:'Live · '+S.apiCount.toLocaleString()+' cards', offline:'Offline list (API unreachable)' };
+    const apiCol = { idle:'#8C939D', loading:'#AB6400', live:GAIN, offline:'#8C939D' };
+
+    const nr = S.newRow;
+    const nrMeta = this.gameMeta(nr.game);
+
+    return {
+      headingLabel, gameTabs, cur:this.cur(),
+      showSpent:st.showSpent, showRaw:st.showRaw, showPL:st.showPL, showGraded:st.showGraded,
+      showChartCard:st.showChart, showBudgetCard:st.showBudget,
+      colLang:st.colLang, colRarity:st.colRarity, colCond:st.colCond, colGraded:st.colGraded,
+      hPaid:'Paid', hRaw:'Raw', hGraded:'Graded',
+      totalSpentFmt:this.money(totalSpent), totalRawFmt:this.money(totalRaw),
+      totalGradedFmt:this.money(totalGraded), rowCount:fcards.length, totalQty,
+      plFmt:this.signed(pl), plColor: up?GAIN:LOSS, plBg: up?GAINBG:LOSSBG, plArrow: up?'▲':'▼',
+      plPctFmt:(plPct>=0?'+':'−')+Math.abs(plPct).toFixed(1)+'%',
+      insightsOpen:S.insightsOpen, toggleInsights:()=>this.toggleInsights(),
+      insightsBg: S.insightsOpen?'#EAEEFB':'#fff', insightsFg: S.insightsOpen?ACC:'#13161B',
+      insightsBorder: S.insightsOpen?'#C7D2F5':'#E5E7EB', insightsChevron: S.insightsOpen?'rotate(180deg)':'rotate(0deg)',
+      hasChart, noChart:!hasChart, valuePath, valueArea, spentPath,
+      valEndX:valEndX.toFixed(1), valEndY:valEndY.toFixed(1), baseY:baseY.toFixed(1), xLabels, gridLines,
+      monthlyBudget:budget, monthLabelLong:this.monthShort(curKey).replace(/ \d+$/,''),
+      monthSpentFmt:this.money(monthSpent), budgetFmt:this.money(budget),
+      budgetPct:budgetPct.toFixed(1), budgetColor, budgetMsg, budgetBars, budgetRingDash, budgetRingGap, budgetPctLabel, onBudget:(e)=>this.onBudget(e),
+      search:S.search, sortBy:S.sortBy, onSearch:(e)=>this.onSearch(e), onSort:(e)=>this.onSort(e),
+      filterActive: !!S.filterField, filterChipLabel: S.filterField ? ((S.filterField==='set'?'Set':'No.')+': '+S.filterValue) : '', clearFilter:()=>this.clearFilter(),
+      viewTabs:['sheet','gallery'].map(v => ({ key:v, label: v==='sheet'?'Sheet':'Gallery',
+        bg: S.view===v?ACC:'#fff', fg: S.view===v?'#fff':'#69707A', onClick:()=>this.setView(v) })),
+      isSheet:S.view==='sheet', isGallery:S.view==='gallery',
+      isEmpty: cards.length===0, cards, focusNew:()=>this.focusNew(),
+      newNameRef:this.newNameRef, nr, nrDot:nrMeta.dot, commitNew:()=>this.commitNewRow(),
+      sheetScrollRef:this.sheetScrollRef,
+      previewRef:this.previewRef, previewImgRef:this.previewImgRef, previewCapRef:this.previewCapRef,
+      onPreviewImgLoad:()=>this.onPreviewImgLoad(), onPreviewImgError:()=>this.onPreviewImgError(),
+      scanOpen:S.scanOpen, openScan:()=>this.openScan(), closeScan:()=>this.closeScan(),
+      scanVideoRef:this.scanVideoRef, scanFileRef:this.scanFileRef,
+      scanShowCapture:S.scanStage==='capture', scanProcessing:S.scanStage==='processing', scanShowResults:S.scanStage==='results',
+      scanCamReady:S.scanCamReady, scanCamConnecting:S.scanStage==='capture' && !S.scanCamReady && !S.scanNote,
+      scanVideoDisplay:S.scanCamReady?'block':'none', scanUploadFlex:S.scanCamReady?'none':'1',
+      scanProcessMsg:S.scanProcessMsg, scanDetected:S.scanDetected, scanCandidates:S.scanCandidates,
+      scanNoMatch:S.scanStage==='results' && S.scanCandidates.length===0,
+      scanNote:S.scanNote, scanNoteColor:S.scanNoteOk?'#69707A':'#DC3B43', scanNoteBg:S.scanNoteOk?'#F4F5F7':'#FEEBEC',
+      doCapture:()=>this.doCapture(), onScanFile:(e)=>this.onScanFile(e), scanAgain:()=>this.scanAgain(),
+      onDraftName:(e)=>this.onDraftName(e), onDraftFocus:()=>this.onDraftFocus(), onNameBlur:()=>this.onNameBlur(), onDraftKey:(e)=>this.onDraftKey(e),
+      onDraftGame:(e)=>this.setDraft('game',e.target.value), onDraftLang:(e)=>this.setDraft('language',e.target.value),
+      onDraftNumber:(e)=>this.setDraft('number',e.target.value), onDraftSet:(e)=>this.setDraft('set',e.target.value),
+      onDraftRarity:(e)=>this.setDraft('rarity',e.target.value), onDraftCond:(e)=>this.setDraft('condition',e.target.value),
+      onDraftQty:(e)=>this.setDraft('qty',e.target.value), onDraftPaid:(e)=>this.setDraft('purchasePrice',e.target.value),
+      onDraftRaw:(e)=>this.setDraft('rawValue',e.target.value), onDraftGraded:(e)=>this.setDraft('gradedValue',e.target.value),
+      newPickerShow: S.pickerFor==='new' && results.length>0, newPickerResults: S.pickerFor==='new' ? results : [],
+      resultsMoreLabel,
+      pickerSourceLabel: liveReady ? ('Live · '+this._catalog.length.toLocaleString()) : 'Offline list',
+      pickerSourceColor: liveReady ? GAIN : '#8C939D',
+      settingsOpen:S.settingsOpen, openSettings:()=>this.openSettings(), closeSettings:()=>this.closeSettings(),
+      toggleRows, currencyOpts, basisOpts, liveApiToggle: mkToggle('liveApi'),
+      apiStatusText: apiText[S.apiStatus] || apiText.idle, apiStatusColor: apiCol[S.apiStatus] || '#8C939D',
+      refreshCatalog:()=>this.refreshCatalog(), resetSample:()=>this.resetSample(), clearAll:()=>this.clearAll(),
+      onImportFile:(e)=>this.onImportFile(e), exportCsv:()=>this.exportCsv(), downloadTemplate:()=>this.downloadTemplate(),
+      importMsg:S.importMsg, importColor: S.importOk?GAIN:LOSS, importBg: S.importOk?GAINBG:LOSSBG,
+      gameOptions:[{key:'onepiece',label:'One Piece'},{key:'pokemon',label:'Pokémon'},{key:'yugioh',label:'Yu-Gi-Oh!'}],
+      langOptions:['EN','JP'],
+      rarityOptions:['Leader','Common','Uncommon','Rare','Super Rare','Secret Rare','Special / Alt-Art','Manga Rare','Special Illustration Rare','Ultra Rare','Promo'],
+      conditionOptions:['Near Mint','Lightly Played','Moderately Played','Heavily Played','Damaged'],
+    };
+  }
+}
+</script>
+</body>
+</html>
