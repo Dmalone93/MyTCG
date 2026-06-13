@@ -350,65 +350,42 @@
 
   <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Hold the card up — matches by image</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Quick add</div><div style="font-size:12px; color:#8C939D;">Search by name or card number</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
 
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative; aspect-ratio:3/4; border-radius:13px; overflow:hidden; background:#0E1116;">
-            <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
-            <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:72%; height:88%; border:2px solid rgba(255,255,255,.9); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
-              <div style="position:absolute; left:50%; top:82%; transform:translateX(-50%); width:68%; height:0; border-bottom:2px dashed rgba(255,255,255,.5); pointer-events:none;"></div>
-              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Fill the frame with the card</div>
-            </sc-if>
-            <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera…</div></sc-if>
+          <div style="position:relative; margin-bottom:14px;">
+            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">⌕</span>
+            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:14px 14px 14px 34px; font-size:15px;" />
           </div>
-          <div style="display:flex; gap:9px; margin-top:14px;">
-            <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ doCapture }}" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14.5px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;"><span style="width:14px; height:14px; border-radius:50%; border:3px solid #fff;"></span> Capture now</button>
-            </sc-if>
-            <label style="flex:{{ scanUploadFlex }}; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">Upload a photo<input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" /></label>
-          </div>
-          <sc-if value="{{ scanNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:{{ scanNoteColor }}; background:{{ scanNoteBg }}; padding:9px 12px; border-radius:9px; margin-top:11px; line-height:1.4;">{{ scanNote }}</div></sc-if>
-        </sc-if>
-
-        <sc-if value="{{ scanProcessing }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex; flex-direction:column; align-items:center; gap:14px; padding:36px 0;">
-            <span style="width:34px; height:34px; border-radius:50%; border:3px solid #E5E7EB; border-top-color:#3E63DD; animation:spin .8s linear infinite;"></span>
-            <div style="font-size:14px; color:#69707A;">{{ scanProcessMsg }}</div>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ scanShowResults }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex; align-items:center; gap:10px; padding:11px 13px; background:#F4F7FF; border:1px solid #DCE6FB; border-radius:11px; margin-bottom:13px;">
-            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D;">Detected</span>
-            <span style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600; color:#3E63DD;">{{ scanDetected }}</span>
-            <button onClick="{{ scanAgain }}" style="margin-left:auto; border:1px solid #C7D2F5; background:#fff; color:#3E63DD; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer;">Scan again</button>
-          </div>
-          <div style="max-height:46vh; overflow-y:auto; border:1px solid #EFF0F3; border-radius:11px;">
-            <sc-for list="{{ scanCandidates }}" as="p" hint-placeholder-count="3">
-              <button onClick="{{ p.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:9px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
-                <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
-                <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ p.number }}</span>
-                <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
-                <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
-              </button>
-            </sc-for>
-          </div>
-          <sc-if value="{{ scanNoMatch }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 12px; text-align:center; color:#8C939D; font-size:13.5px;">No catalog match for that code. Try scanning again, or type the name in the add row.</div></sc-if>
+          <sc-if value="{{ scanSearchResults.length }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:52vh; overflow-y:auto;">
+              <sc-for list="{{ scanSearchResults }}" as="sr" hint-placeholder-count="4">
+                <button onClick="{{ sr.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:10px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
+                  <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ sr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ sr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ sr.number }}</span>
+                  <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ sr.name }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ sr.priceFmt }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ scanNoResults }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 12px; text-align:center; color:#8C939D; font-size:13.5px;">No matches found. Try a different name or number.</div>
+          </sc-if>
         </sc-if>
 
         <sc-if value="{{ scanShowAdded }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex; flex-direction:column; align-items:center; gap:16px; padding:28px 12px;">
             <div style="width:56px; height:56px; border-radius:50%; background:#E6F6EC; display:flex; align-items:center; justify-content:center;">
-              <span style="font-size:28px; color:#2B9A66;">✓</span>
+              <span style="font-size:28px; color:#2B9A66;">&#10003;</span>
             </div>
             <div style="text-align:center;">
               <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Card added!</div>
@@ -416,7 +393,7 @@
               <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D; margin-top:2px;">{{ scanAutoNumber }}</div>
             </div>
             <div style="display:flex; gap:9px; width:100%;">
-              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Scan another</button>
+              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Add another</button>
               <button onClick="{{ closeScan }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">Done</button>
             </div>
           </div>
@@ -612,12 +589,9 @@ class Component extends DCLogic {
     this.previewRef = React.createRef();
     this.previewImgRef = React.createRef();
     this.previewCapRef = React.createRef();
-    this.scanVideoRef = React.createRef();
-    this.scanFileRef = React.createRef();
+    this.scanSearchRef = React.createRef();
     this.qrCanvasRef = React.createRef();
     this.lookupFileRef = React.createRef();
-    this._scanStream = null;
-    try { this._fpDB = JSON.parse(localStorage.getItem('tcg-fp-db') || '{}'); } catch(e){ this._fpDB = {}; }
     this.state = {
       cards: [],
       game: 'all',
@@ -635,8 +609,7 @@ class Component extends DCLogic {
       pickerQuery: '',
       filterField: null, filterValue: null,
       importMsg: '', importOk: true,
-      scanOpen:false, scanStage:'capture', scanCamReady:false, scanProcessMsg:'',
-      scanDetected:'', scanCandidates:[], scanNote:'', scanNoteOk:true, scanAutoAdded:null,
+      scanOpen:false, scanStage:'capture', scanQuery:'', scanAutoAdded:null,
       shareOpen:false, shareCopied:false, sharedCards:null,
       lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
@@ -809,7 +782,6 @@ class Component extends DCLogic {
         this.setState({ apiStatus:'live', apiCount:norm.length });
         this.enrichImages();
         this.loadDecks(force);
-        setTimeout(() => this.buildFingerprintDB(), 2000);
       })
       .catch(() => {
         done = true; clearTimeout(to); this._loading = false;
@@ -890,272 +862,22 @@ class Component extends DCLogic {
   onPreviewImgLoad(){ if (this.previewImgRef.current) this.previewImgRef.current.style.opacity='1'; }
   onPreviewImgError(){ this.hidePreview(); }
 
-  // ---- image fingerprinting ----
-  computeFingerprint(canvas){
-    // color histogram: 6 bins per channel (R,G,B) = 18 values
-    // plus 4x4 grid average color = 48 values. Total = 66 values per card.
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width, h = canvas.height;
-    const data = ctx.getImageData(0,0,w,h).data;
-    const bins = 6;
-    const hist = new Float32Array(bins*3);
-    const pixels = data.length/4;
-    for (let i=0;i<data.length;i+=4){
-      hist[Math.min(bins-1, Math.floor(data[i]/256*bins))]++;
-      hist[bins+Math.min(bins-1, Math.floor(data[i+1]/256*bins))]++;
-      hist[bins*2+Math.min(bins-1, Math.floor(data[i+2]/256*bins))]++;
-    }
-    for (let i=0;i<hist.length;i++) hist[i] /= pixels; // normalize
-    // 4x4 spatial grid
-    const grid = [];
-    const gw = Math.floor(w/4), gh = Math.floor(h/4);
-    for (let gy=0;gy<4;gy++) for (let gx=0;gx<4;gx++){
-      let r=0,g=0,b=0,n=0;
-      for (let y=gy*gh;y<(gy+1)*gh;y++) for (let x=gx*gw;x<(gx+1)*gw;x++){
-        const idx=(y*w+x)*4;
-        r+=data[idx]; g+=data[idx+1]; b+=data[idx+2]; n++;
-      }
-      grid.push(r/n/255, g/n/255, b/n/255);
-    }
-    return [...hist, ...grid];
-  }
-
-  fpDistance(a, b){
-    if (!a || !b || a.length !== b.length) return Infinity;
-    let sum = 0;
-    for (let i=0;i<a.length;i++){ const d = a[i]-b[i]; sum += d*d; }
-    return Math.sqrt(sum);
-  }
-
-  loadCardImage(url){
-    return new Promise((resolve, reject) => {
-      // try loading via fetch as blob (avoids CORS tainted canvas)
-      fetch(url, { mode:'cors' }).then(r => {
-        if (!r.ok) throw new Error('http');
-        return r.blob();
-      }).then(blob => {
-        const burl = URL.createObjectURL(blob);
-        const img = new Image();
-        img.onload = () => { URL.revokeObjectURL(burl); resolve(img); };
-        img.onerror = () => { URL.revokeObjectURL(burl); reject(); };
-        img.src = burl;
-      }).catch(() => {
-        // fallback: try direct with crossOrigin
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => reject();
-        img.src = url;
-      });
-    });
-  }
-
-  buildFingerprintDB(){
-    if (this._fpBuilding || !this._catalog || !this._catalog.length) return;
-    // load cached fingerprints
-    try { this._fpDB = JSON.parse(localStorage.getItem('tcg-fp-db') || '{}'); } catch(e){ this._fpDB = {}; }
-    this._fpDBCount = Object.keys(this._fpDB).length;
-    // find cards that need fingerprinting
-    const need = this._catalog.filter(c => c.image && c.number && !this._fpDB[c.number]);
-    if (!need.length) return;
-    this._fpBuilding = true;
-    this._fpQueue = need.slice();
-    this._fpBatchSize = 5;
-    this.processFPBatch();
-  }
-
-  processFPBatch(){
-    if (!this._fpQueue || !this._fpQueue.length) { this._fpBuilding = false; this.saveFPDB(); return; }
-    const batch = this._fpQueue.splice(0, this._fpBatchSize);
-    let done = 0;
-    const finish = () => {
-      done++;
-      if (done >= batch.length) {
-        this._fpDBCount = Object.keys(this._fpDB).length;
-        // save periodically
-        if (this._fpDBCount % 25 === 0) this.saveFPDB();
-        // next batch after a short delay to not block UI
-        setTimeout(() => this.processFPBatch(), 100);
-      }
-    };
-    batch.forEach(card => {
-      const url = card.image || this.cardImageUrl(card.number);
-      this.loadCardImage(url).then(img => {
-        const c = document.createElement('canvas');
-        c.width = 16; c.height = 22; // tiny thumbnail for fingerprint
-        c.getContext('2d').drawImage(img, 0, 0, 16, 22);
-        try {
-          const fp = this.computeFingerprint(c);
-          this._fpDB[card.number] = fp;
-        } catch(e){}
-        finish();
-      }).catch(() => finish());
-    });
-  }
-
-  saveFPDB(){
-    try { localStorage.setItem('tcg-fp-db', JSON.stringify(this._fpDB)); } catch(e){}
-  }
-
-  cardImageUrl(number){
-    const num = String(number||'').toUpperCase().replace(/\s+/g,'');
-    return 'https://optcgapi.com/media/static/Card_Images/'+num+'.jpg';
-  }
-
-  matchByFingerprint(canvas){
-    if (!this._fpDB || !Object.keys(this._fpDB).length) return [];
-    // crop center 75% to remove background edges
-    const sw = Math.round(canvas.width*0.125), sh = Math.round(canvas.height*0.06);
-    const cw = canvas.width - sw*2, ch = canvas.height - sh*2;
-    const cropped = document.createElement('canvas');
-    cropped.width = 16; cropped.height = 22;
-    cropped.getContext('2d').drawImage(canvas, sw, sh, cw, ch, 0, 0, 16, 22);
-    const fp = this.computeFingerprint(cropped);
-    const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
-    const cardMap = {};
-    source.forEach(c => { if (c.number) cardMap[c.number] = c; });
-    const scored = [];
-    for (const [num, dbFP] of Object.entries(this._fpDB)){
-      const dist = this.fpDistance(fp, dbFP);
-      const card = cardMap[num];
-      if (card) scored.push({ card, dist });
-    }
-    scored.sort((a,b) => a.dist - b.dist);
-    return scored.slice(0, 12);
-  }
-
-  // ---- scan ----
+  // ---- scan (quick-add search) ----
   openScan(){
     this.ensureCatalog();
-    this.setState({ scanOpen:true, scanStage:'capture', scanCamReady:false, scanDetected:'', scanCandidates:[], scanNote:'', scanProcessMsg:'' });
-    setTimeout(() => this.startCamera(), 60);
+    this.setState({ scanOpen:true, scanStage:'capture', scanQuery:'', scanAutoAdded:null });
+    setTimeout(() => { if (this.scanSearchRef.current) this.scanSearchRef.current.focus(); }, 100);
   }
-  closeScan(){ this.stopCamera(); this.setState({ scanOpen:false }); }
-  scanAgain(){ this.setState({ scanStage:'capture', scanDetected:'', scanCandidates:[], scanNote:'', scanAutoAdded:null }); setTimeout(()=>this.startCamera(),60); }
+  closeScan(){ this.setState({ scanOpen:false }); }
+  scanAgain(){ this.setState({ scanStage:'capture', scanQuery:'', scanAutoAdded:null }); setTimeout(() => { if (this.scanSearchRef.current) this.scanSearchRef.current.focus(); }, 100); }
+  onScanQuery(e){ this.setState({ scanQuery: e.target.value }); }
 
-  startCamera(){
-    const video = this.scanVideoRef.current;
-    if (!video) return;
-    if (this._scanStream) { this.setState({ scanCamReady:true }); this.startAutoScan(); return; }
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-      this.setState({ scanCamReady:false, scanNote:'Camera isn\u2019t available here \u2014 use \u201cUpload a photo\u201d instead.', scanNoteOk:true });
-      return;
-    }
-    navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:960 } }, audio:false })
-      .then(stream => {
-        this._scanStream = stream;
-        const v = this.scanVideoRef.current;
-        if (!v){ stream.getTracks().forEach(t=>t.stop()); this._scanStream=null; return; }
-        v.srcObject = stream;
-        v.play && v.play().catch(()=>{});
-        const fpCount = this._fpDB ? Object.keys(this._fpDB).length : 0;
-        const note = fpCount > 50 ? 'Hold the card steady \u2014 matching automatically\u2026' : 'Building image database (' + fpCount + ' cards indexed)\u2026 try Upload a photo for now.';
-        this.setState({ scanCamReady:true, scanNote:note, scanNoteOk:true });
-        this.startAutoScan();
-      })
-      .catch(() => {
-        this.setState({ scanCamReady:false, scanNote:'Couldn\u2019t open the camera. Use \u201cUpload a photo\u201d instead.', scanNoteOk:true });
-      });
-  }
-  stopCamera(){
-    this.stopAutoScan();
-    if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; }
-  }
-
-  startAutoScan(){
-    this.stopAutoScan();
-    this._autoScanning = false;
-    this._autoScanTimer = setInterval(() => {
-      if (this._autoScanning) return;
-      if (this.state.scanStage !== 'capture') return;
-      if (!this._scanStream) return;
-      const v = this.scanVideoRef.current;
-      if (!v || !v.videoWidth) return;
-      if (!this._fpDB || Object.keys(this._fpDB).length < 20) return; // need enough fingerprints
-      this._autoScanning = true;
-      this.autoScanFrame(v);
-    }, 2000);
-  }
-  stopAutoScan(){
-    if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
-    this._autoScanning = false;
-  }
-
-  autoScanFrame(v){
-    const vw = v.videoWidth, vh = v.videoHeight;
-    const canvas = document.createElement('canvas');
-    canvas.width = 320; canvas.height = Math.round(320 * vh / vw);
-    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    const matches = this.matchByFingerprint(canvas);
-    this._autoScanning = false;
-    if (this.state.scanStage !== 'capture') return;
-    if (matches.length && matches[0].dist < 0.55 && (matches.length < 2 || matches[0].dist < matches[1].dist * 0.75)) {
-      // confident match — auto-add
-      this.stopAutoScan();
-      this.scanAutoAdd(matches[0].card, matches[0].card.number);
-      return;
-    }
-    const fpCount = this._fpDB ? Object.keys(this._fpDB).length : 0;
-    this.setState({ scanNote:'Scanning\u2026 (' + fpCount + ' cards indexed) \u2014 hold the card still', scanNoteOk:true });
-  }
-
-  doCapture(){
-    const v = this.scanVideoRef.current;
-    if (!v || !v.videoWidth){ return; }
-    const vw = v.videoWidth, vh = v.videoHeight;
-    this.stopCamera();
-    const canvas = document.createElement('canvas');
-    canvas.width = 640; canvas.height = Math.round(640 * vh / vw);
-    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    this.processCapture(canvas);
-  }
-
-  onScanFile(e){
-    const file = e.target.files && e.target.files[0];
-    if (!file){ return; }
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      this.stopCamera();
-      const scale = 640 / img.width;
-      const canvas = document.createElement('canvas');
-      canvas.width = 640; canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
-      this.processCapture(canvas);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); this.setState({ scanStage:'capture', scanNote:'Couldn\u2019t read that image. Try another photo.', scanNoteOk:false }); };
-    img.src = url;
-    e.target.value = '';
-  }
-
-  processCapture(canvas){
-    this.setState({ scanStage:'processing', scanProcessMsg:'Matching card image\u2026' });
-    // image fingerprint matching (primary)
-    const fpMatches = this.matchByFingerprint(canvas);
-    if (fpMatches.length && fpMatches[0].dist < 0.55 && (fpMatches.length < 2 || fpMatches[0].dist < fpMatches[1].dist * 0.75)) {
-      // confident single match — auto-add
-      this.scanAutoAdd(fpMatches[0].card, fpMatches[0].card.number);
-      return;
-    }
-    // show top matches for user to pick
-    const matches = fpMatches.map(m => m.card);
-    const detected = matches.length ? 'Image match' : '\u2014 (no match found)';
-    this.setState({ scanStage:'results', scanDetected:detected,
-      scanCandidates: matches.map(c => ({ number:c.number, name:c.name,
-        priceFmt: c.price ? this.money(c.price) : '\u2014', hasImage:!!c.image, image:c.image||'',
-        onPick: ()=>this.scanPick(c) })) });
-  }
-
-  scanAutoAdd(card, detected){
-    this.stopCamera();
+  scanPick(card){
     this.pickInto('new', card);
-    this.setState({ scanStage:'added', scanDetected:detected, scanAutoAdded:card });
+    this.setState({ scanStage:'added', scanAutoAdded:card });
   }
 
-  scanPick(card){ this.stopCamera(); this.setState({ scanOpen:false }); this.pickInto('new', card); }
-
-  componentWillUnmount(){ this.stopCamera(); }
+  componentWillUnmount(){}
 
   // ---- share / QR ----
   compressCollection(){
@@ -1828,15 +1550,33 @@ class Component extends DCLogic {
       previewRef:this.previewRef, previewImgRef:this.previewImgRef, previewCapRef:this.previewCapRef,
       onPreviewImgLoad:()=>this.onPreviewImgLoad(), onPreviewImgError:()=>this.onPreviewImgError(),
       scanOpen:S.scanOpen, openScan:()=>this.openScan(), closeScan:()=>this.closeScan(),
-      scanVideoRef:this.scanVideoRef, scanFileRef:this.scanFileRef,
-      scanShowCapture:S.scanStage==='capture', scanProcessing:S.scanStage==='processing', scanShowResults:S.scanStage==='results', scanShowAdded:S.scanStage==='added',
+      scanSearchRef:this.scanSearchRef, scanQuery:S.scanQuery, onScanQuery:(e)=>this.onScanQuery(e),
+      scanShowCapture:S.scanStage==='capture', scanShowAdded:S.scanStage==='added',
       scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
-      scanCamReady:S.scanCamReady, scanCamConnecting:S.scanStage==='capture' && !S.scanCamReady && !S.scanNote,
-      scanVideoDisplay:S.scanCamReady?'block':'none', scanUploadFlex:S.scanCamReady?'none':'1',
-      scanProcessMsg:S.scanProcessMsg, scanDetected:S.scanDetected, scanCandidates:S.scanCandidates,
-      scanNoMatch:S.scanStage==='results' && S.scanCandidates.length===0,
-      scanNote:S.scanNote, scanNoteColor:S.scanNoteOk?'#69707A':'#DC3B43', scanNoteBg:S.scanNoteOk?'#F4F5F7':'#FEEBEC',
-      doCapture:()=>this.doCapture(), onScanFile:(e)=>this.onScanFile(e), scanAgain:()=>this.scanAgain(),
+      scanSearchResults: (() => {
+        if (S.scanStage !== 'capture') return [];
+        const sq = (S.scanQuery||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+        if (sq.length < 2) return [];
+        const src = liveReady ? this._catalog : this.localCards();
+        const n2 = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const matches = src.filter(c => n2(c.name+c.number).includes(sq));
+        matches.sort((a,b) => {
+          const an=n2(a.name), bn=n2(b.name), anum=n2(a.number), bnum=n2(b.number);
+          const rank = (nm,num) => { if (num===sq||nm===sq) return 0; if (num.startsWith(sq)) return 1; if (nm.startsWith(sq)) return 2; return 3; };
+          const ra=rank(an,anum), rb=rank(bn,bnum); if (ra!==rb) return ra-rb;
+          return (b.price||0)-(a.price||0);
+        });
+        return matches.slice(0,30).map(c => ({
+          number:c.number, name:c.name, priceFmt: c.price ? this.money(c.price) : '\u2014',
+          hasImage:!!c.image, image:c.image||'', onPick:()=>this.scanPick(c),
+        }));
+      })(),
+      scanNoResults: S.scanStage==='capture' && (S.scanQuery||'').trim().length >= 2 && (() => {
+        const sq = (S.scanQuery||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+        const src = liveReady ? this._catalog : this.localCards();
+        return !src.some(c => (c.name+c.number).toLowerCase().replace(/[^a-z0-9]/g,'').includes(sq));
+      })(),
+      scanAgain:()=>this.scanAgain(),
       onDraftName:(e)=>this.onDraftName(e), onDraftFocus:()=>this.onDraftFocus(), onNameBlur:()=>this.onNameBlur(), onDraftKey:(e)=>this.onDraftKey(e),
       onDraftGame:(e)=>this.setDraft('game',e.target.value), onDraftLang:(e)=>this.setDraft('language',e.target.value),
       onDraftNumber:(e)=>this.setDraft('number',e.target.value), onDraftSet:(e)=>this.setDraft('set',e.target.value),
