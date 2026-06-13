@@ -966,20 +966,19 @@ class Component extends DCLogic {
   }
 
   callVisionAPI(base64){
-    const key = this.state.settings.visionApiKey;
+    const key = (this.state.settings.visionApiKey||'').trim();
     if (!key) return Promise.reject('No API key');
     return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(key), {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
       body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:[{ type:'TEXT_DETECTION', maxResults:10 }] }] })
-    }).then(r => {
-      if (!r.ok) throw new Error('API error '+r.status);
-      return r.json();
-    }).then(data => {
+    }).then(r => r.json().then(data => {
+      if (data.error) throw new Error(data.error.message || ('Error '+data.error.code));
+      if (data.responses && data.responses[0] && data.responses[0].error) throw new Error(data.responses[0].error.message);
       const ann = data.responses && data.responses[0] && data.responses[0].textAnnotations;
       if (!ann || !ann.length) return '';
       return ann[0].description || '';
-    });
+    }));
   }
 
   extractCode(text){
@@ -1026,11 +1025,9 @@ class Component extends DCLogic {
       }
     }).catch(err => {
       this._autoScanning = false;
-      const msg = String(err||'');
-      if (msg.includes('403') || msg.includes('401')){
-        this.stopAutoScan();
-        this.setState({ scanStatusMsg:'API key invalid \u2014 check Settings' });
-      }
+      const msg = String(err&&err.message||err||'');
+      this.stopAutoScan();
+      this.setState({ scanStatusMsg:msg.length > 80 ? msg.slice(0,80)+'\u2026' : msg });
     });
   }
 
@@ -1777,7 +1774,7 @@ class Component extends DCLogic {
       scanVideoDisplay:S.scanCamReady?'block':'none',
       scanShowUpload:!S.scanCamReady || !st.visionApiKey, onScanFile:(e)=>this.onScanFile(e),
       scanStatusMsg:S.scanStatusMsg,
-      visionApiKey:st.visionApiKey||'', onVisionApiKey:(e)=>this.setSetting('visionApiKey',e.target.value),
+      visionApiKey:st.visionApiKey||'', onVisionApiKey:(e)=>this.setSetting('visionApiKey',(e.target.value||'').trim()),
       visionKeyStatus: st.visionApiKey ? 'Key saved \u2014 scanner is active' : '',
       visionKeyColor: st.visionApiKey ? '#2B9A66' : '#8C939D',
       scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
