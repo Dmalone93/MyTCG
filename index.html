@@ -199,6 +199,26 @@
       </div>
     </sc-if>
 
+    <!-- ===== CARD CAROUSEL ===== -->
+    <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ hasCards }}" hint-placeholder-val="{{ true }}">
+        <div ref="{{ carouselRef }}" onScroll="{{ onCarouselScroll }}" style="display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; padding:0 0 12px; margin:0 -clamp(12px,3.5vw,20px); padding-left:clamp(12px,3.5vw,20px); padding-right:clamp(12px,3.5vw,20px); scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          <style>div[ref]::-webkit-scrollbar{ display:none; }</style>
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+            <div onClick="{{ c.onCarouselClick }}" style="flex:none; width:120px; scroll-snap-align:center; cursor:pointer; border-radius:11px; overflow:hidden; border:2px solid {{ c.carouselBorder }}; background:#111113; transition:border-color .15s;">
+              <div style="position:relative; aspect-ratio:63/88; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);">
+                <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ c.image }}'); background-size:cover; background-position:center;"></span></sc-if>
+              </div>
+              <div style="padding:7px 8px;">
+                <div style="font-weight:600; font-size:11px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ c.carouselNameColor }};">{{ c.name }}</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:10px; color:#52525B; margin-top:2px;">{{ c.rawFmt }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
+
     <!-- ===== SHEET VIEW ===== -->
     <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
       <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:13px; overflow:hidden; box-shadow:none;">
@@ -224,8 +244,8 @@
             <tbody>
               <!-- ADD ROW -->
               <tr style="background:rgba(59,130,246,.08);">
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; text-align:center; color:#3B82F6; font-size:15px; font-weight:600; user-select:none;">+</td>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;">
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); text-align:center; color:#3B82F6; font-size:15px; font-weight:600; user-select:none;">+</td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); position:relative;">
                   <input class="cellinput" ref="{{ newNameRef }}" value="{{ nr.name }}" onInput="{{ onDraftName }}" onFocus="{{ onDraftFocus }}" onBlur="{{ onNameBlur }}" onKeyDown="{{ onDraftKey }}" placeholder="Type a card name to add a row…" style="width:100%; border:none; background:transparent; padding:11px 12px; font-size:13.5px; font-weight:600;" />
                   <sc-if value="{{ newPickerShow }}" hint-placeholder-val="{{ false }}">
                     <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:11px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
@@ -244,22 +264,22 @@
                     </div>
                   </sc-if>
                 </td>
-                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.language }}" onChange="{{ onDraftLang }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.number }}" onInput="{{ onDraftNumber }}" placeholder="OP01-…" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px;" /></td>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.set }}" onInput="{{ onDraftSet }}" placeholder="Set" style="width:100%; border:none; background:transparent; padding:11px 10px; font-size:13px;" /></td>
-                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.rarity }}" onChange="{{ onDraftRarity }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.condition }}" onChange="{{ onDraftCond }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" type="number" min="1" value="{{ nr.qty }}" onInput="{{ onDraftQty }}" onKeyDown="{{ onDraftKey }}" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.purchasePrice }}" onInput="{{ onDraftPaid }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.rawValue }}" onInput="{{ onDraftRaw }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.gradedValue }}" onInput="{{ onDraftGraded }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#4ADE80;" /></td></sc-if>
-                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; text-align:right; padding-right:12px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#52525B;">—</span></td>
+                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><select class="cellinput" value="{{ nr.language }}" onChange="{{ onDraftLang }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><input class="cellinput" value="{{ nr.number }}" onInput="{{ onDraftNumber }}" placeholder="OP01-…" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><input class="cellinput" value="{{ nr.set }}" onInput="{{ onDraftSet }}" placeholder="Set" style="width:100%; border:none; background:transparent; padding:11px 10px; font-size:13px;" /></td>
+                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><select class="cellinput" value="{{ nr.rarity }}" onChange="{{ onDraftRarity }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><select class="cellinput" value="{{ nr.condition }}" onChange="{{ onDraftCond }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08);"><input class="cellinput" type="number" min="1" value="{{ nr.qty }}" onInput="{{ onDraftQty }}" onKeyDown="{{ onDraftKey }}" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.purchasePrice }}" onInput="{{ onDraftPaid }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.rawValue }}" onInput="{{ onDraftRaw }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.gradedValue }}" onInput="{{ onDraftGraded }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#4ADE80;" /></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); text-align:right; padding-right:12px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#52525B;">—</span></td>
                 <td style="border-bottom:1px solid rgba(255,255,255,.06); text-align:center;"><button onClick="{{ commitNew }}" title="Add row" style="border:none; background:#3B82F6; color:#fff; width:24px; height:24px; border-radius:7px; cursor:pointer; font-size:14px; line-height:0;">↵</button></td>
               </tr>
 
               <!-- DATA ROWS -->
               <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
-                <tr style-hover="background:#0D0D0F;">
+                <tr style="background:{{ c.rowBg }};" style-hover="background:#1C1C1F;">
                   <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); background:#0D0D0F; text-align:center; font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; user-select:none;">{{ c.rowNum }}</td>
                   <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;">
                     <input class="cellinput" value="{{ c.name }}" onInput="{{ c.onName }}" onFocus="{{ c.onNameFocus }}" onBlur="{{ onNameBlur }}" style="width:100%; border:none; background:transparent; padding:10px 12px; font-size:13.5px; font-weight:600;" />
@@ -625,6 +645,8 @@ class Component extends DCLogic {
     this.previewImgRef = React.createRef();
     this.previewCapRef = React.createRef();
     this.scanSearchRef = React.createRef();
+    this.carouselRef = React.createRef();
+    this._activeCardIdx = -1;
     this.scanVideoRef = React.createRef();
     this.scanFileRef = React.createRef();
     this._scanStream = null;
@@ -649,6 +671,7 @@ class Component extends DCLogic {
       importMsg: '', importOk: true,
       scanOpen:false, scanStage:'capture', scanQuery:'', scanAutoAdded:null,
       scanCamReady:false, scanStatusMsg:'',
+      activeCardIdx:-1,
       shareOpen:false, shareCopied:false, sharedCards:null,
       lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
@@ -900,6 +923,54 @@ class Component extends DCLogic {
   hidePreview(){ const box = this.previewRef && this.previewRef.current; if (box) box.style.display='none'; }
   onPreviewImgLoad(){ if (this.previewImgRef.current) this.previewImgRef.current.style.opacity='1'; }
   onPreviewImgError(){ this.hidePreview(); }
+
+  // ---- carousel ----
+  onCarouselScroll(){
+    const el = this.carouselRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    const children = el.children;
+    let closest = -1, minDist = Infinity;
+    for (let i = 0; i < children.length; i++){
+      if (children[i].tagName === 'STYLE') continue;
+      const child = children[i];
+      const mid = child.offsetLeft + child.offsetWidth / 2;
+      const dist = Math.abs(mid - center);
+      if (dist < minDist){ minDist = dist; closest = i; }
+    }
+    // adjust for the style tag
+    const styleCount = el.querySelector('style') ? 1 : 0;
+    const idx = closest - styleCount;
+    if (idx >= 0 && idx !== this.state.activeCardIdx){
+      this.setState({ activeCardIdx: idx });
+      // scroll the sheet row into view
+      this.scrollSheetToRow(idx);
+    }
+  }
+
+  scrollSheetToRow(idx){
+    const scrollEl = this.sheetScrollRef.current;
+    if (!scrollEl) return;
+    const rows = scrollEl.querySelectorAll('tbody tr');
+    // offset by 1 for the add-row
+    const target = rows[idx + 1];
+    if (target){
+      target.scrollIntoView({ block:'nearest', behavior:'smooth' });
+    }
+  }
+
+  onCarouselCardClick(idx){
+    this.setState({ activeCardIdx: idx });
+    this.scrollSheetToRow(idx);
+    // also scroll carousel to center this card
+    const el = this.carouselRef.current;
+    if (!el) return;
+    const styleCount = el.querySelector('style') ? 1 : 0;
+    const child = el.children[idx + styleCount];
+    if (child){
+      child.scrollIntoView({ inline:'center', behavior:'smooth', block:'nearest' });
+    }
+  }
 
   // ---- scan ----
   openScan(){
@@ -1657,6 +1728,11 @@ class Component extends DCLogic {
         onPreviewMove:(e)=>this.movePreview(e),
         onPreviewLeave:()=>this.hidePreview(),
         onDelete:()=>this.deleteCard(c),
+        rowBg: i===S.activeCardIdx ? 'rgba(59,130,246,.06)' : 'transparent',
+        carouselBorder: i===S.activeCardIdx ? '#3B82F6' : 'rgba(255,255,255,.06)',
+        carouselNameColor: i===S.activeCardIdx ? '#FAFAFA' : '#A1A1AA',
+        onCarouselClick: ()=>this.onCarouselCardClick(i),
+        isActive: i===S.activeCardIdx,
       };
     });
 
@@ -1754,7 +1830,7 @@ class Component extends DCLogic {
       plFmt:this.signed(pl), plColor: up?GAIN:LOSS, plBg: up?GAINBG:LOSSBG, plArrow: up?'▲':'▼',
       plPctFmt:(plPct>=0?'+':'−')+Math.abs(plPct).toFixed(1)+'%',
       insightsOpen:S.insightsOpen, toggleInsights:()=>this.toggleInsights(),
-      insightsBg: S.insightsOpen?'rgba(59,130,246,.12)':'#fff', insightsFg: S.insightsOpen?ACC:'#FAFAFA',
+      insightsBg: S.insightsOpen?'rgba(59,130,246,.12)':'#18181B', insightsFg: S.insightsOpen?ACC:'#A1A1AA',
       insightsBorder: S.insightsOpen?'rgba(59,130,246,.2)':'rgba(255,255,255,.06)', insightsChevron: S.insightsOpen?'rotate(180deg)':'rotate(0deg)',
       hasChart, noChart:!hasChart, valuePath, valueArea, spentPath,
       valEndX:valEndX.toFixed(1), valEndY:valEndY.toFixed(1), baseY:baseY.toFixed(1), xLabels, gridLines,
@@ -1766,7 +1842,8 @@ class Component extends DCLogic {
       viewTabs:['sheet','gallery'].map(v => ({ key:v, label: v==='sheet'?'Sheet':'Gallery',
         bg: S.view===v?ACC:'#18181B', fg: S.view===v?'#fff':'#71717A', onClick:()=>this.setView(v) })),
       isSheet:S.view==='sheet', isGallery:S.view==='gallery',
-      isEmpty: cards.length===0, cards, focusNew:()=>this.focusNew(),
+      isEmpty: cards.length===0, hasCards: cards.length>0, cards, focusNew:()=>this.focusNew(),
+      carouselRef:this.carouselRef, onCarouselScroll:()=>this.onCarouselScroll(),
       newNameRef:this.newNameRef, nr, nrDot:nrMeta.dot, commitNew:()=>this.commitNewRow(),
       sheetScrollRef:this.sheetScrollRef,
       previewRef:this.previewRef, previewImgRef:this.previewImgRef, previewCapRef:this.previewCapRef,
