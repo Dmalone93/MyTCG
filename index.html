@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *{ box-sizing:border-box; }
@@ -350,23 +351,50 @@
 
   <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(440px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Quick add</div><div style="font-size:12px; color:#8C939D;">Search by name or card number</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan card</div><div style="font-size:12px; color:#8C939D;">Point at the card or search below</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
 
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative; margin-bottom:14px;">
-            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">⌕</span>
-            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:14px 14px 14px 34px; font-size:15px;" />
+          <!-- camera -->
+          <div style="position:relative; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
+            <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
+            <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute; left:4%; bottom:6%; width:42%; height:14%; border:2px solid rgba(62,99,221,.9); border-radius:6px; box-shadow:0 0 12px rgba(62,99,221,.3);"></div>
+              <div style="position:absolute; left:4%; bottom:3%; font-family:'Geist Mono',monospace; font-size:10px; color:rgba(255,255,255,.7); padding:2px 6px;">card number here</div>
+            </sc-if>
+            <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera\u2026</div></sc-if>
+            <sc-if value="{{ scanStatusMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.65); padding:5px 12px; border-radius:8px; white-space:nowrap;">{{ scanStatusMsg }}</div></sc-if>
+          </div>
+
+          <!-- upload fallback -->
+          <sc-if value="{{ scanShowUpload }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;" style-hover="background:#F1F3F6;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Upload card photo
+              <input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" />
+            </label>
+          </sc-if>
+
+          <!-- divider -->
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div style="flex:1; height:1px; background:#EFF0F3;"></div>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2;">or search</span>
+            <div style="flex:1; height:1px; background:#EFF0F3;"></div>
+          </div>
+
+          <!-- search -->
+          <div style="position:relative; margin-bottom:12px;">
+            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">&#8981;</span>
+            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:13px 14px 13px 34px; font-size:14.5px;" />
           </div>
           <sc-if value="{{ scanSearchResults.length }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:52vh; overflow-y:auto;">
+            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:36vh; overflow-y:auto;">
               <sc-for list="{{ scanSearchResults }}" as="sr" hint-placeholder-count="4">
                 <button onClick="{{ sr.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:10px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
                   <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ sr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ sr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
@@ -378,7 +406,7 @@
             </div>
           </sc-if>
           <sc-if value="{{ scanNoResults }}" hint-placeholder-val="{{ false }}">
-            <div style="padding:24px 12px; text-align:center; color:#8C939D; font-size:13.5px;">No matches found. Try a different name or number.</div>
+            <div style="padding:16px 12px; text-align:center; color:#8C939D; font-size:13px;">No matches. Try a different name or number.</div>
           </sc-if>
         </sc-if>
 
@@ -393,7 +421,7 @@
               <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D; margin-top:2px;">{{ scanAutoNumber }}</div>
             </div>
             <div style="display:flex; gap:9px; width:100%;">
-              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Add another</button>
+              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Scan another</button>
               <button onClick="{{ closeScan }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">Done</button>
             </div>
           </div>
@@ -590,6 +618,9 @@ class Component extends DCLogic {
     this.previewImgRef = React.createRef();
     this.previewCapRef = React.createRef();
     this.scanSearchRef = React.createRef();
+    this.scanVideoRef = React.createRef();
+    this.scanFileRef = React.createRef();
+    this._scanStream = null;
     this.qrCanvasRef = React.createRef();
     this.lookupFileRef = React.createRef();
     this.state = {
@@ -610,6 +641,7 @@ class Component extends DCLogic {
       filterField: null, filterValue: null,
       importMsg: '', importOk: true,
       scanOpen:false, scanStage:'capture', scanQuery:'', scanAutoAdded:null,
+      scanCamReady:false, scanStatusMsg:'',
       shareOpen:false, shareCopied:false, sharedCards:null,
       lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
@@ -862,20 +894,202 @@ class Component extends DCLogic {
   onPreviewImgLoad(){ if (this.previewImgRef.current) this.previewImgRef.current.style.opacity='1'; }
   onPreviewImgError(){ this.hidePreview(); }
 
-  // ---- scan (quick-add search) ----
+  // ---- scan ----
   openScan(){
     this.ensureCatalog();
-    this.setState({ scanOpen:true, scanStage:'capture', scanQuery:'', scanAutoAdded:null });
-    setTimeout(() => { if (this.scanSearchRef.current) this.scanSearchRef.current.focus(); }, 100);
+    this.setState({ scanOpen:true, scanStage:'capture', scanQuery:'', scanAutoAdded:null, scanCamReady:false, scanStatusMsg:'' });
+    setTimeout(() => this.startCamera(), 80);
   }
-  closeScan(){ this.setState({ scanOpen:false }); }
-  scanAgain(){ this.setState({ scanStage:'capture', scanQuery:'', scanAutoAdded:null }); setTimeout(() => { if (this.scanSearchRef.current) this.scanSearchRef.current.focus(); }, 100); }
+  closeScan(){ this.stopCamera(); this.setState({ scanOpen:false }); }
+  scanAgain(){
+    this.setState({ scanStage:'capture', scanQuery:'', scanAutoAdded:null, scanStatusMsg:'' });
+    setTimeout(() => this.startCamera(), 80);
+  }
   onScanQuery(e){ this.setState({ scanQuery: e.target.value }); }
 
+  startCamera(){
+    const video = this.scanVideoRef.current;
+    if (!video) return;
+    if (this._scanStream) { this.setState({ scanCamReady:true }); this.startAutoScan(); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 } }, audio:false })
+      .then(stream => {
+        this._scanStream = stream;
+        const v = this.scanVideoRef.current;
+        if (!v){ stream.getTracks().forEach(t=>t.stop()); this._scanStream=null; return; }
+        v.srcObject = stream;
+        v.play && v.play().catch(()=>{});
+        this.setState({ scanCamReady:true, scanStatusMsg:'Scanning\u2026' });
+        this.startAutoScan();
+      })
+      .catch(() => {});
+  }
+  stopCamera(){
+    this.stopAutoScan();
+    if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; }
+  }
+
+  startAutoScan(){
+    this.stopAutoScan();
+    this._autoScanning = false;
+    this._autoScanTimer = setInterval(() => {
+      if (this._autoScanning) return;
+      if (this.state.scanStage !== 'capture') return;
+      if (!this._scanStream || !window.Tesseract) return;
+      const v = this.scanVideoRef.current;
+      if (!v || !v.videoWidth) return;
+      this._autoScanning = true;
+      this.scanFrame(v);
+    }, 1800);
+  }
+  stopAutoScan(){
+    if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
+    this._autoScanning = false;
+  }
+
+  // crop the bottom-left corner where OPTCG card numbers always are
+  cropBottomLeft(source, srcW, srcH){
+    // bottom 12% height, left 45% width — this is JUST the card number area
+    const cropW = Math.round(srcW * 0.45);
+    const cropH = Math.round(srcH * 0.12);
+    const cropX = 0;
+    const cropY = srcH - cropH;
+    // scale up to 600px wide so the tiny text becomes large for OCR
+    const targetW = 600;
+    const scale = targetW / cropW;
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = Math.round(cropH * scale);
+    canvas.getContext('2d').drawImage(source, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  // create binarized variants for OCR
+  binarize(canvas, invert){
+    const c = document.createElement('canvas');
+    c.width = canvas.width; c.height = canvas.height;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(canvas, 0, 0);
+    const im = ctx.getImageData(0,0,c.width,c.height);
+    const d = im.data;
+    // Otsu threshold
+    const hist = new Array(256).fill(0);
+    for (let i=0;i<d.length;i+=4){ const g = Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); hist[g]++; }
+    const total = d.length/4;
+    let sumAll=0; for (let i=0;i<256;i++) sumAll+=i*hist[i];
+    let sumB=0, wB=0, best=0, thresh=128;
+    for (let t=0;t<256;t++){
+      wB+=hist[t]; if(!wB) continue;
+      const wF=total-wB; if(!wF) break;
+      sumB+=t*hist[t];
+      const between=wB*wF*((sumB/wB)-(sumAll-sumB)/wF)**2;
+      if(between>best){ best=between; thresh=t; }
+    }
+    for (let i=0;i<d.length;i+=4){
+      const g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      const v = invert ? (g>thresh?0:255) : (g<thresh?0:255);
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+    ctx.putImageData(im,0,0);
+    return c;
+  }
+
+  extractCode(text){
+    const up = String(text||'').toUpperCase().replace(/[^A-Z0-9\-]/g,' ');
+    // pattern: OP06-101, ST01-012, EB01-061
+    let m = up.match(/(OP|0P|ST|EB|PRB)[.\s\-]*[O0]?(\d{1,2})[.\s\-]+([\dO]{2,3})/);
+    if (m){
+      let pre = m[1]==='0P'?'OP':m[1];
+      return pre+m[2].replace(/O/g,'0').padStart(2,'0')+'-'+m[3].replace(/O/g,'0').padStart(3,'0');
+    }
+    // no separator: OP06101
+    m = up.match(/(OP|0P|ST|EB)[.\s]?[O0]?(\d{2})\s?(\d{3})/);
+    if (m){ return (m[1]==='0P'?'OP':m[1])+m[2]+'-'+m[3]; }
+    // promo: P-001
+    m = up.match(/P[.\s\-]+([\dO]{3})/);
+    if (m) return 'P-'+m[1].replace(/O/g,'0');
+    return '';
+  }
+
+  scanFrame(v){
+    const crop = this.cropBottomLeft(v, v.videoWidth, v.videoHeight);
+    const normal = this.binarize(crop, false);
+    const inverted = this.binarize(crop, true);
+    const opts = { tessedit_pageseg_mode:'7', tessedit_char_whitelist:'OPSTEBRP0123456789- ' };
+    Promise.all([
+      window.Tesseract.recognize(normal,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+      window.Tesseract.recognize(inverted,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+    ]).then(results => {
+      this._autoScanning = false;
+      if (this.state.scanStage !== 'capture') return;
+      for (const text of results){
+        const code = this.extractCode(text);
+        if (code){
+          this.stopAutoScan();
+          this.handleScanCode(code);
+          return;
+        }
+      }
+      this.setState({ scanStatusMsg:'Scanning\u2026 keep the card number visible' });
+    }).catch(()=>{ this._autoScanning = false; });
+  }
+
+  onScanFile(e){
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      this.stopCamera();
+      this.setState({ scanStatusMsg:'Reading\u2026' });
+      const crop = this.cropBottomLeft(img, img.width, img.height);
+      const normal = this.binarize(crop, false);
+      const inverted = this.binarize(crop, true);
+      const opts = { tessedit_pageseg_mode:'7', tessedit_char_whitelist:'OPSTEBRP0123456789- ' };
+      Promise.all([
+        window.Tesseract.recognize(normal,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+        window.Tesseract.recognize(inverted,'eng',opts).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
+      ]).then(results => {
+        for (const text of results){
+          const code = this.extractCode(text);
+          if (code){ this.handleScanCode(code); return; }
+        }
+        this.setState({ scanStatusMsg:'Couldn\u2019t read the number \u2014 try the search below' });
+      }).catch(()=>{ this.setState({ scanStatusMsg:'Failed \u2014 use search below' }); });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); };
+    img.src = url;
+    e.target.value = '';
+  }
+
+  handleScanCode(code){
+    const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
+    const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    const cn = norm(code);
+    let matches = source.filter(c => norm(c.number) === cn);
+    if (!matches.length) matches = source.filter(c => norm(c.number).startsWith(cn));
+    if (matches.length === 1){
+      // exact match — auto add
+      this.stopCamera();
+      this.pickInto('new', matches[0]);
+      this.setState({ scanStage:'added', scanAutoAdded:matches[0] });
+    } else if (matches.length > 1){
+      // fill search with the code so user can pick
+      this.stopCamera();
+      this.setState({ scanQuery:code });
+    } else {
+      this.setState({ scanQuery:code, scanStatusMsg:'Found '+code+' \u2014 pick from results below' });
+    }
+  }
+
   scanPick(card){
+    this.stopCamera();
     this.pickInto('new', card);
     this.setState({ scanStage:'added', scanAutoAdded:card });
   }
+
+  componentWillUnmount(){ this.stopCamera(); }
 
   componentWillUnmount(){}
 
@@ -1550,8 +1764,13 @@ class Component extends DCLogic {
       previewRef:this.previewRef, previewImgRef:this.previewImgRef, previewCapRef:this.previewCapRef,
       onPreviewImgLoad:()=>this.onPreviewImgLoad(), onPreviewImgError:()=>this.onPreviewImgError(),
       scanOpen:S.scanOpen, openScan:()=>this.openScan(), closeScan:()=>this.closeScan(),
-      scanSearchRef:this.scanSearchRef, scanQuery:S.scanQuery, onScanQuery:(e)=>this.onScanQuery(e),
+      scanSearchRef:this.scanSearchRef, scanVideoRef:this.scanVideoRef, scanFileRef:this.scanFileRef,
+      scanQuery:S.scanQuery, onScanQuery:(e)=>this.onScanQuery(e),
       scanShowCapture:S.scanStage==='capture', scanShowAdded:S.scanStage==='added',
+      scanCamReady:S.scanCamReady, scanCamConnecting:!S.scanCamReady && !this._scanStream,
+      scanVideoDisplay:S.scanCamReady?'block':'none',
+      scanShowUpload:!S.scanCamReady, onScanFile:(e)=>this.onScanFile(e),
+      scanStatusMsg:S.scanStatusMsg,
       scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
       scanSearchResults: (() => {
         if (S.scanStage !== 'capture') return [];
