@@ -15,15 +15,15 @@
 <style>
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
-  body{ background:#F5F6F8; font-family:'Geist',-apple-system,'Segoe UI',sans-serif; color:#13161B; -webkit-font-smoothing:antialiased; }
+  body{ background:#09090B; font-family:'Geist',-apple-system,'Segoe UI',sans-serif; color:#FAFAFA; -webkit-font-smoothing:antialiased; }
   input,select,button,textarea{ font-family:inherit; color:inherit; }
-  ::placeholder{ color:#B0B6BF; }
-  .cellinput:focus{ outline:2px solid #3E63DD; outline-offset:-2px; background:#fff !important; border-radius:4px; }
-  input:focus,select:focus{ outline:2px solid #3E63DD; outline-offset:-1px; }
+  ::placeholder{ color:#52525B; }
+  .cellinput:focus{ outline:2px solid #3B82F6; outline-offset:-2px; background:#1C1C1F !important; border-radius:4px; }
+  input:focus,select:focus{ outline:2px solid #3B82F6; outline-offset:-1px; }
   select.cellinput{ outline-offset:-2px; }
   ::-webkit-scrollbar{ width:11px; height:11px; }
-  ::-webkit-scrollbar-thumb{ background:#D6D9DF; border-radius:8px; border:3px solid #FFFFFF; }
-  ::-webkit-scrollbar-track{ background:#FFFFFF; }
+  ::-webkit-scrollbar-thumb{ background:#27272A; border-radius:8px; border:3px solid #111113; }
+  ::-webkit-scrollbar-track{ background:#111113; }
   @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
   @keyframes slideIn{ from{ transform:translateX(100%); } to{ transform:none; } }
   @keyframes popDrop{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
@@ -38,46 +38,45 @@
     <header style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px;">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="display:flex; align-items:baseline; gap:11px;">
-          <h1 style="font-weight:600; font-size:22px; line-height:1; margin:0; letter-spacing:-.025em;">{{ headingLabel }}</h1>
-          <span style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:.18em; color:#A2A8B2; text-transform:uppercase;">TCG&nbsp;Vault</span>
+          <h1 style="font-weight:700; font-size:22px; line-height:1; margin:0; letter-spacing:-.03em; color:#FAFAFA;">{{ headingLabel }}</h1>
         </div>
       </div>
       <div style="display:flex; gap:9px; align-items:center;">
-        <button onClick="{{ openSettings }}" title="Settings" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:17px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">⚙</button>
-        <button onClick="{{ openShare }}" title="Share collection" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; cursor:pointer; font-size:15px; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></button>
-        <button onClick="{{ openLookup }}" title="Quick value lookup" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
+        <button onClick="{{ openSettings }}" title="Settings" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; cursor:pointer; font-size:17px;" style-hover="background:#27272A; color:#FAFAFA;">⚙</button>
+        <button onClick="{{ openShare }}" title="Share collection" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; cursor:pointer; font-size:15px;" style-hover="background:#27272A; color:#FAFAFA;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></button>
+        <button onClick="{{ openLookup }}" title="Quick value lookup" style="display:inline-flex; align-items:center; gap:7px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;" style-hover="background:#27272A; color:#FAFAFA;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Lookup
         </button>
-        <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#fff; color:#13161B; border:1px solid #E5E7EB; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.04);" style-hover="background:#F1F3F6; border-color:#D6D9DF;">
+        <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;" style-hover="background:#27272A; color:#FAFAFA;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
         </button>
-        <button onClick="{{ focusNew }}" style="display:inline-flex; align-items:center; gap:7px; background:#3E63DD; color:#fff; border:none; border-radius:10px; padding:11px 17px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.10), 0 2px 8px rgba(62,99,221,.22);" style-hover="background:#3358D4;">
+        <button onClick="{{ focusNew }}" style="display:inline-flex; align-items:center; gap:7px; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:11px 17px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 2px 8px rgba(59,130,246,.3);" style-hover="background:#2563EB;">
           <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
         </button>
       </div>
     </header>
 
     <!-- ===== METRIC STRIP ===== -->
-    <div style="display:flex; flex-wrap:wrap; align-items:stretch; background:#fff; border:1px solid #E5E7EB; border-radius:13px; box-shadow:0 1px 2px rgba(16,24,40,.04); overflow:hidden; margin-bottom:13px;">
-      <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
-        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Cards</div>
-        <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ rowCount }} <span style="font-size:12px; color:#9DA3AD; font-weight:500;">· {{ totalQty }} copies</span></div>
+    <div style="display:flex; flex-wrap:wrap; align-items:stretch; background:#111113; border:1px solid rgba(255,255,255,.05); border-radius:13px; overflow:hidden; margin-bottom:13px;">
+      <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid rgba(255,255,255,.04);">
+        <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Cards</div>
+        <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ rowCount }} <span style="font-size:12px; color:#52525B; font-weight:500;">· {{ totalQty }} copies</span></div>
       </div>
       <sc-if value="{{ showSpent }}" hint-placeholder-val="{{ true }}">
-        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
-          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Spent</div>
+        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid rgba(255,255,255,.04);">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Spent</div>
           <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ totalSpentFmt }}</div>
         </div>
       </sc-if>
       <sc-if value="{{ showRaw }}" hint-placeholder-val="{{ true }}">
-        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid #EFF0F3;">
-          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Raw value</div>
+        <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid rgba(255,255,255,.04);">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Raw value</div>
           <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ totalRawFmt }}</div>
         </div>
       </sc-if>
       <sc-if value="{{ showPL }}" hint-placeholder-val="{{ true }}">
-        <div style="flex:1; min-width:140px; padding:13px 18px; border-right:1px solid #EFF0F3;">
-          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Profit / Loss</div>
+        <div style="flex:1; min-width:140px; padding:13px 18px; border-right:1px solid rgba(255,255,255,.04);">
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Profit / Loss</div>
           <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
             <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em; color:{{ plColor }};">{{ plFmt }}</span>
             <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:12px; color:{{ plColor }}; background:{{ plBg }}; padding:2px 7px; border-radius:6px;">{{ plPctFmt }}</span>
@@ -86,8 +85,8 @@
       </sc-if>
       <sc-if value="{{ showGraded }}" hint-placeholder-val="{{ true }}">
         <div style="flex:1; min-width:120px; padding:13px 18px;">
-          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">If graded · PSA 10</div>
-          <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em; color:#2B9A66;">{{ totalGradedFmt }}</div>
+          <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">If graded · PSA 10</div>
+          <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em; color:#4ADE80;">{{ totalGradedFmt }}</div>
         </div>
       </sc-if>
     </div>
@@ -96,13 +95,13 @@
     <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-bottom:11px;">
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; width:100%;">
         <sc-if value="{{ filterActive }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid #C7D2F5; background:#EAEEFB; color:#3E63DD; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
+          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid #C7D2F5; background:#EAEEFB; color:#3B82F6; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
         </sc-if>
         <div style="position:relative; display:flex; align-items:center;">
-          <span style="position:absolute; left:11px; color:#A2A8B2; font-size:13px; pointer-events:none;">⌕</span>
-          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid #E5E7EB; background:#fff; border-radius:9px; padding:9px 12px 9px 30px; font-size:13.5px; width:190px; max-width:46vw;" />
+          <span style="position:absolute; left:11px; color:#52525B; font-size:13px; pointer-events:none;">⌕</span>
+          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; padding:9px 12px 9px 30px; font-size:13.5px; width:190px; max-width:46vw;" />
         </div>
-        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid #E5E7EB; background:#fff; border-radius:9px; padding:9px 11px; font-size:13.5px; cursor:pointer;">
+        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; padding:9px 11px; font-size:13.5px; cursor:pointer;">
           <option value="order">Sort: Sheet order</option>
           <option value="value">Sort: Value ↓</option>
           <option value="spent">Sort: Spent ↓</option>
@@ -110,7 +109,7 @@
           <option value="recent">Sort: Recent</option>
           <option value="name">Sort: Name A–Z</option>
         </select>
-        <div style="display:flex; border:1px solid #E5E7EB; background:#fff; border-radius:9px; overflow:hidden;">
+        <div style="display:flex; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; overflow:hidden;">
           <sc-for list="{{ viewTabs }}" as="v" hint-placeholder-count="2">
             <button onClick="{{ v.onClick }}" style="border:none; background:{{ v.bg }}; color:{{ v.fg }}; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;">{{ v.label }}</button>
           </sc-for>
@@ -125,64 +124,64 @@
     <sc-if value="{{ insightsOpen }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:13px; margin-bottom:16px; animation:fadeIn .2s ease;">
         <sc-if value="{{ showChartCard }}" hint-placeholder-val="{{ true }}">
-          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:14px; padding:20px 20px 16px; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05); grid-column:1 / -1;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px 20px 16px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
             <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px;">
               <div>
-                <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:#A2A8B2; margin-bottom:7px;">Portfolio value</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Portfolio value</div>
                 <div style="display:flex; align-items:baseline; gap:11px; flex-wrap:wrap;">
                   <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:clamp(26px,5vw,32px); letter-spacing:-.03em;">{{ totalRawFmt }}</span>
                   <span style="display:inline-flex; align-items:center; gap:5px; font-family:'Geist Mono',monospace; font-weight:600; font-size:13px; color:{{ plColor }}; background:{{ plBg }}; padding:4px 9px; border-radius:8px;">{{ plArrow }} {{ plFmt }} <span style="opacity:.65;">({{ plPctFmt }})</span></span>
                 </div>
-                <div style="font-size:12.5px; color:#8C939D; margin-top:7px;">All-time, against {{ totalSpentFmt }} spent</div>
+                <div style="font-size:12.5px; color:#71717A; margin-top:7px;">All-time, against {{ totalSpentFmt }} spent</div>
               </div>
               <div style="display:flex; gap:15px; align-items:center; padding-top:4px;">
-                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#69707A;"><span style="width:16px; height:3px; border-radius:2px; background:#2B9A66;"></span>Value</div>
-                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#69707A;"><span style="width:16px; border-top:2px dashed #B6BBC4;"></span>Spent</div>
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#A1A1AA;"><span style="width:16px; height:3px; border-radius:2px; background:#2B9A66;"></span>Value</div>
+                <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#A1A1AA;"><span style="width:16px; border-top:2px dashed #B6BBC4;"></span>Spent</div>
               </div>
             </div>
             <sc-if value="{{ hasChart }}" hint-placeholder-val="{{ true }}">
               <svg viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; display:block; overflow:visible;">
                 <defs>
-                  <linearGradient id="valFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2B9A66" stop-opacity="0.20"></stop><stop offset="100%" stop-color="#2B9A66" stop-opacity="0"></stop></linearGradient>
-                  <linearGradient id="valStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1F8A5B"></stop><stop offset="100%" stop-color="#36B57E"></stop></linearGradient>
+                  <linearGradient id="valFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ADE80" stop-opacity="0.20"></stop><stop offset="100%" stop-color="#4ADE80" stop-opacity="0"></stop></linearGradient>
+                  <linearGradient id="valStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#22C55E"></stop><stop offset="100%" stop-color="#4ADE80"></stop></linearGradient>
                 </defs>
                 <sc-for list="{{ gridLines }}" as="gl" hint-placeholder-count="3">
-                  <line x1="0" x2="720" y1="{{ gl.y }}" y2="{{ gl.y }}" stroke="#EEF0F2" stroke-width="1" stroke-dasharray="3 5"></line>
-                  <text x="0" y="{{ gl.ty }}" font-family="Geist Mono, monospace" font-size="10" fill="#BDC2CB">{{ gl.label }}</text>
+                  <line x1="0" x2="720" y1="{{ gl.y }}" y2="{{ gl.y }}" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="3 5"></line>
+                  <text x="0" y="{{ gl.ty }}" font-family="Geist Mono, monospace" font-size="10" fill="#52525B">{{ gl.label }}</text>
                 </sc-for>
                 <path d="{{ valueArea }}" fill="url(#valFill)"></path>
-                <path d="{{ spentPath }}" fill="none" stroke="#B6BBC4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 5"></path>
-                <line x1="{{ valEndX }}" x2="{{ valEndX }}" y1="{{ valEndY }}" y2="{{ baseY }}" stroke="#2B9A66" stroke-width="1" stroke-dasharray="2 3" opacity="0.35"></line>
+                <path d="{{ spentPath }}" fill="none" stroke="#3F3F46" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 5"></path>
+                <line x1="{{ valEndX }}" x2="{{ valEndX }}" y1="{{ valEndY }}" y2="{{ baseY }}" stroke="#4ADE80" stroke-width="1" stroke-dasharray="2 3" opacity="0.35"></line>
                 <path d="{{ valuePath }}" fill="none" stroke="url(#valStroke)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"></path>
-                <circle cx="{{ valEndX }}" cy="{{ valEndY }}" r="5" fill="#2B9A66" stroke="#fff" stroke-width="2.5"></circle>
-                <sc-for list="{{ xLabels }}" as="xl" hint-placeholder-count="5"><text x="{{ xl.x }}" y="214" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="#A2A8B2">{{ xl.label }}</text></sc-for>
+                <circle cx="{{ valEndX }}" cy="{{ valEndY }}" r="5" fill="#4ADE80" stroke="#fff" stroke-width="2.5"></circle>
+                <sc-for list="{{ xLabels }}" as="xl" hint-placeholder-count="5"><text x="{{ xl.x }}" y="214" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="#52525B">{{ xl.label }}</text></sc-for>
               </svg>
             </sc-if>
-            <sc-if value="{{ noChart }}" hint-placeholder-val="{{ false }}"><div style="padding:36px 0; text-align:center; color:#8C939D; font-size:14px;">No cards yet — add one to see your value trend.</div></sc-if>
+            <sc-if value="{{ noChart }}" hint-placeholder-val="{{ false }}"><div style="padding:36px 0; text-align:center; color:#71717A; font-size:14px;">No cards yet — add one to see your value trend.</div></sc-if>
           </div>
         </sc-if>
 
         <sc-if value="{{ showBudgetCard }}" hint-placeholder-val="{{ true }}">
-          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:14px; padding:20px; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05); grid-column:1 / -1;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px;">
               <div style="font-weight:600; font-size:15px; letter-spacing:-.01em;">{{ monthLabelLong }} budget</div>
-              <div style="display:flex; align-items:center; gap:6px; font-family:'Geist Mono',monospace; font-size:13px; color:#69707A;">{{ cur }}<input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="width:66px; border:1px solid #E5E7EB; border-radius:8px; padding:6px 8px; font-family:'Geist Mono',monospace; font-size:13px; text-align:right;" /></div>
+              <div style="display:flex; align-items:center; gap:6px; font-family:'Geist Mono',monospace; font-size:13px; color:#A1A1AA;">{{ cur }}<input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="width:66px; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:6px 8px; font-family:'Geist Mono',monospace; font-size:13px; text-align:right;" /></div>
             </div>
             <div style="display:flex; flex-wrap:wrap; align-items:center; gap:24px;">
               <div style="position:relative; width:108px; height:108px; flex:none;">
                 <svg width="108" height="108" viewBox="0 0 108 108">
-                  <circle cx="54" cy="54" r="46" fill="none" stroke="#EDEFF2" stroke-width="11"></circle>
+                  <circle cx="54" cy="54" r="46" fill="none" stroke="#27272A" stroke-width="11"></circle>
                   <circle cx="54" cy="54" r="46" fill="none" stroke="{{ budgetColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ budgetRingDash }} {{ budgetRingGap }}" transform="rotate(-90 54 54)"></circle>
                 </svg>
                 <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                   <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:21px; letter-spacing:-.02em; color:{{ budgetColor }};">{{ budgetPctLabel }}</span>
-                  <span style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#A2A8B2; margin-top:1px;">used</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#52525B; margin-top:1px;">used</span>
                 </div>
               </div>
               <div style="flex:1; min-width:210px;">
                 <div style="display:flex; align-items:baseline; gap:8px;">
                   <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:26px; letter-spacing:-.03em; color:{{ budgetColor }};">{{ monthSpentFmt }}</span>
-                  <span style="font-size:13px; color:#8C939D;">of {{ budgetFmt }}</span>
+                  <span style="font-size:13px; color:#71717A;">of {{ budgetFmt }}</span>
                 </div>
                 <div style="font-size:13px; margin-top:5px; color:{{ budgetColor }}; font-weight:500;">{{ budgetMsg }}</div>
                 <div style="display:flex; align-items:flex-end; gap:7px; height:62px; margin-top:16px;">
@@ -202,105 +201,105 @@
 
     <!-- ===== SHEET VIEW ===== -->
     <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
-      <div style="background:#fff; border:1px solid #E5E7EB; border-radius:13px; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.03);">
+      <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:13px; overflow:hidden; box-shadow:none;">
         <div ref="{{ sheetScrollRef }}" style="max-height:calc(100vh - 250px); min-height:280px; overflow:auto;">
           <table style="width:100%; border-collapse:separate; border-spacing:0; min-width:900px;">
             <thead>
               <tr>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:42px; font-family:'Geist Mono',monospace; font-size:10px; color:#B0B6BF; font-weight:600; text-align:center;">#</th>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 12px; min-width:200px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Card name</th>
-                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:64px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Lang</th></sc-if>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:104px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">No.</th>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; min-width:150px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Set</th>
-                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:138px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Rarity</th></sc-if>
-                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 8px; width:120px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:left;">Cond.</th></sc-if>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:54px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">Qty</th>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hPaid }}</th>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hRaw }}</th>
-                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 10px; width:90px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">{{ hGraded }}</th></sc-if>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; border-right:1px solid #EFF0F3; padding:9px 12px; width:96px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#8C939D; font-weight:600; text-align:right;">P/L</th>
-                <th style="position:sticky; top:0; z-index:6; background:#F7F8FA; border-bottom:1px solid #E1E4E9; padding:9px 6px; width:38px;"></th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 8px; width:42px; font-family:'Geist Mono',monospace; font-size:10px; color:#52525B; font-weight:600; text-align:center;">#</th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 12px; min-width:200px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">Card name</th>
+                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 8px; width:64px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">Lang</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; width:104px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">No.</th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; min-width:150px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">Set</th>
+                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 8px; width:138px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">Rarity</th></sc-if>
+                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 8px; width:120px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:left;">Cond.</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; width:54px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:right;">Qty</th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:right;">{{ hPaid }}</th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; width:84px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:right;">{{ hRaw }}</th>
+                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 10px; width:90px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:right;">{{ hGraded }}</th></sc-if>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(255,255,255,.04); padding:9px 12px; width:96px; font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:#71717A; font-weight:600; text-align:right;">P/L</th>
+                <th style="position:sticky; top:0; z-index:6; background:#111113; border-bottom:1px solid rgba(255,255,255,.06); padding:9px 6px; width:38px;"></th>
               </tr>
             </thead>
             <tbody>
               <!-- ADD ROW -->
-              <tr style="background:#F4F7FF;">
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; text-align:center; color:#3E63DD; font-size:15px; font-weight:600; user-select:none;">+</td>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;">
+              <tr style="background:rgba(59,130,246,.08);">
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; text-align:center; color:#3B82F6; font-size:15px; font-weight:600; user-select:none;">+</td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;">
                   <input class="cellinput" ref="{{ newNameRef }}" value="{{ nr.name }}" onInput="{{ onDraftName }}" onFocus="{{ onDraftFocus }}" onBlur="{{ onNameBlur }}" onKeyDown="{{ onDraftKey }}" placeholder="Type a card name to add a row…" style="width:100%; border:none; background:transparent; padding:11px 12px; font-size:13.5px; font-weight:600;" />
                   <sc-if value="{{ newPickerShow }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#fff; border:1px solid #D6D9DF; border-radius:11px; box-shadow:0 14px 40px rgba(16,24,40,.20); overflow:hidden; animation:popDrop .12s ease;">
-                      <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 11px; background:#FAFBFC; border-bottom:1px solid #EFF0F3;"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D;">One Piece catalog</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ pickerSourceColor }};">{{ pickerSourceLabel }}</span></div>
+                    <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:11px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
+                      <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 11px; background:#0D0D0F; border-bottom:1px solid rgba(255,255,255,.06);"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:#71717A;">One Piece catalog</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ pickerSourceColor }};">{{ pickerSourceLabel }}</span></div>
                       <div style="max-height:288px; overflow-y:auto;">
                       <sc-for list="{{ newPickerResults }}" as="p" hint-placeholder-count="4">
-                        <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:8px 11px; cursor:pointer;" style-hover="background:#F4F7FF;">
-                          <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 4px,#EEF0F3 4px,#EEF0F3 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
-                          <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:68px;">{{ p.number }}</span>
+                        <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:8px 11px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
+                          <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 4px,#1C1C1F 4px,#1C1C1F 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                          <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#71717A; flex:none; width:68px;">{{ p.number }}</span>
                           <span style="flex:1; font-size:13px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
-                          <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
+                          <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#4ADE80;">{{ p.priceFmt }}</span>
                         </button>
                       </sc-for>
                       </div>
-                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#FAFBFC; border-top:1px solid #EFF0F3; font-family:'Geist Mono',monospace; font-size:10px; color:#A2A8B2; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
+                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#0D0D0F; border-top:1px solid rgba(255,255,255,.04); font-family:'Geist Mono',monospace; font-size:10px; color:#52525B; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
                     </div>
                   </sc-if>
                 </td>
-                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.language }}" onChange="{{ onDraftLang }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.number }}" onInput="{{ onDraftNumber }}" placeholder="OP01-…" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px;" /></td>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.set }}" onInput="{{ onDraftSet }}" placeholder="Set" style="width:100%; border:none; background:transparent; padding:11px 10px; font-size:13px;" /></td>
-                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.rarity }}" onChange="{{ onDraftRarity }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.condition }}" onChange="{{ onDraftCond }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA;"><input class="cellinput" type="number" min="1" value="{{ nr.qty }}" onInput="{{ onDraftQty }}" onKeyDown="{{ onDraftKey }}" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.purchasePrice }}" onInput="{{ onDraftPaid }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.rawValue }}" onInput="{{ onDraftRaw }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.gradedValue }}" onInput="{{ onDraftGraded }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#2B9A66;" /></td></sc-if>
-                <td style="border-bottom:1px solid #E1E4E9; border-right:1px solid #EAEFFA; text-align:right; padding-right:12px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#B0B6BF;">—</span></td>
-                <td style="border-bottom:1px solid #E1E4E9; text-align:center;"><button onClick="{{ commitNew }}" title="Add row" style="border:none; background:#3E63DD; color:#fff; width:24px; height:24px; border-radius:7px; cursor:pointer; font-size:14px; line-height:0;">↵</button></td>
+                <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.language }}" onChange="{{ onDraftLang }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.number }}" onInput="{{ onDraftNumber }}" placeholder="OP01-…" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" value="{{ nr.set }}" onInput="{{ onDraftSet }}" placeholder="Set" style="width:100%; border:none; background:transparent; padding:11px 10px; font-size:13px;" /></td>
+                <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.rarity }}" onChange="{{ onDraftRarity }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><select class="cellinput" value="{{ nr.condition }}" onChange="{{ onDraftCond }}" style="width:100%; border:none; background:transparent; padding:11px 7px; font-size:12.5px; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA;"><input class="cellinput" type="number" min="1" value="{{ nr.qty }}" onInput="{{ onDraftQty }}" onKeyDown="{{ onDraftKey }}" style="width:100%; border:none; background:transparent; padding:11px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.purchasePrice }}" onInput="{{ onDraftPaid }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.rawValue }}" onInput="{{ onDraftRaw }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ nr.gradedValue }}" onInput="{{ onDraftGraded }}" onKeyDown="{{ onDraftKey }}" placeholder="0" style="width:100%; border:none; background:transparent; padding:11px 10px 11px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#4ADE80;" /></td></sc-if>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid #EAEFFA; text-align:right; padding-right:12px;"><span style="font-family:'Geist Mono',monospace; font-size:12px; color:#52525B;">—</span></td>
+                <td style="border-bottom:1px solid rgba(255,255,255,.06); text-align:center;"><button onClick="{{ commitNew }}" title="Add row" style="border:none; background:#3B82F6; color:#fff; width:24px; height:24px; border-radius:7px; cursor:pointer; font-size:14px; line-height:0;">↵</button></td>
               </tr>
 
               <!-- DATA ROWS -->
               <sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
-                <tr style-hover="background:#FAFBFC;">
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; background:#FBFCFD; text-align:center; font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; user-select:none;">{{ c.rowNum }}</td>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;">
+                <tr style-hover="background:#0D0D0F;">
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); background:#0D0D0F; text-align:center; font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; user-select:none;">{{ c.rowNum }}</td>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;">
                     <input class="cellinput" value="{{ c.name }}" onInput="{{ c.onName }}" onFocus="{{ c.onNameFocus }}" onBlur="{{ onNameBlur }}" style="width:100%; border:none; background:transparent; padding:10px 12px; font-size:13.5px; font-weight:600;" />
                     <sc-if value="{{ c.showPicker }}" hint-placeholder-val="{{ false }}">
-                      <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#fff; border:1px solid #D6D9DF; border-radius:11px; box-shadow:0 14px 40px rgba(16,24,40,.20); overflow:hidden; animation:popDrop .12s ease;">
+                      <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:11px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
                       <div style="max-height:288px; overflow-y:auto;">
                         <sc-for list="{{ c.pickerResults }}" as="p" hint-placeholder-count="4">
-                          <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:8px 11px; cursor:pointer;" style-hover="background:#F4F7FF;">
-                            <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 4px,#EEF0F3 4px,#EEF0F3 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
-                            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:68px;">{{ p.number }}</span>
+                          <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:8px 11px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
+                            <span style="position:relative; width:24px; height:33px; flex:none; border-radius:4px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 4px,#1C1C1F 4px,#1C1C1F 8px);"><sc-if value="{{ p.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ p.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                            <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#71717A; flex:none; width:68px;">{{ p.number }}</span>
                             <span style="flex:1; font-size:13px; font-weight:600; line-height:1.2;">{{ p.name }}</span>
-                            <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#2B9A66;">{{ p.priceFmt }}</span>
+                            <span style="font-family:'Geist Mono',monospace; font-size:12px; font-weight:600; flex:none; color:#4ADE80;">{{ p.priceFmt }}</span>
                           </button>
                         </sc-for>
                       </div>
-                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#FAFBFC; border-top:1px solid #EFF0F3; font-family:'Geist Mono',monospace; font-size:10px; color:#A2A8B2; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
+                      <sc-if value="{{ resultsMoreLabel }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 11px; background:#0D0D0F; border-top:1px solid rgba(255,255,255,.04); font-family:'Geist Mono',monospace; font-size:10px; color:#52525B; text-align:center;">{{ resultsMoreLabel }}</div></sc-if>
                       </div>
                     </sc-if>
                   </td>
-                  <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.language }}" onChange="{{ c.onLang }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-family:'Geist Mono',monospace; font-size:11.5px; font-weight:600; color:{{ c.langColor }}; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><input class="cellinput" value="{{ c.number }}" onInput="{{ c.onNumber }}" onMouseEnter="{{ c.onPreviewEnter }}" onMouseMove="{{ c.onPreviewMove }}" onMouseLeave="{{ c.onPreviewLeave }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; color:#69707A;" /><button onClick="{{ c.onFilterNumber }}" title="Show only this number" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#CBD0D8; padding:3px; line-height:0;" style-hover="color:#3E63DD;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><input class="cellinput" value="{{ c.set }}" onInput="{{ c.onSet }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-size:13px;" /><button onClick="{{ c.onFilterSet }}" title="Show only this set" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#CBD0D8; padding:3px; line-height:0;" style-hover="color:#3E63DD;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
-                  <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.rarity }}" onChange="{{ c.onRarity }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#69707A; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                  <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><select class="cellinput" value="{{ c.condition }}" onChange="{{ c.onCond }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#69707A; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4;"><input class="cellinput" type="number" min="1" value="{{ c.qty }}" onInput="{{ c.onQty }}" style="width:100%; border:none; background:transparent; padding:10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.purchasePrice }}" onInput="{{ c.onPaid }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#B0B6BF; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.rawValue }}" onInput="{{ c.onRaw }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; font-weight:500;" /></td>
-                  <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.gradedValue }}" onInput="{{ c.onGraded }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#2B9A66;" /></td></sc-if>
-                  <td style="border-bottom:1px solid #F1F2F4; border-right:1px solid #F1F2F4; text-align:right; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:12.5px; font-weight:600; color:{{ c.plColor }}; white-space:nowrap;">{{ c.plFmt }}</td>
-                  <td style="border-bottom:1px solid #F1F2F4; text-align:center;"><button onClick="{{ c.onDelete }}" title="Delete row" style="border:none; background:none; cursor:pointer; color:#C5CAD2; font-size:16px; padding:5px; border-radius:6px; line-height:0;" style-hover="background:#FEEBEC; color:#DC3B43;">×</button></td>
+                  <sc-if value="{{ colLang }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04);"><select class="cellinput" value="{{ c.language }}" onChange="{{ c.onLang }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-family:'Geist Mono',monospace; font-size:11.5px; font-weight:600; color:{{ c.langColor }}; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ langOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;"><input class="cellinput" value="{{ c.number }}" onInput="{{ c.onNumber }}" onMouseEnter="{{ c.onPreviewEnter }}" onMouseMove="{{ c.onPreviewMove }}" onMouseLeave="{{ c.onPreviewLeave }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; color:#A1A1AA;" /><button onClick="{{ c.onFilterNumber }}" title="Show only this number" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#3F3F46; padding:3px; line-height:0;" style-hover="color:#3B82F6;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;"><input class="cellinput" value="{{ c.set }}" onInput="{{ c.onSet }}" style="width:100%; border:none; background:transparent; padding:10px 22px 10px 10px; font-size:13px;" /><button onClick="{{ c.onFilterSet }}" title="Show only this set" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); display:inline-flex; border:none; background:none; cursor:pointer; color:#3F3F46; padding:3px; line-height:0;" style-hover="color:#3B82F6;"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 2.5h13l-5 6.2v4.3l-3 1.4V8.7z"></path></svg></button></td>
+                  <sc-if value="{{ colRarity }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04);"><select class="cellinput" value="{{ c.rarity }}" onChange="{{ c.onRarity }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#A1A1AA; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ rarityOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <sc-if value="{{ colCond }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04);"><select class="cellinput" value="{{ c.condition }}" onChange="{{ c.onCond }}" style="width:100%; border:none; background:transparent; padding:10px 7px; font-size:12.5px; color:#A1A1AA; cursor:pointer; appearance:none; -webkit-appearance:none;"><sc-for list="{{ conditionOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></td></sc-if>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04);"><input class="cellinput" type="number" min="1" value="{{ c.qty }}" onInput="{{ c.onQty }}" style="width:100%; border:none; background:transparent; padding:10px 10px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.purchasePrice }}" onInput="{{ c.onPaid }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right;" /></td>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.rawValue }}" onInput="{{ c.onRaw }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; font-weight:500;" /></td>
+                  <sc-if value="{{ colGraded }}" hint-placeholder-val="{{ true }}"><td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;"><span style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#9FCFB6; pointer-events:none;">{{ cur }}</span><input class="cellinput" type="number" min="0" step="0.01" value="{{ c.gradedValue }}" onInput="{{ c.onGraded }}" style="width:100%; border:none; background:transparent; padding:10px 10px 10px 17px; font-family:'Geist Mono',monospace; font-size:12.5px; text-align:right; color:#4ADE80;" /></td></sc-if>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); text-align:right; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:12.5px; font-weight:600; color:{{ c.plColor }}; white-space:nowrap;">{{ c.plFmt }}</td>
+                  <td style="border-bottom:1px solid rgba(255,255,255,.04); text-align:center;"><button onClick="{{ c.onDelete }}" title="Delete row" style="border:none; background:none; cursor:pointer; color:#3F3F46; font-size:16px; padding:5px; border-radius:6px; line-height:0;" style-hover="background:rgba(239,68,68,.15); color:#F87171;">×</button></td>
                 </tr>
               </sc-for>
 
               <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
-                <tr><td colspan="20" style="padding:44px 24px; text-align:center; color:#8C939D; font-size:14px;">No cards match this filter. Type a name in the row above to add one.</td></tr>
+                <tr><td colspan="20" style="padding:44px 24px; text-align:center; color:#71717A; font-size:14px;">No cards match this filter. Type a name in the row above to add one.</td></tr>
               </sc-if>
             </tbody>
           </table>
         </div>
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 14px; border-top:1px solid #EFF0F3; background:#FBFCFD; font-family:'Geist Mono',monospace; font-size:11px; color:#A2A8B2;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 14px; border-top:1px solid rgba(255,255,255,.04); background:#0D0D0F; font-family:'Geist Mono',monospace; font-size:11px; color:#52525B;">
           <span>{{ rowCount }} rows · click any cell to edit</span>
           <span>Paid {{ totalSpentFmt }} · Raw {{ totalRawFmt }} · <span style="color:{{ plColor }};">P/L {{ plFmt }}</span></span>
         </div>
@@ -311,28 +310,28 @@
     <sc-if value="{{ isGallery }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(186px,1fr)); gap:13px;">
         <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
-          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:13px; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.04); display:flex; flex-direction:column;">
-            <div style="position:relative; aspect-ratio:63/88; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 9px,#EEF0F3 9px,#EEF0F3 18px); display:flex; align-items:center; justify-content:center;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:13px; overflow:hidden; box-shadow:none; display:flex; flex-direction:column;">
+            <div style="position:relative; aspect-ratio:63/88; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 9px,#1C1C1F 9px,#1C1C1F 18px); display:flex; align-items:center; justify-content:center;">
               <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ c.image }}'); background-size:cover; background-position:center;"></span></sc-if>
-              <span style="position:relative; z-index:1; font-family:'Geist Mono',monospace; font-size:11px; color:#9DA3AD; background:rgba(255,255,255,.92); padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">{{ c.placeholder }}</span>
+              <span style="position:relative; z-index:1; font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; background:rgba(255,255,255,.92); padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.06);">{{ c.placeholder }}</span>
               <span style="position:absolute; top:9px; left:9px; z-index:2; width:9px; height:9px; border-radius:50%; background:{{ c.dot }}; box-shadow:0 0 0 2px rgba(255,255,255,.85);"></span>
               <span style="position:absolute; top:8px; right:9px; z-index:2; font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ c.langColor }}; background:{{ c.langBg }}; padding:3px 6px; border-radius:6px; box-shadow:0 1px 2px rgba(16,24,40,.12);">{{ c.language }}</span>
             </div>
             <div style="padding:12px 13px 13px; display:flex; flex-direction:column; gap:8px; flex:1;">
               <div>
                 <div style="font-weight:600; font-size:13.5px; line-height:1.25;">{{ c.name }}{{ c.qtyBadge }}</div>
-                <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; margin-top:3px;">{{ c.metaLine }}</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#71717A; margin-top:3px;">{{ c.metaLine }}</div>
               </div>
-              <div style="display:flex; justify-content:space-between; gap:6px; margin-top:auto; padding-top:8px; border-top:1px solid #EFF0F3;">
-                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Raw</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600;">{{ c.rawFmt }}</div></div>
-                <div style="text-align:right;"><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:{{ c.plColor }};">{{ c.plFmt }}</div></div>
+              <div style="display:flex; justify-content:space-between; gap:6px; margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,.04);">
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#52525B;">Raw</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600;">{{ c.rawFmt }}</div></div>
+                <div style="text-align:right;"><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#52525B;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:{{ c.plColor }};">{{ c.plFmt }}</div></div>
               </div>
             </div>
           </div>
         </sc-for>
       </div>
       <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#fff; border:1px dashed #D6D9DF; border-radius:13px; padding:48px 24px; text-align:center; color:#69707A; font-size:14px;">No cards yet. Switch to the Sheet view to add some.</div>
+        <div style="background:#18181B; border:1px dashed rgba(255,255,255,.08); border-radius:13px; padding:48px 24px; text-align:center; color:#A1A1AA; font-size:14px;">No cards yet. Switch to the Sheet view to add some.</div>
       </sc-if>
     </sc-if>
 
@@ -344,19 +343,19 @@
       <div style="aspect-ratio:63/88; border-radius:9px; overflow:hidden; background-color:#1A1E26; background-image:repeating-linear-gradient(135deg,#20242E 0px,#20242E 9px,#1A1E26 9px,#1A1E26 18px);">
         <img ref="{{ previewImgRef }}" onLoad="{{ onPreviewImgLoad }}" onError="{{ onPreviewImgError }}" alt="" style="width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .18s;" />
       </div>
-      <div ref="{{ previewCapRef }}" style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#C5CAD2; text-align:center; padding:7px 4px 3px; letter-spacing:.02em;"></div>
+      <div ref="{{ previewCapRef }}" style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#3F3F46; text-align:center; padding:7px 4px 3px; letter-spacing:.02em;"></div>
     </div>
   </div>
 
   <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(440px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+    <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(440px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan card</div><div style="font-size:12px; color:#8C939D;">{{ scanSubtitle }}</div></div>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan card</div><div style="font-size:12px; color:#71717A;">{{ scanSubtitle }}</div></div>
         </div>
-        <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+        <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#71717A; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
 
       <div style="padding:16px 20px 20px; overflow-y:auto;">
@@ -367,13 +366,13 @@
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
               <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:68%; height:90%; border:2px solid rgba(255,255,255,.8); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.35);"></div>
             </sc-if>
-            <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera\u2026</div></sc-if>
+            <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#3F3F46; font-size:13px;">Starting camera\u2026</div></sc-if>
             <sc-if value="{{ scanStatusMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.65); padding:5px 12px; border-radius:8px; white-space:nowrap;">{{ scanStatusMsg }}</div></sc-if>
           </div>
 
           <!-- upload fallback -->
           <sc-if value="{{ scanShowUpload }}" hint-placeholder-val="{{ false }}">
-            <label style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;" style-hover="background:#F1F3F6;">
+            <label style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;" style-hover="background:#27272A;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Upload card photo
               <input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" />
             </label>
@@ -381,46 +380,46 @@
 
           <!-- divider -->
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-            <div style="flex:1; height:1px; background:#EFF0F3;"></div>
-            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#A2A8B2;">or search</span>
-            <div style="flex:1; height:1px; background:#EFF0F3;"></div>
+            <div style="flex:1; height:1px; background:rgba(255,255,255,.06);"></div>
+            <span style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B;">or search</span>
+            <div style="flex:1; height:1px; background:rgba(255,255,255,.06);"></div>
           </div>
 
           <!-- search -->
           <div style="position:relative; margin-bottom:12px;">
-            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">&#8981;</span>
-            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:13px 14px 13px 34px; font-size:14.5px;" />
+            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#52525B; font-size:14px; pointer-events:none;">&#8981;</span>
+            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:11px; padding:13px 14px 13px 34px; font-size:14.5px;" />
           </div>
           <sc-if value="{{ scanSearchResults.length }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:36vh; overflow-y:auto;">
+            <div style="border:1px solid rgba(255,255,255,.06); border-radius:11px; overflow:hidden; max-height:36vh; overflow-y:auto;">
               <sc-for list="{{ scanSearchResults }}" as="sr" hint-placeholder-count="4">
-                <button onClick="{{ sr.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:10px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
-                  <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ sr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ sr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
-                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ sr.number }}</span>
+                <button onClick="{{ sr.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:10px 12px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
+                  <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);"><sc-if value="{{ sr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ sr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#71717A; flex:none; width:74px;">{{ sr.number }}</span>
                   <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ sr.name }}</span>
-                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ sr.priceFmt }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#4ADE80;">{{ sr.priceFmt }}</span>
                 </button>
               </sc-for>
             </div>
           </sc-if>
           <sc-if value="{{ scanNoResults }}" hint-placeholder-val="{{ false }}">
-            <div style="padding:16px 12px; text-align:center; color:#8C939D; font-size:13px;">No matches. Try a different name or number.</div>
+            <div style="padding:16px 12px; text-align:center; color:#71717A; font-size:13px;">No matches. Try a different name or number.</div>
           </sc-if>
         </sc-if>
 
         <sc-if value="{{ scanShowAdded }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex; flex-direction:column; align-items:center; gap:16px; padding:28px 12px;">
             <div style="width:56px; height:56px; border-radius:50%; background:#E6F6EC; display:flex; align-items:center; justify-content:center;">
-              <span style="font-size:28px; color:#2B9A66;">&#10003;</span>
+              <span style="font-size:28px; color:#4ADE80;">&#10003;</span>
             </div>
             <div style="text-align:center;">
               <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Card added!</div>
-              <div style="font-family:'Geist Mono',monospace; font-size:13px; color:#3E63DD; font-weight:600;">{{ scanAutoName }}</div>
-              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D; margin-top:2px;">{{ scanAutoNumber }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:13px; color:#3B82F6; font-weight:600;">{{ scanAutoName }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#71717A; margin-top:2px;">{{ scanAutoNumber }}</div>
             </div>
             <div style="display:flex; gap:9px; width:100%;">
-              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Scan another</button>
-              <button onClick="{{ closeScan }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">Done</button>
+              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Scan another</button>
+              <button onClick="{{ closeScan }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">Done</button>
             </div>
           </div>
         </sc-if>
@@ -430,36 +429,36 @@
 
   <!-- ===== LOOKUP MODAL ===== -->
   <sc-if value="{{ lookupOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeLookup }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+    <div onClick="{{ closeLookup }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Quick lookup</div><div style="font-size:12px; color:#8C939D;">Scan or search to check a card's value</div></div>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Quick lookup</div><div style="font-size:12px; color:#71717A;">Scan or search to check a card's value</div></div>
         </div>
-        <button onClick="{{ closeLookup }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+        <button onClick="{{ closeLookup }}" style="border:none; background:none; font-size:22px; color:#71717A; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
 
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ lookupShowSearch }}" hint-placeholder-val="{{ true }}">
           <div style="position:relative; margin-bottom:14px;">
-            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#A2A8B2; font-size:14px; pointer-events:none;">⌕</span>
-            <input value="{{ lookupQuery }}" onInput="{{ onLookupQuery }}" placeholder="Type a card name or number…" style="width:100%; border:1px solid #E5E7EB; background:#fff; border-radius:11px; padding:13px 14px 13px 34px; font-size:14px;" />
+            <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#52525B; font-size:14px; pointer-events:none;">⌕</span>
+            <input value="{{ lookupQuery }}" onInput="{{ onLookupQuery }}" placeholder="Type a card name or number…" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:11px; padding:13px 14px 13px 34px; font-size:14px;" />
           </div>
           <div style="display:flex; gap:9px; margin-bottom:14px;">
-            <label style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">
+            <label style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#27272A;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan with camera
               <input ref="{{ lookupFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onLookupFile }}" style="display:none;" />
             </label>
           </div>
           <sc-if value="{{ lookupResults.length }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid #EFF0F3; border-radius:11px; overflow:hidden; max-height:46vh; overflow-y:auto;">
+            <div style="border:1px solid rgba(255,255,255,.06); border-radius:11px; overflow:hidden; max-height:46vh; overflow-y:auto;">
               <sc-for list="{{ lookupResults }}" as="lr" hint-placeholder-count="3">
-                <button onClick="{{ lr.onSelect }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid #F2F3F5; background:#fff; padding:10px 12px; cursor:pointer;" style-hover="background:#F4F7FF;">
-                  <span style="position:relative; width:30px; height:42px; flex:none; border-radius:5px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 5px,#EEF0F3 5px,#EEF0F3 10px);"><sc-if value="{{ lr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
-                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#8C939D; flex:none; width:74px;">{{ lr.number }}</span>
+                <button onClick="{{ lr.onSelect }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:10px 12px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
+                  <span style="position:relative; width:30px; height:42px; flex:none; border-radius:5px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);"><sc-if value="{{ lr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#71717A; flex:none; width:74px;">{{ lr.number }}</span>
                   <span style="flex:1; font-size:13.5px; font-weight:600; line-height:1.2;">{{ lr.name }}</span>
-                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#2B9A66;">{{ lr.priceFmt }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; flex:none; color:#4ADE80;">{{ lr.priceFmt }}</span>
                 </button>
               </sc-for>
             </div>
@@ -468,34 +467,34 @@
 
         <sc-if value="{{ lookupShowCard }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex; gap:16px; margin-bottom:18px;">
-            <div style="position:relative; width:120px; height:167px; flex:none; border-radius:10px; overflow:hidden; background-color:#EEF0F3; background-image:repeating-linear-gradient(135deg,#E3E6EB 0px,#E3E6EB 9px,#EEF0F3 9px,#EEF0F3 18px);">
+            <div style="position:relative; width:120px; height:167px; flex:none; border-radius:10px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 9px,#1C1C1F 9px,#1C1C1F 18px);">
               <sc-if value="{{ lookupCard.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lookupCard.image }}'); background-size:cover; background-position:center;"></span></sc-if>
             </div>
             <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
               <div style="font-weight:600; font-size:17px; line-height:1.25;">{{ lookupCard.name }}</div>
-              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#8C939D;">{{ lookupCard.number }} · {{ lookupCard.set }}</div>
-              <div style="font-size:12.5px; color:#69707A;">{{ lookupCard.rarity }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#71717A;">{{ lookupCard.number }} · {{ lookupCard.set }}</div>
+              <div style="font-size:12.5px; color:#A1A1AA;">{{ lookupCard.rarity }}</div>
               <div style="margin-top:auto; display:flex; gap:16px;">
-                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Market</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#2B9A66;">{{ lookupCard.priceFmt }}</div></div>
-                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#9DA3AD;">Graded PSA 10</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#3E63DD;">{{ lookupCard.gradedFmt }}</div></div>
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#52525B;">Market</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#4ADE80;">{{ lookupCard.priceFmt }}</div></div>
+                <div><div style="font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:#52525B;">Graded PSA 10</div><div style="font-family:'Geist Mono',monospace; font-size:18px; font-weight:600; color:#3B82F6;">{{ lookupCard.gradedFmt }}</div></div>
               </div>
             </div>
           </div>
 
           <sc-if value="{{ lookupHasOwned }}" hint-placeholder-val="{{ false }}">
-            <div style="background:#F4F7FF; border:1px solid #DCE6FB; border-radius:11px; padding:13px 15px; margin-bottom:14px;">
-              <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#8C939D; margin-bottom:8px;">In your collection</div>
+            <div style="background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.15); border-radius:11px; padding:13px 15px; margin-bottom:14px;">
+              <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#71717A; margin-bottom:8px;">In your collection</div>
               <div style="display:flex; gap:20px;">
-                <div><div style="font-size:11px; color:#69707A;">Qty</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.qty }}</div></div>
-                <div><div style="font-size:11px; color:#69707A;">Paid</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.paidFmt }}</div></div>
-                <div><div style="font-size:11px; color:#69707A;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600; color:{{ lookupOwned.plColor }};">{{ lookupOwned.plFmt }}</div></div>
+                <div><div style="font-size:11px; color:#A1A1AA;">Qty</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.qty }}</div></div>
+                <div><div style="font-size:11px; color:#A1A1AA;">Paid</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.paidFmt }}</div></div>
+                <div><div style="font-size:11px; color:#A1A1AA;">P/L</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600; color:{{ lookupOwned.plColor }};">{{ lookupOwned.plFmt }}</div></div>
               </div>
             </div>
           </sc-if>
 
           <div style="display:flex; gap:9px;">
-            <button onClick="{{ lookupBack }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Search again</button>
-            <button onClick="{{ lookupAddCard }}" style="flex:1; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">+ Add to collection</button>
+            <button onClick="{{ lookupBack }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Search again</button>
+            <button onClick="{{ lookupAddCard }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">+ Add to collection</button>
           </div>
         </sc-if>
       </div>
@@ -503,14 +502,14 @@
   </sc-if>
 
   <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeSettings }}" style="position:fixed; inset:0; background:rgba(19,22,27,.40); backdrop-filter:blur(2px); z-index:60; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; top:0; right:0; bottom:0; width:min(404px,92vw); background:#F5F6F8; z-index:61; box-shadow:-16px 0 48px rgba(16,24,40,.18); display:flex; flex-direction:column; animation:slideIn .22s cubic-bezier(.2,.7,.3,1);">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid #E5E7EB; background:#fff; flex:none;">
+    <div onClick="{{ closeSettings }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(2px); z-index:60; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; top:0; right:0; bottom:0; width:min(404px,92vw); background:#09090B; z-index:61; box-shadow:-16px 0 48px rgba(16,24,40,.18); display:flex; flex-direction:column; animation:slideIn .22s cubic-bezier(.2,.7,.3,1);">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid rgba(255,255,255,.06); background:#18181B; flex:none;">
         <h3 style="font-weight:600; font-size:18px; margin:0; letter-spacing:-.01em;">Settings</h3>
-        <button onClick="{{ closeSettings }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+        <button onClick="{{ closeSettings }}" style="border:none; background:none; font-size:22px; color:#71717A; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
       <div style="flex:1; overflow-y:auto; padding:6px 22px 36px;">
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:22px 0 12px;">Display</div>
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:22px 0 12px;">Display</div>
         <div style="margin-bottom:16px;">
           <div style="font-size:14px; font-weight:500; margin-bottom:8px;">Currency</div>
           <div style="display:flex; gap:6px;">
@@ -519,64 +518,64 @@
         </div>
         <div style="margin-bottom:8px;">
           <div style="font-size:14px; font-weight:500; margin-bottom:4px;">Profit / Loss compares against</div>
-          <div style="font-size:12.5px; color:#8C939D; margin-bottom:9px;">Raw market price, or the graded (PSA 10) ceiling.</div>
+          <div style="font-size:12.5px; color:#71717A; margin-bottom:9px;">Raw market price, or the graded (PSA 10) ceiling.</div>
           <div style="display:flex; gap:6px;">
             <sc-for list="{{ basisOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:10px 0; font-size:13.5px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
           </div>
         </div>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 6px;">Summary &amp; columns</div>
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 6px;">Summary &amp; columns</div>
         <sc-for list="{{ toggleRows }}" as="t" hint-placeholder-count="10">
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid #EAEBEE;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06);">
             <span style="font-size:14px;">{{ t.label }}</span>
-            <button onClick="{{ t.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ t.bg }}; cursor:pointer; position:relative; transition:background .15s; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#fff; transform:{{ t.knobX }}; transition:transform .15s; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
+            <button onClick="{{ t.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ t.bg }}; cursor:pointer; position:relative; transition:background .15s; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#18181B; transform:{{ t.knobX }}; transition:transform .15s; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
           </div>
         </sc-for>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">One Piece card catalog</div>
-        <div style="background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 10px;">One Piece card catalog</div>
+        <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <div><div style="font-size:14px; font-weight:500;">Live catalog lookup</div><div style="font-size:12.5px; color:#8C939D; margin-top:2px;">Autocomplete real cards &amp; art (optcgapi.com)</div></div>
-            <button onClick="{{ liveApiToggle.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ liveApiToggle.bg }}; cursor:pointer; position:relative; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#fff; transform:{{ liveApiToggle.knobX }}; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
+            <div><div style="font-size:14px; font-weight:500;">Live catalog lookup</div><div style="font-size:12.5px; color:#71717A; margin-top:2px;">Autocomplete real cards &amp; art (optcgapi.com)</div></div>
+            <button onClick="{{ liveApiToggle.onClick }}" style="width:44px; height:24px; border:none; border-radius:999px; background:{{ liveApiToggle.bg }}; cursor:pointer; position:relative; flex:none;"><span style="position:absolute; top:2px; left:0; width:20px; height:20px; border-radius:50%; background:#18181B; transform:{{ liveApiToggle.knobX }}; box-shadow:0 1px 2px rgba(16,24,40,.25);"></span></button>
           </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:13px; padding-top:13px; border-top:1px solid #EFF0F3;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:13px; padding-top:13px; border-top:1px solid rgba(255,255,255,.04);">
             <span style="display:inline-flex; align-items:center; gap:7px; font-family:'Geist Mono',monospace; font-size:12px; color:{{ apiStatusColor }};"><span style="width:8px; height:8px; border-radius:50%; background:{{ apiStatusColor }};"></span>{{ apiStatusText }}</span>
-            <button onClick="{{ refreshCatalog }}" style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:8px; padding:7px 13px; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Refresh</button>
+            <button onClick="{{ refreshCatalog }}" style="border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:8px; padding:7px 13px; font-size:12.5px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Refresh</button>
           </div>
         </div>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Card scanner</div>
-        <div style="background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px;">
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 10px;">Card scanner</div>
+        <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px;">
           <div style="font-size:14px; font-weight:500;">Google Cloud Vision API key</div>
-          <div style="font-size:12.5px; color:#8C939D; margin-top:2px; margin-bottom:10px;">Required for card scanning. Free tier: 1,500 scans/month.<br/><a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#3E63DD;">Get a free key from Google Cloud Console</a></div>
-          <input type="password" value="{{ visionApiKey }}" onInput="{{ onVisionApiKey }}" placeholder="Paste your API key here" style="width:100%; border:1px solid #D6D9DF; border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:13px;" />
+          <div style="font-size:12.5px; color:#71717A; margin-top:2px; margin-bottom:10px;">Required for card scanning. Free tier: 1,500 scans/month.<br/><a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#3B82F6;">Get a free key from Google Cloud Console</a></div>
+          <input type="password" value="{{ visionApiKey }}" onInput="{{ onVisionApiKey }}" placeholder="Paste your API key here" style="width:100%; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:13px;" />
           <sc-if value="{{ visionKeyStatus }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px; margin-top:6px; color:{{ visionKeyColor }};">{{ visionKeyStatus }}</div>
           </sc-if>
         </div>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Monthly budget</div>
-        <div style="display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px 14px;">
-          <span style="font-family:'Geist Mono',monospace; font-size:15px; color:#69707A;">{{ cur }}</span>
-          <input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="flex:1; border:1px solid #D6D9DF; border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:15px;" />
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 10px;">Monthly budget</div>
+        <div style="display:flex; align-items:center; gap:8px; background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px 14px;">
+          <span style="font-family:'Geist Mono',monospace; font-size:15px; color:#A1A1AA;">{{ cur }}</span>
+          <input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="flex:1; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:15px;" />
         </div>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Import &amp; export</div>
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 10px;">Import &amp; export</div>
         <div style="display:flex; flex-direction:column; gap:9px;">
-          <label style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#F1F3F6;">Import from CSV<input type="file" accept=".csv,text/csv" onChange="{{ onImportFile }}" style="display:none;" /></label>
+          <label style="border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#27272A;">Import from CSV<input type="file" accept=".csv,text/csv" onChange="{{ onImportFile }}" style="display:none;" /></label>
           <div style="display:flex; gap:9px;">
-            <button onClick="{{ exportCsv }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Export CSV</button>
-            <button onClick="{{ downloadTemplate }}" style="flex:1; border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Blank template</button>
+            <button onClick="{{ exportCsv }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Export CSV</button>
+            <button onClick="{{ downloadTemplate }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Blank template</button>
           </div>
           <sc-if value="{{ importMsg }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; font-weight:500; color:{{ importColor }}; background:{{ importBg }}; padding:9px 11px; border-radius:8px;">{{ importMsg }}</div></sc-if>
-          <div style="font-size:12px; color:#8C939D; line-height:1.45;">CSV columns: game, name, number, set, rarity, condition, language, purchasePrice, rawValue, gradedValue, dateAcquired, source, qty.</div>
+          <div style="font-size:12px; color:#71717A; line-height:1.45;">CSV columns: game, name, number, set, rarity, condition, language, purchasePrice, rawValue, gradedValue, dateAcquired, source, qty.</div>
         </div>
 
-        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Collection</div>
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#71717A; margin:26px 0 10px;">Collection</div>
         <div style="display:flex; flex-direction:column; gap:9px;">
-          <button onClick="{{ resetSample }}" style="border:1px solid #D6D9DF; background:#fff; color:#13161B; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#F1F3F6;">Reload sample collection</button>
-          <button onClick="{{ clearAll }}" style="border:1px solid #F5C0C4; background:#fff; color:#DC3B43; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#FEEBEC;">Clear all cards</button>
-          <div style="font-size:12px; color:#8C939D; line-height:1.45;">Everything is saved in this browser only. Values are what you enter — the catalog just helps you find cards, art, and a market price.</div>
+          <button onClick="{{ resetSample }}" style="border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Reload sample collection</button>
+          <button onClick="{{ clearAll }}" style="border:1px solid rgba(239,68,68,.2); background:#18181B; color:#F87171; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#FEEBEC;">Clear all cards</button>
+          <div style="font-size:12px; color:#71717A; line-height:1.45;">Everything is saved in this browser only. Values are what you enter — the catalog just helps you find cards, art, and a market price.</div>
         </div>
       </div>
     </div>
@@ -584,29 +583,29 @@
 
   <!-- ===== SHARE QR MODAL ===== -->
   <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeShare }}" style="position:fixed; inset:0; background:rgba(8,11,18,.62); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(380px,92vw); background:#fff; border-radius:18px; box-shadow:0 32px 80px rgba(8,11,18,.40); display:flex; flex-direction:column; animation:popDrop .16s ease;">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
+    <div onClick="{{ closeShare }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(380px,92vw); background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Share collection</div><div style="font-size:12px; color:#8C939D;">Scan to view this collection</div></div>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></span>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Share collection</div><div style="font-size:12px; color:#71717A;">Scan to view this collection</div></div>
         </div>
-        <button onClick="{{ closeShare }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
+        <button onClick="{{ closeShare }}" style="border:none; background:none; font-size:22px; color:#71717A; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
       <div style="padding:24px 20px; display:flex; flex-direction:column; align-items:center; gap:16px;">
-        <div ref="{{ qrCanvasRef }}" style="background:#fff; padding:12px; border-radius:12px; border:1px solid #EFF0F3;"></div>
+        <div ref="{{ qrCanvasRef }}" style="background:#18181B; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.06);"></div>
         <div style="text-align:center;">
-          <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:#13161B;">{{ shareCardCount }} cards · {{ shareValueFmt }}</div>
-          <div style="font-size:12px; color:#8C939D; margin-top:4px;">{{ shareNote }}</div>
+          <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:#FAFAFA;">{{ shareCardCount }} cards · {{ shareValueFmt }}</div>
+          <div style="font-size:12px; color:#71717A; margin-top:4px;">{{ shareNote }}</div>
         </div>
-        <button onClick="{{ copyShareLink }}" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3E63DD; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#3358D4;">{{ copyLabel }}</button>
+        <button onClick="{{ copyShareLink }}" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">{{ copyLabel }}</button>
       </div>
     </div>
   </sc-if>
 
   <!-- ===== SHARED VIEW BANNER ===== -->
   <sc-if value="{{ isSharedView }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#3E63DD; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; font-size:14px; font-weight:600; box-shadow:0 -4px 20px rgba(62,99,221,.3);">
+    <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#3B82F6; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; font-size:14px; font-weight:600; box-shadow:0 -4px 20px rgba(62,99,221,.3);">
       <span>Viewing a shared collection ({{ shareCardCount }} cards)</span>
       <button onClick="{{ importShared }}" style="border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15); color:#fff; border-radius:9px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(255,255,255,.25);">Import to my collection</button>
       <button onClick="{{ dismissShared }}" style="border:none; background:none; color:rgba(255,255,255,.7); font-size:18px; cursor:pointer; line-height:0; padding:4px;">×</button>
@@ -1240,7 +1239,7 @@ class Component extends DCLogic {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#fff';
       ctx.fillRect(0,0,size,size);
-      ctx.fillStyle = '#13161B';
+      ctx.fillStyle = '#FAFAFA';
       for (let r=0;r<mods;r++) for (let c=0;c<mods;c++) {
         if (qr.isDark(r,c)) ctx.fillRect(Math.floor(c*cellSize), Math.floor(r*cellSize), Math.ceil(cellSize), Math.ceil(cellSize));
       }
@@ -1532,8 +1531,8 @@ class Component extends DCLogic {
     onepiece:{ label:'One Piece', dot:'#E5484D' },
     pokemon:{ label:'Pokémon', dot:'#D98E00' },
     yugioh:{ label:'Yu-Gi-Oh!', dot:'#8E4EC6' },
-  }[g]) || { label:g, dot:'#8C939D' }; }
-  langMeta(l){ return l==='JP' ? { color:'#DC3B43', bg:'#FDECEC' } : { color:'#3E63DD', bg:'#EAEEFB' }; }
+  }[g]) || { label:g, dot:'#71717A' }; }
+  langMeta(l){ return l==='JP' ? { color:'#DC3B43', bg:'#FDECEC' } : { color:'#3B82F6', bg:'rgba(59,130,246,.12)' }; }
 
   smooth(pts){
     if (!pts || !pts.length) return '';
@@ -1552,19 +1551,19 @@ class Component extends DCLogic {
     const S = this.state;
     const st = S.settings;
     const all = S.sharedCards || S.cards;
-    const GAIN='#2B9A66', LOSS='#DC3B43', GAINBG='#E6F6EC', LOSSBG='#FEEBEC';
-    const ACC='#3E63DD';
+    const GAIN='#4ADE80', LOSS='#F87171', GAINBG='rgba(74,222,128,.1)', LOSSBG='rgba(248,113,113,.1)';
+    const ACC='#3B82F6';
     const basisGraded = st.plBasis === 'graded';
 
     const order = ['all','onepiece','pokemon','yugioh'];
     const counts = { all: all.length, onepiece:0, pokemon:0, yugioh:0 };
     all.forEach(c => { if (counts[c.game]!==undefined) counts[c.game]++; });
     const gameTabs = order.map(k => {
-      const meta = k==='all' ? { label:'All games', dot:'#13161B' } : this.gameMeta(k);
+      const meta = k==='all' ? { label:'All games', dot:'#FAFAFA' } : this.gameMeta(k);
       const active = S.game===k;
       return { label:meta.label, dot:meta.dot, count:counts[k]||0, active,
-        bg: active?ACC:'#fff', fg: active?'#fff':'#13161B',
-        border: active?ACC:'#E5E7EB', shadow: active?'0 1px 2px rgba(62,99,221,.28)':'none',
+        bg: active?ACC:'#18181B', fg: active?'#fff':'#A1A1AA',
+        border: active?ACC:'rgba(255,255,255,.06)', shadow: active?'0 1px 2px rgba(59,130,246,.28)':'none',
         onClick: () => this.setGame(k) };
     });
     const headingLabel = S.game==='all' ? 'MyTCG' : this.gameMeta(S.game).label;
@@ -1703,7 +1702,7 @@ class Component extends DCLogic {
     const budget = S.monthlyBudget;
     const over = monthSpent > budget && budget>0;
     const budgetPct = budget>0 ? Math.min(100, monthSpent/budget*100) : (monthSpent>0?100:0);
-    const budgetColor = over ? LOSS : (budgetPct>80 ? '#AB6400' : GAIN);
+    const budgetColor = over ? LOSS : (budgetPct>80 ? '#FBBF24' : GAIN);
     const remaining = budget - monthSpent;
     const budgetMsg = budget<=0 ? 'Set a monthly budget to track spend.'
       : over ? this.money(Math.abs(remaining))+' over budget this month'
@@ -1713,13 +1712,13 @@ class Component extends DCLogic {
     const peak = Math.max(budget, ...sixKeys.map(k=>spendByMonth[k]||0), 1);
     const budgetBars = sixKeys.map(k => { const amt = spendByMonth[k]||0; const isCur = k===curKey; const isOver = budget>0 && amt>budget;
       return { label:this.monthMini(k), amount:amt, amountFmt:this.money(amt), h: Math.round((amt/peak)*barMax),
-        color: isOver ? LOSS : (isCur ? ACC : '#C5CAD2'), labelColor: isCur ? '#13161B' : '#9DA3AD' }; });
+        color: isOver ? LOSS : (isCur ? ACC : '#C5CAD2'), labelColor: isCur ? '#FAFAFA' : '#9DA3AD' }; });
     const ringR=46, ringC=2*Math.PI*ringR;
     const budgetRingDash=((budgetPct/100)*ringC).toFixed(1);
     const budgetRingGap=(ringC-(budgetPct/100)*ringC).toFixed(1);
     const budgetPctLabel=Math.round(budgetPct)+'%';
 
-    const mkToggle = (key) => ({ on:st[key], bg: st[key]?ACC:'#D2D6DC',
+    const mkToggle = (key) => ({ on:st[key], bg: st[key]?ACC:'#3F3F46',
       knobX: st[key]?'translateX(22px)':'translateX(2px)', onClick:()=>this.toggleSetting(key) });
     const toggleRows = [
       { key:'showSpent', label:'Summary: Total spent' },
@@ -1734,12 +1733,12 @@ class Component extends DCLogic {
       { key:'colGraded', label:'Column: Graded value' },
     ].map(t => ({ label:t.label, ...mkToggle(t.key) }));
     const currencyOpts = ['$','£','€','¥'].map(sym => { const a = st.currency===sym;
-      return { label:sym, bg: a?ACC:'#fff', fg: a?'#fff':'#13161B', border: a?ACC:'#D2D6DC', onClick:()=>this.setSetting('currency',sym) }; });
+      return { label:sym, bg: a?ACC:'#18181B', fg: a?'#fff':'#A1A1AA', border: a?ACC:'rgba(255,255,255,.08)', onClick:()=>this.setSetting('currency',sym) }; });
     const basisOpts = [{k:'raw',l:'Raw value'},{k:'graded',l:'Graded value'}].map(o => { const a = st.plBasis===o.k;
-      return { label:o.l, bg: a?ACC:'#fff', fg: a?'#fff':'#13161B', border: a?ACC:'#D2D6DC', onClick:()=>this.setSetting('plBasis',o.k) }; });
+      return { label:o.l, bg: a?ACC:'#18181B', fg: a?'#fff':'#A1A1AA', border: a?ACC:'rgba(255,255,255,.08)', onClick:()=>this.setSetting('plBasis',o.k) }; });
     const apiText = { idle:'Not loaded yet', loading:'Loading catalog…',
       live:'Live · '+S.apiCount.toLocaleString()+' cards', offline:'Offline list (API unreachable)' };
-    const apiCol = { idle:'#8C939D', loading:'#AB6400', live:GAIN, offline:'#8C939D' };
+    const apiCol = { idle:'#71717A', loading:'#FBBF24', live:GAIN, offline:'#71717A' };
 
     const nr = S.newRow;
     const nrMeta = this.gameMeta(nr.game);
@@ -1755,8 +1754,8 @@ class Component extends DCLogic {
       plFmt:this.signed(pl), plColor: up?GAIN:LOSS, plBg: up?GAINBG:LOSSBG, plArrow: up?'▲':'▼',
       plPctFmt:(plPct>=0?'+':'−')+Math.abs(plPct).toFixed(1)+'%',
       insightsOpen:S.insightsOpen, toggleInsights:()=>this.toggleInsights(),
-      insightsBg: S.insightsOpen?'#EAEEFB':'#fff', insightsFg: S.insightsOpen?ACC:'#13161B',
-      insightsBorder: S.insightsOpen?'#C7D2F5':'#E5E7EB', insightsChevron: S.insightsOpen?'rotate(180deg)':'rotate(0deg)',
+      insightsBg: S.insightsOpen?'rgba(59,130,246,.12)':'#fff', insightsFg: S.insightsOpen?ACC:'#FAFAFA',
+      insightsBorder: S.insightsOpen?'rgba(59,130,246,.2)':'rgba(255,255,255,.06)', insightsChevron: S.insightsOpen?'rotate(180deg)':'rotate(0deg)',
       hasChart, noChart:!hasChart, valuePath, valueArea, spentPath,
       valEndX:valEndX.toFixed(1), valEndY:valEndY.toFixed(1), baseY:baseY.toFixed(1), xLabels, gridLines,
       monthlyBudget:budget, monthLabelLong:this.monthShort(curKey).replace(/ \d+$/,''),
@@ -1765,7 +1764,7 @@ class Component extends DCLogic {
       search:S.search, sortBy:S.sortBy, onSearch:(e)=>this.onSearch(e), onSort:(e)=>this.onSort(e),
       filterActive: !!S.filterField, filterChipLabel: S.filterField ? ((S.filterField==='set'?'Set':'No.')+': '+S.filterValue) : '', clearFilter:()=>this.clearFilter(),
       viewTabs:['sheet','gallery'].map(v => ({ key:v, label: v==='sheet'?'Sheet':'Gallery',
-        bg: S.view===v?ACC:'#fff', fg: S.view===v?'#fff':'#69707A', onClick:()=>this.setView(v) })),
+        bg: S.view===v?ACC:'#18181B', fg: S.view===v?'#fff':'#71717A', onClick:()=>this.setView(v) })),
       isSheet:S.view==='sheet', isGallery:S.view==='gallery',
       isEmpty: cards.length===0, cards, focusNew:()=>this.focusNew(),
       newNameRef:this.newNameRef, nr, nrDot:nrMeta.dot, commitNew:()=>this.commitNewRow(),
@@ -1783,7 +1782,7 @@ class Component extends DCLogic {
       scanStatusMsg:S.scanStatusMsg,
       visionApiKey:st.visionApiKey||'', onVisionApiKey:(e)=>this.setSetting('visionApiKey',(e.target.value||'').trim()),
       visionKeyStatus: st.visionApiKey ? 'Key saved \u2014 scanner is active' : '',
-      visionKeyColor: st.visionApiKey ? '#2B9A66' : '#8C939D',
+      visionKeyColor: st.visionApiKey ? '#2B9A66' : '#71717A',
       scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
       scanSearchResults: (() => {
         if (S.scanStage !== 'capture') return [];
@@ -1818,10 +1817,10 @@ class Component extends DCLogic {
       newPickerShow: S.pickerFor==='new' && results.length>0, newPickerResults: S.pickerFor==='new' ? results : [],
       resultsMoreLabel,
       pickerSourceLabel: liveReady ? ('Live · '+this._catalog.length.toLocaleString()) : 'Offline list',
-      pickerSourceColor: liveReady ? GAIN : '#8C939D',
+      pickerSourceColor: liveReady ? GAIN : '#71717A',
       settingsOpen:S.settingsOpen, openSettings:()=>this.openSettings(), closeSettings:()=>this.closeSettings(),
       toggleRows, currencyOpts, basisOpts, liveApiToggle: mkToggle('liveApi'),
-      apiStatusText: apiText[S.apiStatus] || apiText.idle, apiStatusColor: apiCol[S.apiStatus] || '#8C939D',
+      apiStatusText: apiText[S.apiStatus] || apiText.idle, apiStatusColor: apiCol[S.apiStatus] || '#71717A',
       refreshCatalog:()=>this.refreshCatalog(), resetSample:()=>this.resetSample(), clearAll:()=>this.clearAll(),
       onImportFile:(e)=>this.onImportFile(e), exportCsv:()=>this.exportCsv(), downloadTemplate:()=>this.downloadTemplate(),
       importMsg:S.importMsg, importColor: S.importOk?GAIN:LOSS, importBg: S.importOk?GAINBG:LOSSBG,
