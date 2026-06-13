@@ -355,18 +355,19 @@
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Point at the whole card — we'll read the name &amp; number</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan a card</div><div style="font-size:12px; color:#8C939D;">Fill the frame with the card — number at the bottom</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
 
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative; aspect-ratio:4/3; border-radius:13px; overflow:hidden; background:#0E1116;">
+          <div style="position:relative; aspect-ratio:3/4; border-radius:13px; overflow:hidden; background:#0E1116;">
             <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:52%; height:78%; border:2px solid rgba(255,255,255,.9); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
-              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Center the whole card in the frame</div>
+              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:72%; height:88%; border:2px solid rgba(255,255,255,.9); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.32);"></div>
+              <div style="position:absolute; left:50%; top:82%; transform:translateX(-50%); width:68%; height:0; border-bottom:2px dashed rgba(255,255,255,.5); pointer-events:none;"></div>
+              <div style="position:absolute; left:50%; bottom:13px; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.55); padding:4px 10px; border-radius:7px; white-space:nowrap;">Fill the frame with the card</div>
             </sc-if>
             <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera…</div></sc-if>
           </div>
@@ -924,15 +925,25 @@ class Component extends DCLogic {
     const v = this.scanVideoRef.current;
     if (!v || !v.videoWidth){ return; }
     const vw = v.videoWidth, vh = v.videoHeight;
-    // capture full frame for whole-card recognition
-    const cw = vw, ch = vh, cx = 0, cy = 0;
-    const canvas = document.createElement('canvas');
-    const scale = Math.min(3, 1100/cw);
-    canvas.width = Math.round(cw*scale); canvas.height = Math.round(ch*scale);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(v, cx, cy, cw, ch, 0, 0, canvas.width, canvas.height);
     this.stopCamera();
-    this.runOCR(this.preprocess(canvas));
+
+    // crop bottom 35% for card number (it's always printed at the bottom)
+    const numH = Math.round(vh * 0.35);
+    const numY = vh - numH;
+    const numCanvas = document.createElement('canvas');
+    const numScale = Math.min(3, 1200 / vw);
+    numCanvas.width = Math.round(vw * numScale);
+    numCanvas.height = Math.round(numH * numScale);
+    numCanvas.getContext('2d').drawImage(v, 0, numY, vw, numH, 0, 0, numCanvas.width, numCanvas.height);
+
+    // also capture full frame for name matching fallback
+    const fullCanvas = document.createElement('canvas');
+    const fullScale = Math.min(2, 900 / vw);
+    fullCanvas.width = Math.round(vw * fullScale);
+    fullCanvas.height = Math.round(vh * fullScale);
+    fullCanvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, fullCanvas.width, fullCanvas.height);
+
+    this.runDualOCR(this.preprocessForNumber(numCanvas), this.preprocess(fullCanvas));
   }
 
   onScanFile(e){
@@ -941,28 +952,62 @@ class Component extends DCLogic {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const maxW = 1400; const scale = Math.min(1, maxW/img.width);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const w = img.width, h = img.height;
       URL.revokeObjectURL(url);
       this.stopCamera();
-      this.runOCR(this.preprocess(canvas));
+
+      // crop bottom 35% for card number
+      const numH = Math.round(h * 0.35);
+      const numY = h - numH;
+      const numCanvas = document.createElement('canvas');
+      const numScale = Math.min(3, 1200 / w);
+      numCanvas.width = Math.round(w * numScale);
+      numCanvas.height = Math.round(numH * numScale);
+      numCanvas.getContext('2d').drawImage(img, 0, numY, w, numH, 0, 0, numCanvas.width, numCanvas.height);
+
+      // full image for name fallback
+      const fullCanvas = document.createElement('canvas');
+      const fullScale = Math.min(2, 900 / w);
+      fullCanvas.width = Math.round(w * fullScale);
+      fullCanvas.height = Math.round(h * fullScale);
+      fullCanvas.getContext('2d').drawImage(img, 0, 0, w, h, 0, 0, fullCanvas.width, fullCanvas.height);
+
+      this.runDualOCR(this.preprocessForNumber(numCanvas), this.preprocess(fullCanvas));
     };
     img.onerror = () => { URL.revokeObjectURL(url); this.setState({ scanStage:'capture', scanNote:'Couldn\u2019t read that image. Try another photo.', scanNoteOk:false }); };
     img.src = url;
     e.target.value = '';
   }
 
+  preprocessForNumber(canvas){
+    // aggressive binarization — optimized for reading small card-number text
+    try {
+      const ctx = canvas.getContext('2d');
+      const im = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d = im.data;
+      // adaptive threshold: compute average brightness
+      let sum = 0;
+      for (let i=0;i<d.length;i+=4) sum += 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      const avg = sum / (d.length/4);
+      const thresh = Math.min(140, Math.max(80, avg * 0.65));
+      for (let i=0;i<d.length;i+=4){
+        const g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const v = g < thresh ? 0 : 255;
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+      ctx.putImageData(im,0,0);
+    } catch(e){}
+    return canvas;
+  }
+
   preprocess(canvas){
+    // lighter preprocessing for name text — just convert to grayscale with mild contrast
     try {
       const ctx = canvas.getContext('2d');
       const im = ctx.getImageData(0,0,canvas.width,canvas.height);
       const d = im.data;
       for (let i=0;i<d.length;i+=4){
-        let g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        // increase contrast but keep grayscale for better name recognition
-        g = Math.min(255, Math.max(0, (g - 128) * 1.8 + 128));
+        const g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
         d[i]=d[i+1]=d[i+2]=g;
       }
       ctx.putImageData(im,0,0);
@@ -970,31 +1015,55 @@ class Component extends DCLogic {
     return canvas;
   }
 
-  runOCR(canvas){
-    this.setState({ scanStage:'processing', scanProcessMsg:'Reading the card number\u2026' });
+  runDualOCR(numberCanvas, fullCanvas){
+    this.setState({ scanStage:'processing', scanProcessMsg:'Reading card number\u2026' });
     if (!window.Tesseract){
       this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Text reader is still loading \u2014 give it a second and try again.', scanNoteOk:false });
       return;
     }
-    window.Tesseract.recognize(canvas, 'eng', {}).then(res => {
-      const text = (res && res.data && res.data.text) || '';
-      this.handleOCR(text);
+    // first pass: read the cropped bottom for card number (with whitelist for accuracy)
+    window.Tesseract.recognize(numberCanvas, 'eng', {
+      tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ',
+    }).then(numRes => {
+      const numText = (numRes && numRes.data && numRes.data.text) || '';
+      const code = this.extractCode(numText);
+      if (code) {
+        // got a card number — try to match immediately
+        this.handleOCR(numText);
+      } else {
+        // no code found in number region — fall back to full card OCR for name
+        this.setState({ scanProcessMsg:'Reading card name\u2026' });
+        window.Tesseract.recognize(fullCanvas, 'eng', {}).then(fullRes => {
+          const fullText = (fullRes && fullRes.data && fullRes.data.text) || '';
+          // combine both OCR results
+          this.handleOCR(numText + '\n' + fullText);
+        }).catch(() => {
+          this.handleOCR(numText);
+        });
+      }
     }).catch(() => {
-      this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Couldn\u2019t read that \u2014 try again with the number centered and in focus.', scanNoteOk:false });
+      this.setState({ scanStage:'capture', scanCamReady:false, scanNote:'Couldn\u2019t read that \u2014 try again with the card filling the frame.', scanNoteOk:false });
     });
   }
 
   extractCode(text){
     const up = String(text||'').toUpperCase().replace(/[^A-Z0-9\-\s]/g,' ');
-    // OP06-101, ST29-008, EB01-061, PRB02-018, P-001 (tolerate O→0 in the digits)
-    let m = up.match(/\b(OP|0P|ST|EB|PRB|P)[\s\-]?[O0]?(\d{1,2})[\s\-]+([\dO]{2,3})\b/);
+    // try multiple patterns from most specific to least, tolerating OCR noise
+    // pattern 1: OP06-101, ST29-008, EB01-061 (standard with hyphen)
+    let m = up.match(/(OP|0P|ST|EB|PRB)[.\s\-]*[O0]?(\d{1,2})[.\s\-]+([\dO]{2,3})/);
     if (m){
       let pre = m[1] === '0P' ? 'OP' : m[1];
       const tail = m[3].replace(/O/g,'0');
-      if (pre === 'P' && m[2] && tail) return 'P-'+tail.padStart(3,'0');
       return pre + m[2].replace(/O/g,'0').padStart(2,'0') + '-' + tail.padStart(3,'0');
     }
-    m = up.match(/\bP[\s\-]?([\dO]{3})\b/);
+    // pattern 2: without clear separator — OP06101 (OCR may drop the hyphen)
+    m = up.match(/(OP|0P|ST|EB)[.\s]?[O0]?(\d{2})\s?(\d{3})/);
+    if (m){
+      let pre = m[1] === '0P' ? 'OP' : m[1];
+      return pre + m[2].padStart(2,'0') + '-' + m[3];
+    }
+    // pattern 3: P-001 promos
+    m = up.match(/\bP[.\s\-]+([\dO]{3})\b/);
     if (m) return 'P-'+m[1].replace(/O/g,'0');
     return '';
   }
