@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *{ box-sizing:border-box; }
@@ -355,7 +354,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #EFF0F3; flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3E63DD;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
-          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan card</div><div style="font-size:12px; color:#8C939D;">Point at the card or search below</div></div>
+          <div><div style="font-weight:600; font-size:16px; letter-spacing:-.01em;">Scan card</div><div style="font-size:12px; color:#8C939D;">{{ scanSubtitle }}</div></div>
         </div>
         <button onClick="{{ closeScan }}" style="border:none; background:none; font-size:22px; color:#8C939D; cursor:pointer; line-height:0; padding:6px;">×</button>
       </div>
@@ -366,8 +365,7 @@
           <div style="position:relative; aspect-ratio:3/4; border-radius:13px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
             <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; right:4%; bottom:4%; width:46%; height:10%; border:2px solid rgba(62,99,221,.9); border-radius:6px; box-shadow:0 0 12px rgba(62,99,221,.3);"></div>
-              <div style="position:absolute; right:4%; bottom:1.5%; font-family:'Geist Mono',monospace; font-size:10px; color:rgba(255,255,255,.7); padding:2px 6px;">card number here ↑</div>
+              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:68%; height:90%; border:2px solid rgba(255,255,255,.8); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.35);"></div>
             </sc-if>
             <sc-if value="{{ scanCamConnecting }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#C5CAD2; font-size:13px;">Starting camera\u2026</div></sc-if>
             <sc-if value="{{ scanStatusMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:#fff; background:rgba(8,11,18,.65); padding:5px 12px; border-radius:8px; white-space:nowrap;">{{ scanStatusMsg }}</div></sc-if>
@@ -547,6 +545,16 @@
           </div>
         </div>
 
+        <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Card scanner</div>
+        <div style="background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px;">
+          <div style="font-size:14px; font-weight:500;">Google Cloud Vision API key</div>
+          <div style="font-size:12.5px; color:#8C939D; margin-top:2px; margin-bottom:10px;">Required for card scanning. Free tier: 1,500 scans/month.<br/><a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#3E63DD;">Get a free key from Google Cloud Console</a></div>
+          <input type="password" value="{{ visionApiKey }}" onInput="{{ onVisionApiKey }}" placeholder="Paste your API key here" style="width:100%; border:1px solid #D6D9DF; border-radius:8px; padding:10px 12px; font-family:'Geist Mono',monospace; font-size:13px;" />
+          <sc-if value="{{ visionKeyStatus }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px; margin-top:6px; color:{{ visionKeyColor }};">{{ visionKeyStatus }}</div>
+          </sc-if>
+        </div>
+
         <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8C939D; margin:26px 0 10px;">Monthly budget</div>
         <div style="display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:12px 14px;">
           <span style="font-family:'Geist Mono',monospace; font-size:15px; color:#69707A;">{{ cur }}</span>
@@ -653,7 +661,7 @@ class Component extends DCLogic {
       showSpent:true, showRaw:true, showPL:true, showGraded:true,
       showChart:true, showBudget:true,
       colLang:true, colRarity:true, colCond:true, colGraded:true,
-      liveApi:true };
+      liveApi:true, visionApiKey:'' };
   }
 
   blankRow(){
@@ -929,140 +937,136 @@ class Component extends DCLogic {
     if (this._scanStream){ this._scanStream.getTracks().forEach(t=>t.stop()); this._scanStream=null; }
   }
 
+  hasVisionKey(){ return !!(this.state.settings && this.state.settings.visionApiKey); }
+
   startAutoScan(){
     this.stopAutoScan();
     this._autoScanning = false;
+    if (!this.hasVisionKey()) {
+      this.setState({ scanStatusMsg:'Add a Vision API key in Settings to enable scanning' });
+      return;
+    }
     this._autoScanTimer = setInterval(() => {
       if (this._autoScanning) return;
       if (this.state.scanStage !== 'capture') return;
-      if (!this._scanStream || !window.Tesseract) return;
+      if (!this._scanStream) return;
       const v = this.scanVideoRef.current;
       if (!v || !v.videoWidth) return;
       this._autoScanning = true;
-      this.scanFrame(v);
-    }, 1800);
+      this.scanFrameVision(v);
+    }, 2500);
   }
   stopAutoScan(){
     if (this._autoScanTimer) { clearInterval(this._autoScanTimer); this._autoScanTimer = null; }
     this._autoScanning = false;
   }
 
-  // crop the bottom-right corner where OPTCG card numbers always are
-  cropCardNumber(source, srcW, srcH){
-    // bottom 15% height, right 50% width — the card number area
-    const cropW = Math.round(srcW * 0.50);
-    const cropH = Math.round(srcH * 0.15);
-    const cropX = srcW - cropW;
-    const cropY = srcH - cropH;
-    // scale up to 800px wide so the tiny text becomes large for OCR
-    const targetW = 800;
-    const scale = targetW / cropW;
-    const canvas = document.createElement('canvas');
-    canvas.width = targetW;
-    canvas.height = Math.round(cropH * scale);
-    canvas.getContext('2d').drawImage(source, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-    return canvas;
+  canvasToBase64(canvas){
+    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
   }
 
-  // create binarized variants for OCR
-  binarize(canvas, invert){
-    const c = document.createElement('canvas');
-    c.width = canvas.width; c.height = canvas.height;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(canvas, 0, 0);
-    const im = ctx.getImageData(0,0,c.width,c.height);
-    const d = im.data;
-    // Otsu threshold
-    const hist = new Array(256).fill(0);
-    for (let i=0;i<d.length;i+=4){ const g = Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); hist[g]++; }
-    const total = d.length/4;
-    let sumAll=0; for (let i=0;i<256;i++) sumAll+=i*hist[i];
-    let sumB=0, wB=0, best=0, thresh=128;
-    for (let t=0;t<256;t++){
-      wB+=hist[t]; if(!wB) continue;
-      const wF=total-wB; if(!wF) break;
-      sumB+=t*hist[t];
-      const between=wB*wF*((sumB/wB)-(sumAll-sumB)/wF)**2;
-      if(between>best){ best=between; thresh=t; }
-    }
-    for (let i=0;i<d.length;i+=4){
-      const g = 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-      const v = invert ? (g>thresh?0:255) : (g<thresh?0:255);
-      d[i]=d[i+1]=d[i+2]=v;
-    }
-    ctx.putImageData(im,0,0);
-    return c;
+  callVisionAPI(base64){
+    const key = this.state.settings.visionApiKey;
+    if (!key) return Promise.reject('No API key');
+    return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(key), {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:[{ type:'TEXT_DETECTION', maxResults:10 }] }] })
+    }).then(r => {
+      if (!r.ok) throw new Error('API error '+r.status);
+      return r.json();
+    }).then(data => {
+      const ann = data.responses && data.responses[0] && data.responses[0].textAnnotations;
+      if (!ann || !ann.length) return '';
+      return ann[0].description || '';
+    });
   }
 
   extractCode(text){
     const up = String(text||'').toUpperCase().replace(/[^A-Z0-9\-]/g,' ');
-    // pattern: OP06-101, ST01-012, EB01-061
-    let m = up.match(/(OP|0P|ST|EB|PRB)[.\s\-]*[O0]?(\d{1,2})[.\s\-]+([\dO]{2,3})/);
+    let m = up.match(/(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*([\dO]{2,3})/);
     if (m){
-      let pre = m[1]==='0P'?'OP':m[1];
+      let pre = m[1];
       return pre+m[2].replace(/O/g,'0').padStart(2,'0')+'-'+m[3].replace(/O/g,'0').padStart(3,'0');
     }
-    // no separator: OP06101
-    m = up.match(/(OP|0P|ST|EB)[.\s]?[O0]?(\d{2})\s?(\d{3})/);
-    if (m){ return (m[1]==='0P'?'OP':m[1])+m[2]+'-'+m[3]; }
-    // promo: P-001
-    m = up.match(/P[.\s\-]+([\dO]{3})/);
+    m = up.match(/(OP|ST|EB)\s*(\d{2})\s*(\d{3})/);
+    if (m){ return m[1]+m[2]+'-'+m[3]; }
+    m = up.match(/P\s*[-\s.]\s*([\dO]{3})/);
     if (m) return 'P-'+m[1].replace(/O/g,'0');
     return '';
   }
 
-  scanFrame(v){
-    const crop = this.cropCardNumber(v, v.videoWidth, v.videoHeight);
-    const normal = this.binarize(crop, false);
-    const inverted = this.binarize(crop, true);
-    // run 3 passes: normal with whitelist, inverted with whitelist, normal without whitelist
-    const wl = { tessedit_pageseg_mode:'6' };
-    Promise.all([
-      window.Tesseract.recognize(normal,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-      window.Tesseract.recognize(inverted,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-      window.Tesseract.recognize(crop,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-    ]).then(results => {
+  extractAllCodes(text){
+    const codes = [];
+    const up = String(text||'').toUpperCase();
+    const re = /(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*(\d{2,3})/g;
+    let m;
+    while ((m = re.exec(up)) !== null){
+      codes.push(m[1]+m[2].padStart(2,'0')+'-'+m[3].padStart(3,'0'));
+    }
+    return [...new Set(codes)];
+  }
+
+  scanFrameVision(v){
+    const vw = v.videoWidth, vh = v.videoHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.min(1024, vw);
+    canvas.height = Math.round(canvas.width * vh / vw);
+    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    const b64 = this.canvasToBase64(canvas);
+    this.callVisionAPI(b64).then(text => {
       this._autoScanning = false;
       if (this.state.scanStage !== 'capture') return;
-      for (const text of results){
-        const code = this.extractCode(text);
-        if (code){
-          this.stopAutoScan();
-          this.handleScanCode(code);
-          return;
-        }
+      const codes = this.extractAllCodes(text);
+      if (codes.length) {
+        this.stopAutoScan();
+        this.handleScanCode(codes[0]);
+      } else {
+        this.setState({ scanStatusMsg:'Scanning\u2026 hold the card steady' });
       }
-      this.setState({ scanStatusMsg:'Scanning\u2026 keep the card number visible' });
-    }).catch(()=>{ this._autoScanning = false; });
+    }).catch(err => {
+      this._autoScanning = false;
+      const msg = String(err||'');
+      if (msg.includes('403') || msg.includes('401')){
+        this.stopAutoScan();
+        this.setState({ scanStatusMsg:'API key invalid \u2014 check Settings' });
+      }
+    });
   }
 
   onScanFile(e){
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      this.stopCamera();
-      this.setState({ scanStatusMsg:'Reading\u2026' });
-      const crop = this.cropCardNumber(img, img.width, img.height);
-      const normal = this.binarize(crop, false);
-      const inverted = this.binarize(crop, true);
-      const wl = { tessedit_pageseg_mode:'6' };
-      Promise.all([
-        window.Tesseract.recognize(normal,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-        window.Tesseract.recognize(inverted,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-        window.Tesseract.recognize(crop,'eng',wl).then(r=>(r&&r.data&&r.data.text)||'').catch(()=>''),
-      ]).then(results => {
-        for (const text of results){
-          const code = this.extractCode(text);
-          if (code){ this.handleScanCode(code); return; }
-        }
-        this.setState({ scanStatusMsg:'Couldn\u2019t read the number \u2014 try the search below' });
-      }).catch(()=>{ this.setState({ scanStatusMsg:'Failed \u2014 use search below' }); });
+    if (!this.hasVisionKey()){
+      this.setState({ scanStatusMsg:'Add a Vision API key in Settings first' });
+      return;
+    }
+    this.setState({ scanStatusMsg:'Reading card\u2026' });
+    const reader = new FileReader();
+    reader.onload = () => {
+      // also draw to canvas to display, but send full res to API
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.min(1280, img.width);
+        canvas.height = Math.round(canvas.width * img.height / img.width);
+        canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
+        const b64 = this.canvasToBase64(canvas);
+        this.stopCamera();
+        this.callVisionAPI(b64).then(text => {
+          const codes = this.extractAllCodes(text);
+          if (codes.length){
+            this.handleScanCode(codes[0]);
+          } else {
+            this.setState({ scanStatusMsg:'No card number found \u2014 try search below' });
+          }
+        }).catch(() => {
+          this.setState({ scanStatusMsg:'API error \u2014 check your key in Settings' });
+        });
+      };
+      img.src = URL.createObjectURL(file);
     };
-    img.onerror = () => { URL.revokeObjectURL(url); };
-    img.src = url;
+    reader.readAsArrayBuffer(file);
     e.target.value = '';
   }
 
@@ -1073,12 +1077,10 @@ class Component extends DCLogic {
     let matches = source.filter(c => norm(c.number) === cn);
     if (!matches.length) matches = source.filter(c => norm(c.number).startsWith(cn));
     if (matches.length === 1){
-      // exact match — auto add
       this.stopCamera();
       this.pickInto('new', matches[0]);
       this.setState({ scanStage:'added', scanAutoAdded:matches[0] });
     } else if (matches.length > 1){
-      // fill search with the code so user can pick
       this.stopCamera();
       this.setState({ scanQuery:code });
     } else {
@@ -1770,10 +1772,14 @@ class Component extends DCLogic {
       scanSearchRef:this.scanSearchRef, scanVideoRef:this.scanVideoRef, scanFileRef:this.scanFileRef,
       scanQuery:S.scanQuery, onScanQuery:(e)=>this.onScanQuery(e),
       scanShowCapture:S.scanStage==='capture', scanShowAdded:S.scanStage==='added',
+      scanSubtitle: st.visionApiKey ? 'Point at the card \u2014 auto-detects' : 'Add Vision API key in Settings to scan',
       scanCamReady:S.scanCamReady, scanCamConnecting:!S.scanCamReady && !this._scanStream,
       scanVideoDisplay:S.scanCamReady?'block':'none',
-      scanShowUpload:!S.scanCamReady, onScanFile:(e)=>this.onScanFile(e),
+      scanShowUpload:!S.scanCamReady || !st.visionApiKey, onScanFile:(e)=>this.onScanFile(e),
       scanStatusMsg:S.scanStatusMsg,
+      visionApiKey:st.visionApiKey||'', onVisionApiKey:(e)=>this.setSetting('visionApiKey',e.target.value),
+      visionKeyStatus: st.visionApiKey ? 'Key saved \u2014 scanner is active' : '',
+      visionKeyColor: st.visionApiKey ? '#2B9A66' : '#8C939D',
       scanAutoName: S.scanAutoAdded ? S.scanAutoAdded.name : '', scanAutoNumber: S.scanAutoAdded ? S.scanAutoAdded.number : '',
       scanSearchResults: (() => {
         if (S.scanStage !== 'capture') return [];
