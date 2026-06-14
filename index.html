@@ -1225,9 +1225,11 @@ class Component extends DCLogic {
       this.setState({ scanStatusMsg:'Add a Vision API key in Settings to enable scanning' });
       return;
     }
-    // fire first scan immediately
+    // fire burst of 2 frames immediately (slightly staggered to catch different moments)
     this._fireAutoScan();
-    this._autoScanTimer = setInterval(() => this._fireAutoScan(), 800);
+    setTimeout(() => this._fireAutoScan(), 300);
+    // then keep firing every 500ms — overlapping requests race, first match wins
+    this._autoScanTimer = setInterval(() => this._fireAutoScan(), 500);
   }
   _fireAutoScan(){
     if (this.state.scanStage !== 'capture' || !this._scanStream) return;
@@ -1318,11 +1320,12 @@ class Component extends DCLogic {
   scanFrameVision(v){
     const gen = this._scanGen;
     const vw = v.videoWidth, vh = v.videoHeight;
+    // small image = faster upload + Google web detection doesn't need high res
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(640, vw);
+    canvas.width = Math.min(480, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    const b64 = this.canvasToBase64(canvas, 0.7);
+    const b64 = this.canvasToBase64(canvas, 0.6);
     // use both text detection and web detection (image matching)
     this.callVisionAPI(b64, [
       { type:'DOCUMENT_TEXT_DETECTION', maxResults:10 },
