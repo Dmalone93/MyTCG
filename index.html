@@ -1137,26 +1137,21 @@ class Component extends DCLogic {
       nameMatches.push({ card, extra });
     }
 
-    // === SCORE EACH CANDIDATE — pick the best one ===
+    // === SCORE: artwork first, card code second, name last ===
     const scores = new Map();
-    const priceBonus = new Map(); // tie-break by price
-    const add = (code, pts, price) => {
-      scores.set(code, (scores.get(code)||0) + pts);
-      if (price) priceBonus.set(code, Math.max(priceBonus.get(code)||0, price));
-    };
-    for (const c of textCodes) add(c, 3);
-    for (const c of webCodes) add(c, 3);
-    for (const nm of nameMatches) {
-      add(nm.card.number, 1 + nm.extra, nm.card.price || 0);
-    }
+    const add = (code, pts) => scores.set(code, (scores.get(code)||0) + pts);
 
-    // find the single best match — highest score, then highest price as tie-break
-    let bestCode = null, bestScore = 0, bestPrice = 0;
+    // artwork match = 10 pts (top priority — identifies exact version)
+    for (const c of webCodes) add(c, 10);
+    // card number in text = 5 pts (exact ID if readable)
+    for (const c of textCodes) add(c, 5);
+    // name match = 1 pt (weakest — many cards share names)
+    for (const nm of nameMatches) add(nm.card.number, 1 + nm.extra);
+
+    // find the single best match
+    let bestCode = null, bestScore = 0;
     for (const [code, score] of scores) {
-      const price = priceBonus.get(code) || 0;
-      if (score > bestScore || (score === bestScore && price > bestPrice)) {
-        bestScore = score; bestCode = code; bestPrice = price;
-      }
+      if (score > bestScore) { bestScore = score; bestCode = code; }
     }
 
     // show the current best card at top + saved cards below (newest first)
