@@ -1124,23 +1124,18 @@ class Component extends DCLogic {
       if (cn.length >= 6 && fullText.includes(cn)) nameHits.add(card.number);
     }
 
-    // === CONFIDENCE SCORING ===
-    // score each card number — need 2+ signals or 1 strong signal to show
-    const scores = new Map();
-    const addScore = (code, pts) => scores.set(code, (scores.get(code)||0) + pts);
-
-    // card number in text = strong (3 pts)
-    for (const c of textCodes) addScore(c, 3);
-    // card number from web detection = strong (3 pts)
-    for (const c of webCodes) addScore(c, 3);
-    // card name in text = weak alone (1 pt) — needs another signal
-    for (const c of nameHits) addScore(c, 1);
-
-    // only show cards with score >= 2 (prevents single name match from showing)
-    const confirmed = [];
-    for (const [code, score] of scores) {
-      if (score >= 2) confirmed.push(code);
+    // === COLLECT ALL MATCHES ===
+    const all = new Set();
+    // card number in text = definite
+    for (const c of textCodes) all.add(c);
+    // card art matched by Google = definite
+    for (const c of webCodes) all.add(c);
+    // card name in text — only include if name is specific enough (10+ chars)
+    for (const card of source) {
+      const cn = card.name.toLowerCase();
+      if (cn.length >= 10 && nameHits.has(card.number)) all.add(card.number);
     }
+    const confirmed = [...all];
 
     // accumulate detected cards — persist until user removes them
     if (!this._watchSeen) this._watchSeen = new Map();
