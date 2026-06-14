@@ -1124,26 +1124,39 @@ class Component extends DCLogic {
 
     // === SIGNAL 3: card names from text ===
     const fullText = (text||'').toLowerCase();
-    const nameHits = new Set();
+    const nameMatches = []; // { card, extraScore }
     for (const card of source) {
       const cn = card.name.toLowerCase();
-      if (cn.length >= 6 && fullText.includes(cn)) nameHits.add(card.number);
+      if (cn.length < 6 || !fullText.includes(cn)) continue;
+      let extra = 0;
+      // bonus if set name also appears in text
+      const sn = (card.set||'').toLowerCase();
+      if (sn.length >= 6 && fullText.includes(sn)) extra += 2;
+      // bonus if card number appears in text
+      if (card.number && fullText.includes(card.number.toLowerCase())) extra += 3;
+      nameMatches.push({ card, extra });
     }
 
     // === SCORE EACH CANDIDATE — pick the best one ===
     const scores = new Map();
-    const add = (code, pts) => scores.set(code, (scores.get(code)||0) + pts);
+    const priceBonus = new Map(); // tie-break by price
+    const add = (code, pts, price) => {
+      scores.set(code, (scores.get(code)||0) + pts);
+      if (price) priceBonus.set(code, Math.max(priceBonus.get(code)||0, price));
+    };
     for (const c of textCodes) add(c, 3);
     for (const c of webCodes) add(c, 3);
-    for (const card of source) {
-      const cn = card.name.toLowerCase();
-      if (cn.length >= 6 && nameHits.has(card.number)) add(card.number, 1);
+    for (const nm of nameMatches) {
+      add(nm.card.number, 1 + nm.extra, nm.card.price || 0);
     }
 
-    // find the single best match
-    let bestCode = null, bestScore = 0;
+    // find the single best match — highest score, then highest price as tie-break
+    let bestCode = null, bestScore = 0, bestPrice = 0;
     for (const [code, score] of scores) {
-      if (score > bestScore) { bestScore = score; bestCode = code; }
+      const price = priceBonus.get(code) || 0;
+      if (score > bestScore || (score === bestScore && price > bestPrice)) {
+        bestScore = score; bestCode = code; bestPrice = price;
+      }
     }
 
     // show the current best card at top + saved cards below (newest first)
