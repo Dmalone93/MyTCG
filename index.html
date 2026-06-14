@@ -1088,9 +1088,10 @@ class Component extends DCLogic {
     // skip blurry frames — don't waste API calls on motion blur
     if (!this.isSharp(canvas)) return;
     const b64 = this.canvasToBase64(canvas, 0.8);
-    // text detection only — read card numbers from the screen
+    // use all signals: text, image matching, everything
     this.callVisionAPI(b64, [
-      { type:'TEXT_DETECTION', maxResults:20 }
+      { type:'TEXT_DETECTION', maxResults:20 },
+      { type:'WEB_DETECTION', maxResults:10 }
     ]).then(resp => {
       if (gen !== this._watchGen || !this.state.watchActive) return;
       this.processWatchResponse(resp);
@@ -1103,22 +1104,49 @@ class Component extends DCLogic {
     const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
 
-    // extract card numbers from screen text — numbers only, no guessing
+    // === SIGNAL 1: card numbers from text ===
     const text = this.extractTextFromResponse(resp);
-    const codes = this.extractAllCodes(text);
-
-    // aggressive regex pass to catch numbers with varied spacing
+    const textCodes = this.extractAllCodes(text);
     const up = (text||'').toUpperCase();
     const extraRe = /(OP|ST|EB)\s*-?\s*(\d{1,2})\s*-?\s*(\d{2,3})/g;
     let em;
     while ((em = extraRe.exec(up)) !== null) {
       const code = em[1] + em[2].padStart(2,'0') + '-' + em[3].padStart(3,'0');
-      if (!codes.includes(code)) codes.push(code);
+      if (!textCodes.includes(code)) textCodes.push(code);
+    }
+
+    // === SIGNAL 2: card numbers from web detection (art matching) ===
+    const webCodes = this.extractCodesFromWeb(resp);
+
+    // === SIGNAL 3: card names from text ===
+    const fullText = (text||'').toLowerCase();
+    const nameHits = new Set();
+    for (const card of source) {
+      const cn = card.name.toLowerCase();
+      if (cn.length >= 6 && fullText.includes(cn)) nameHits.add(card.number);
+    }
+
+    // === CONFIDENCE SCORING ===
+    // score each card number — need 2+ signals or 1 strong signal to show
+    const scores = new Map();
+    const addScore = (code, pts) => scores.set(code, (scores.get(code)||0) + pts);
+
+    // card number in text = strong (3 pts)
+    for (const c of textCodes) addScore(c, 3);
+    // card number from web detection = strong (3 pts)
+    for (const c of webCodes) addScore(c, 3);
+    // card name in text = weak alone (1 pt) — needs another signal
+    for (const c of nameHits) addScore(c, 1);
+
+    // only show cards with score >= 2 (prevents single name match from showing)
+    const confirmed = [];
+    for (const [code, score] of scores) {
+      if (score >= 2) confirmed.push(code);
     }
 
     // accumulate detected cards — persist until user removes them
     if (!this._watchSeen) this._watchSeen = new Map();
-    for (const code of codes) {
+    for (const code of confirmed) {
       if (this._watchSeen.has(code)) continue;
       const cn = norm(code);
       const match = source.find(c => norm(c.number) === cn);
