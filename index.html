@@ -1301,10 +1301,17 @@ class Component extends DCLogic {
     const scrollEl = this.sheetScrollRef.current;
     if (!scrollEl) return;
     const rows = scrollEl.querySelectorAll('tbody tr');
-    // offset by 1 for the add-row
-    const target = rows[idx + 1];
-    if (target){
-      target.scrollIntoView({ block:'nearest', behavior:'smooth' });
+    const target = rows[idx + 1]; // offset by 1 for the add-row
+    if (!target) return;
+    // scroll within the sheet container only — don't move the page
+    const containerTop = scrollEl.scrollTop;
+    const containerH = scrollEl.clientHeight;
+    const rowTop = target.offsetTop - scrollEl.offsetTop;
+    const rowH = target.offsetHeight;
+    if (rowTop < containerTop) {
+      scrollEl.scrollTo({ top: rowTop, behavior:'smooth' });
+    } else if (rowTop + rowH > containerTop + containerH) {
+      scrollEl.scrollTo({ top: rowTop + rowH - containerH, behavior:'smooth' });
     }
   }
 
