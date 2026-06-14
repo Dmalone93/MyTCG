@@ -1032,8 +1032,8 @@ class Component extends DCLogic {
         this.openWatchPopup();
         // start scanning after video is ready
         this._watchVideo.addEventListener('loadedmetadata', () => {
-          this._watchTimer = setInterval(() => this.watchFrame(), 2000);
-          setTimeout(() => this.watchFrame(), 500);
+          this._watchTimer = setInterval(() => this.watchFrame(), 1200);
+          this.watchFrame();
         });
       })
       .catch(() => {});
@@ -1085,8 +1085,6 @@ class Component extends DCLogic {
     canvas.width = Math.min(1280, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    // skip blurry frames — don't waste API calls on motion blur
-    if (!this.isSharp(canvas)) return;
     const b64 = this.canvasToBase64(canvas, 0.8);
     // use all signals: text, image matching, everything
     this.callVisionAPI(b64, [
