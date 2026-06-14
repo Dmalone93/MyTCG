@@ -1025,7 +1025,7 @@ class Component extends DCLogic {
         this.openWatchPopup();
         // start scanning after video is ready
         this._watchVideo.addEventListener('loadedmetadata', () => {
-          this._watchTimer = setInterval(() => this.watchFrame(), 3000);
+          this._watchTimer = setInterval(() => this.watchFrame(), 2000);
           setTimeout(() => this.watchFrame(), 500);
         });
       })
@@ -1048,10 +1048,10 @@ class Component extends DCLogic {
     const gen = this._watchGen;
     const vw = v.videoWidth, vh = v.videoHeight;
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(800, vw);
+    canvas.width = Math.min(1280, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
-    const b64 = this.canvasToBase64(canvas, 0.6);
+    const b64 = this.canvasToBase64(canvas, 0.7);
     this.callVisionAPI(b64).then(text => {
       if (gen !== this._watchGen || !this.state.watchActive) return;
       this.processWatchText(text);
@@ -1061,30 +1061,29 @@ class Component extends DCLogic {
   processWatchText(text){
     if (!text) return;
     const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
-    const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
-    const fullText = norm(text);
 
-    // extract card codes (most reliable)
+    // extract all card codes from the screen text
     const codes = this.extractAllCodes(text);
+
+    // also aggressively scan for card number patterns the main regex might miss
+    const up = text.toUpperCase();
+    const extraRe = /\b(OP|ST|EB)\s*-?\s*(\d{2})\s*-?\s*(\d{3})\b/g;
+    let em;
+    while ((em = extraRe.exec(up)) !== null) {
+      const code = em[1] + em[2] + '-' + em[3];
+      if (!codes.includes(code)) codes.push(code);
+    }
 
     const found = new Map();
 
-    // match by code
+    // match ONLY by specific card number — no name matching
     for (const code of codes) {
       if (found.has(code)) continue;
       const cn = norm(code);
       const match = source.find(c => norm(c.number) === cn);
       if (match) found.set(code, match);
-    }
-
-    // match by FULL card name appearing in the text
-    for (const card of source) {
-      if (found.has(card.number)) continue;
-      const cn = norm(card.name);
-      if (cn.length >= 8 && fullText.includes(cn)) {
-        found.set(card.number, card);
-      }
     }
     const results = [...found.values()].map(c => ({
       name: c.name, number: c.number,
@@ -1244,7 +1243,7 @@ class Component extends DCLogic {
     return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(key), {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:[{ type:'TEXT_DETECTION', maxResults:10 }] }] })
+      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:[{ type:'DOCUMENT_TEXT_DETECTION', maxResults:10 }] }] })
     }).then(r => r.json().then(data => {
       if (data.error) throw new Error(data.error.message || ('Error '+data.error.code));
       if (data.responses && data.responses[0] && data.responses[0].error) throw new Error(data.responses[0].error.message);
