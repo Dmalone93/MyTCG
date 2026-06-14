@@ -1237,20 +1237,50 @@ class Component extends DCLogic {
     return canvas.toDataURL('image/jpeg', quality||0.7).split(',')[1];
   }
 
-  callVisionAPI(base64){
+  callVisionAPI(base64, features){
     const key = (this.state.settings.visionApiKey||'').trim();
     if (!key) return Promise.reject('No API key');
+    const feats = features || [{ type:'DOCUMENT_TEXT_DETECTION', maxResults:10 }];
     return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(key), {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:[{ type:'DOCUMENT_TEXT_DETECTION', maxResults:10 }] }] })
+      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:feats }] })
     }).then(r => r.json().then(data => {
       if (data.error) throw new Error(data.error.message || ('Error '+data.error.code));
       if (data.responses && data.responses[0] && data.responses[0].error) throw new Error(data.responses[0].error.message);
-      const ann = data.responses && data.responses[0] && data.responses[0].textAnnotations;
-      if (!ann || !ann.length) return '';
-      return ann[0].description || '';
+      return data.responses[0] || {};
     }));
+  }
+
+  extractTextFromResponse(resp){
+    const ann = resp && resp.textAnnotations;
+    return (ann && ann.length && ann[0].description) || '';
+  }
+
+  extractCodesFromWeb(resp){
+    const codes = [];
+    const web = resp && resp.webDetection;
+    if (!web) return codes;
+    const norm = s => String(s||'').toUpperCase();
+    // search URLs and page titles for card numbers
+    const urls = [];
+    if (web.fullMatchingImages) web.fullMatchingImages.forEach(i => urls.push(i.url||''));
+    if (web.partialMatchingImages) web.partialMatchingImages.forEach(i => urls.push(i.url||''));
+    if (web.pagesWithMatchingImages) web.pagesWithMatchingImages.forEach(p => { urls.push(p.url||''); urls.push(p.pageTitle||''); });
+    if (web.webEntities) web.webEntities.forEach(e => urls.push(e.description||''));
+    if (web.bestGuessLabels) web.bestGuessLabels.forEach(l => urls.push(l.label||''));
+    for (const s of urls) {
+      const up = norm(s);
+      const re = /(OP|ST|EB|PRB)\s*-?\s*(\d{1,2})\s*-?\s*(\d{2,3})/g;
+      let m;
+      while ((m = re.exec(up)) !== null) {
+        codes.push(m[1]+m[2].padStart(2,'0')+'-'+m[3].padStart(3,'0'));
+      }
+      // also check for P-xxx
+      const pre = /P\s*-\s*(\d{3})/g;
+      while ((m = pre.exec(up)) !== null) codes.push('P-'+m[1]);
+    }
+    return [...new Set(codes)];
   }
 
   extractCode(text){
@@ -1281,24 +1311,30 @@ class Component extends DCLogic {
   scanFrameVision(v){
     const gen = this._scanGen;
     const vw = v.videoWidth, vh = v.videoHeight;
-    // crop center area, leaving small margins, then scale to 640px
-    const cx = Math.round(vw * 0.08), cy = Math.round(vh * 0.02);
-    const cw = Math.round(vw * 0.84), ch = Math.round(vh * 0.96);
     const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = Math.round(480 * ch / cw);
-    canvas.getContext('2d').drawImage(v, cx, cy, cw, ch, 0, 0, canvas.width, canvas.height);
-    const b64 = this.canvasToBase64(canvas, 0.65);
-    this.callVisionAPI(b64).then(text => {
+    canvas.width = Math.min(640, vw);
+    canvas.height = Math.round(canvas.width * vh / vw);
+    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    const b64 = this.canvasToBase64(canvas, 0.7);
+    // use both text detection and web detection (image matching)
+    this.callVisionAPI(b64, [
+      { type:'DOCUMENT_TEXT_DETECTION', maxResults:10 },
+      { type:'WEB_DETECTION', maxResults:5 }
+    ]).then(resp => {
       if (gen !== this._scanGen || this.state.scanStage !== 'capture') return;
-      const codes = this.extractAllCodes(text);
+      // try text-based codes first
+      const text = this.extractTextFromResponse(resp);
+      let codes = this.extractAllCodes(text);
+      // then try web detection (image matching) — finds the card on the internet
+      if (!codes.length) codes = this.extractCodesFromWeb(resp);
       if (codes.length) {
         this.stopAutoScan();
         this.handleScanCode(codes[0]);
       } else {
-        // show what Vision read so user knows it's working
-        const preview = (text||'').replace(/\n/g,' ').trim();
-        this.setState({ scanStatusMsg: preview ? 'Read: '+preview.slice(0,50) : 'No text found \u2014 move the card closer' });
+        const webInfo = resp.webDetection && resp.webDetection.bestGuessLabels;
+        const guess = webInfo && webInfo[0] && webInfo[0].label;
+        const preview = guess || (text||'').replace(/\n/g,' ').trim().slice(0,50);
+        this.setState({ scanStatusMsg: preview ? 'Seeing: '+preview : 'Move the card closer' });
       }
     }).catch(err => {
       if (gen !== this._scanGen) return;
@@ -1329,12 +1365,18 @@ class Component extends DCLogic {
         canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
         const b64 = this.canvasToBase64(canvas);
         this.stopCamera();
-        this.callVisionAPI(b64).then(text => {
-          const codes = this.extractAllCodes(text);
+        this.callVisionAPI(b64, [
+          { type:'DOCUMENT_TEXT_DETECTION', maxResults:10 },
+          { type:'WEB_DETECTION', maxResults:5 }
+        ]).then(resp => {
+          const text = this.extractTextFromResponse(resp);
+          let codes = this.extractAllCodes(text);
+          if (!codes.length) codes = this.extractCodesFromWeb(resp);
           if (codes.length){
             this.handleScanCode(codes[0]);
           } else {
-            this.setState({ scanStatusMsg:'No card number found \u2014 try search below' });
+            const guess = resp.webDetection && resp.webDetection.bestGuessLabels && resp.webDetection.bestGuessLabels[0];
+            this.setState({ scanStatusMsg: guess ? 'Detected: '+guess.label+' \u2014 try search below' : 'Card not recognized \u2014 try search below' });
           }
         }).catch(() => {
           this.setState({ scanStatusMsg:'API error \u2014 check your key in Settings' });
