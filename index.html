@@ -1061,13 +1061,13 @@ class Component extends DCLogic {
     // draw preview into popup
     this.updateWatchPreview(v, vw, vh);
     const b64 = this.canvasToBase64(canvas, 0.7);
+    // screen watcher uses text detection (reading numbers off webpages)
     this.callVisionAPI(b64, [
-      { type:'DOCUMENT_TEXT_DETECTION', maxResults:10 },
-      { type:'WEB_DETECTION', maxResults:5 }
+      { type:'TEXT_DETECTION', maxResults:20 }
     ]).then(resp => {
       if (gen !== this._watchGen || !this.state.watchActive) return;
       this.processWatchResponse(resp);
-    }).catch(() => {});
+    }).catch(err => { console.error('[watch]', err); });
   }
 
   processWatchResponse(resp){
@@ -1076,21 +1076,29 @@ class Component extends DCLogic {
     const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
 
-    // extract codes from text
+    // extract codes from text — primary method for screen watching
     const text = this.extractTextFromResponse(resp);
     const codes = this.extractAllCodes(text);
 
-    // also extract codes from web detection (image matching)
-    const webCodes = this.extractCodesFromWeb(resp);
-    for (const c of webCodes) { if (!codes.includes(c)) codes.push(c); }
-
-    // extra regex pass on text
+    // aggressive regex pass on full text to catch all card numbers
     const up = (text||'').toUpperCase();
-    const extraRe = /\b(OP|ST|EB)\s*-?\s*(\d{2})\s*-?\s*(\d{3})\b/g;
+    const extraRe = /(OP|ST|EB)\s*-?\s*(\d{1,2})\s*-?\s*(\d{2,3})/g;
     let em;
     while ((em = extraRe.exec(up)) !== null) {
       const code = em[1] + em[2] + '-' + em[3];
       if (!codes.includes(code)) codes.push(code);
+    }
+
+    // also match by full card name + set combo for unique identification
+    const fullText = (text||'').toLowerCase();
+    for (const card of source) {
+      if (codes.some(code => norm(code) === norm(card.number))) continue;
+      const cn = card.name.toLowerCase();
+      const sn = card.set.toLowerCase();
+      // require both card name AND set name to appear in text (avoids matching all Luffys)
+      if (cn.length >= 6 && sn.length >= 6 && fullText.includes(cn) && fullText.includes(sn)) {
+        codes.push(card.number);
+      }
     }
 
     // accumulate detected cards — persist until user removes them
