@@ -1068,7 +1068,7 @@ class Component extends DCLogic {
     // extract card codes (most reliable)
     const codes = this.extractAllCodes(text);
 
-    const found = new Map(this._watchSeen || new Map());
+    const found = new Map();
 
     // match by code
     for (const code of codes) {
@@ -1079,7 +1079,6 @@ class Component extends DCLogic {
     }
 
     // match by FULL card name appearing in the text
-    // only match names that are long enough to be specific (8+ chars normalized)
     for (const card of source) {
       if (found.has(card.number)) continue;
       const cn = norm(card.name);
@@ -1087,8 +1086,6 @@ class Component extends DCLogic {
         found.set(card.number, card);
       }
     }
-
-    this._watchSeen = found;
     const results = [...found.values()].map(c => ({
       name: c.name, number: c.number,
       priceFmt: c.price ? this.money(c.price) : '\u2014',
