@@ -1052,23 +1052,31 @@ class Component extends DCLogic {
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
     const b64 = this.canvasToBase64(canvas, 0.7);
-    this.callVisionAPI(b64).then(text => {
+    this.callVisionAPI(b64, [
+      { type:'DOCUMENT_TEXT_DETECTION', maxResults:10 },
+      { type:'WEB_DETECTION', maxResults:5 }
+    ]).then(resp => {
       if (gen !== this._watchGen || !this.state.watchActive) return;
-      this.processWatchText(text);
+      this.processWatchResponse(resp);
     }).catch(() => {});
   }
 
-  processWatchText(text){
-    if (!text) return;
+  processWatchResponse(resp){
+    if (!resp) return;
     const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
     const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
 
-    // extract all card codes from the screen text
+    // extract codes from text
+    const text = this.extractTextFromResponse(resp);
     const codes = this.extractAllCodes(text);
 
-    // also aggressively scan for card number patterns the main regex might miss
-    const up = text.toUpperCase();
+    // also extract codes from web detection (image matching)
+    const webCodes = this.extractCodesFromWeb(resp);
+    for (const c of webCodes) { if (!codes.includes(c)) codes.push(c); }
+
+    // extra regex pass on text
+    const up = (text||'').toUpperCase();
     const extraRe = /\b(OP|ST|EB)\s*-?\s*(\d{2})\s*-?\s*(\d{3})\b/g;
     let em;
     while ((em = extraRe.exec(up)) !== null) {
@@ -1078,7 +1086,6 @@ class Component extends DCLogic {
 
     const found = new Map();
 
-    // match ONLY by specific card number — no name matching
     for (const code of codes) {
       if (found.has(code)) continue;
       const cn = norm(code);
