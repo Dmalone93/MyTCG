@@ -50,10 +50,10 @@
         <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;" style-hover="background:#27272A; color:#FAFAFA;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
         </button>
-        <button onClick="{{ focusNew }}" style="display:inline-flex; align-items:center; gap:7px; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:11px 17px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 2px 8px rgba(59,130,246,.3);" style-hover="background:#2563EB;">
-          <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
-        </button>
       </div>
+      <button onClick="{{ focusNew }}" style="display:flex; align-items:center; justify-content:center; gap:7px; width:100%; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:12px 17px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(59,130,246,.3);" style-hover="background:#2563EB;">
+        <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
+      </button>
     </header>
 
     <!-- ===== METRIC STRIP ===== -->
@@ -92,29 +92,29 @@
     </div>
 
     <!-- ===== TOOLBAR ===== -->
-    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:11px;">
-      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; width:100%;">
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:11px;">
+      <div style="display:flex; align-items:center; gap:8px; width:100%;">
         <sc-if value="{{ filterActive }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(59,130,246,.2); background:rgba(59,130,246,.1); color:#3B82F6; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
+          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(59,130,246,.2); background:rgba(59,130,246,.1); color:#3B82F6; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex:none;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
         </sc-if>
-        <div style="position:relative; display:flex; align-items:center;">
+        <div style="position:relative; display:flex; align-items:center; flex:1; min-width:0;">
           <span style="position:absolute; left:12px; color:#52525B; font-size:13px; pointer-events:none;">⌕</span>
-          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px 14px 10px 32px; font-size:13.5px; width:190px; max-width:46vw;" />
+          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px 14px 10px 32px; font-size:13.5px; width:100%;" />
         </div>
-        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px 14px; font-size:13.5px; cursor:pointer; color:#A1A1AA;">
-          <option value="order">Sort: Sheet order</option>
-          <option value="value">Sort: Value ↓</option>
-          <option value="spent">Sort: Spent ↓</option>
-          <option value="pl">Sort: Profit/Loss ↓</option>
-          <option value="recent">Sort: Recent</option>
-          <option value="name">Sort: Name A–Z</option>
+        <select value="{{ sortBy }}" onChange="{{ onSort }}" title="Sort" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px; font-size:14px; cursor:pointer; color:#A1A1AA; width:40px; height:40px; flex:none; appearance:none; -webkit-appearance:none; text-align:center; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23A1A1AA%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M3 6h7M3 12h5M3 18h3M16 4l4 4-4 4M16 20l4-4-4-4%22/></svg>'); background-repeat:no-repeat; background-position:center; color:transparent;">
+          <option value="order">Sheet order</option>
+          <option value="value">Value ↓</option>
+          <option value="spent">Spent ↓</option>
+          <option value="pl">Profit/Loss ↓</option>
+          <option value="recent">Recent</option>
+          <option value="name">Name A–Z</option>
         </select>
-        <div style="display:flex; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; overflow:hidden;">
+        <div style="display:flex; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; overflow:hidden; flex:none;">
           <sc-for list="{{ viewTabs }}" as="v" hint-placeholder-count="2">
             <button onClick="{{ v.onClick }}" style="border:none; background:{{ v.bg }}; color:{{ v.fg }}; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer;">{{ v.label }}</button>
           </sc-for>
         </div>
-        <button onClick="{{ toggleInsights }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid {{ insightsBorder }}; background:{{ insightsBg }}; color:{{ insightsFg }}; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer;">
+        <button onClick="{{ toggleInsights }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid {{ insightsBorder }}; background:{{ insightsBg }}; color:{{ insightsFg }}; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer; flex:none; margin-left:auto;">
           Trends <span style="font-size:10px; transform:{{ insightsChevron }}; transition:transform .15s;">▾</span>
         </button>
       </div>
