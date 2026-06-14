@@ -57,7 +57,7 @@
     </header>
 
     <!-- ===== METRIC STRIP ===== -->
-    <div style="display:flex; flex-wrap:wrap; align-items:stretch; background:#111113; border:1px solid rgba(255,255,255,.05); border-radius:13px; overflow:hidden; margin-bottom:13px;">
+    <div style="display:flex; flex-wrap:wrap; align-items:stretch; background:#111113; border:1px solid rgba(255,255,255,.05); border-radius:12px; overflow:hidden; margin-bottom:13px;">
       <div style="flex:1; min-width:120px; padding:13px 18px; border-right:1px solid rgba(255,255,255,.04);">
         <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Cards</div>
         <div style="font-family:'Geist Mono',monospace; font-weight:600; font-size:22px; letter-spacing:-.02em;">{{ rowCount }} <span style="font-size:12px; color:#52525B; font-weight:500;">· {{ totalQty }} copies</span></div>
@@ -92,16 +92,16 @@
     </div>
 
     <!-- ===== TOOLBAR ===== -->
-    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-bottom:11px;">
-      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; width:100%;">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:11px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; width:100%;">
         <sc-if value="{{ filterActive }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid #C7D2F5; background:#EAEEFB; color:#3B82F6; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
+          <button onClick="{{ clearFilter }}" title="Clear filter" style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(59,130,246,.2); background:rgba(59,130,246,.1); color:#3B82F6; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ filterChipLabel }} <span style="font-size:15px; line-height:0;">×</span></button>
         </sc-if>
         <div style="position:relative; display:flex; align-items:center;">
-          <span style="position:absolute; left:11px; color:#52525B; font-size:13px; pointer-events:none;">⌕</span>
-          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; padding:9px 12px 9px 30px; font-size:13.5px; width:190px; max-width:46vw;" />
+          <span style="position:absolute; left:12px; color:#52525B; font-size:13px; pointer-events:none;">⌕</span>
+          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Filter rows…" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px 14px 10px 32px; font-size:13.5px; width:190px; max-width:46vw;" />
         </div>
-        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; padding:9px 11px; font-size:13.5px; cursor:pointer;">
+        <select value="{{ sortBy }}" onChange="{{ onSort }}" style="border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:10px 14px; font-size:13.5px; cursor:pointer; color:#A1A1AA;">
           <option value="order">Sort: Sheet order</option>
           <option value="value">Sort: Value ↓</option>
           <option value="spent">Sort: Spent ↓</option>
@@ -109,12 +109,12 @@
           <option value="recent">Sort: Recent</option>
           <option value="name">Sort: Name A–Z</option>
         </select>
-        <div style="display:flex; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:9px; overflow:hidden;">
+        <div style="display:flex; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; overflow:hidden;">
           <sc-for list="{{ viewTabs }}" as="v" hint-placeholder-count="2">
-            <button onClick="{{ v.onClick }}" style="border:none; background:{{ v.bg }}; color:{{ v.fg }}; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;">{{ v.label }}</button>
+            <button onClick="{{ v.onClick }}" style="border:none; background:{{ v.bg }}; color:{{ v.fg }}; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer;">{{ v.label }}</button>
           </sc-for>
         </div>
-        <button onClick="{{ toggleInsights }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid {{ insightsBorder }}; background:{{ insightsBg }}; color:{{ insightsFg }}; border-radius:9px; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;">
+        <button onClick="{{ toggleInsights }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid {{ insightsBorder }}; background:{{ insightsBg }}; color:{{ insightsFg }}; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; cursor:pointer;">
           Trends <span style="font-size:10px; transform:{{ insightsChevron }}; transition:transform .15s;">▾</span>
         </button>
       </div>
@@ -124,7 +124,7 @@
     <sc-if value="{{ insightsOpen }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:13px; margin-bottom:16px; animation:fadeIn .2s ease;">
         <sc-if value="{{ showChartCard }}" hint-placeholder-val="{{ true }}">
-          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px 20px 16px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:20px 20px 16px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
             <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:16px;">
               <div>
                 <div style="font-family:'Geist Mono',monospace; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:#52525B; margin-bottom:7px;">Portfolio value</div>
@@ -162,7 +162,7 @@
         </sc-if>
 
         <sc-if value="{{ showBudgetCard }}" hint-placeholder-val="{{ true }}">
-          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:20px; box-shadow:0 4px 24px rgba(0,0,0,.3); grid-column:1 / -1;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px;">
               <div style="font-weight:600; font-size:15px; letter-spacing:-.01em;">{{ monthLabelLong }} budget</div>
               <div style="display:flex; align-items:center; gap:6px; font-family:'Geist Mono',monospace; font-size:13px; color:#A1A1AA;">{{ cur }}<input type="number" min="0" step="25" value="{{ monthlyBudget }}" onInput="{{ onBudget }}" style="width:66px; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:6px 8px; font-family:'Geist Mono',monospace; font-size:13px; text-align:right;" /></div>
@@ -205,7 +205,7 @@
         <div ref="{{ carouselRef }}" onScroll="{{ onCarouselScroll }}" style="display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; padding:0 0 12px; margin:0 -clamp(12px,3.5vw,20px); padding-left:clamp(12px,3.5vw,20px); padding-right:clamp(12px,3.5vw,20px); scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
           <style>div[ref]::-webkit-scrollbar{ display:none; }</style>
           <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
-            <div onClick="{{ c.onCarouselClick }}" style="flex:none; width:120px; scroll-snap-align:center; cursor:pointer; border-radius:11px; overflow:hidden; border:2px solid {{ c.carouselBorder }}; background:#111113; transition:border-color .15s;">
+            <div onClick="{{ c.onCarouselClick }}" style="flex:none; width:120px; scroll-snap-align:center; cursor:pointer; border-radius:10px; overflow:hidden; border:2px solid {{ c.carouselBorder }}; background:#111113; transition:border-color .15s;">
               <div style="position:relative; aspect-ratio:63/88; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);">
                 <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ c.image }}'); background-size:cover; background-position:center;"></span></sc-if>
               </div>
@@ -221,7 +221,7 @@
 
     <!-- ===== SHEET VIEW ===== -->
     <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
-      <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:13px; overflow:hidden; box-shadow:none;">
+      <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; overflow:hidden; box-shadow:none;">
         <div ref="{{ sheetScrollRef }}" style="max-height:calc(100vh - 250px); min-height:280px; overflow:auto;">
           <table style="width:100%; border-collapse:separate; border-spacing:0; min-width:900px;">
             <thead>
@@ -248,7 +248,7 @@
                 <td style="border-bottom:1px solid rgba(255,255,255,.06); border-right:1px solid rgba(59,130,246,.08); position:relative;">
                   <input class="cellinput" ref="{{ newNameRef }}" value="{{ nr.name }}" onInput="{{ onDraftName }}" onFocus="{{ onDraftFocus }}" onBlur="{{ onNameBlur }}" onKeyDown="{{ onDraftKey }}" placeholder="Type a card name to add a row…" style="width:100%; border:none; background:transparent; padding:11px 12px; font-size:13.5px; font-weight:600;" />
                   <sc-if value="{{ newPickerShow }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:11px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
+                    <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:10px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
                       <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 11px; background:#0D0D0F; border-bottom:1px solid rgba(255,255,255,.06);"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:#71717A;">One Piece catalog</span><span style="font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ pickerSourceColor }};">{{ pickerSourceLabel }}</span></div>
                       <div style="max-height:288px; overflow-y:auto;">
                       <sc-for list="{{ newPickerResults }}" as="p" hint-placeholder-count="4">
@@ -284,7 +284,7 @@
                   <td style="border-bottom:1px solid rgba(255,255,255,.04); border-right:1px solid rgba(255,255,255,.04); position:relative;">
                     <input class="cellinput" value="{{ c.name }}" onInput="{{ c.onName }}" onFocus="{{ c.onNameFocus }}" onBlur="{{ onNameBlur }}" style="width:100%; border:none; background:transparent; padding:10px 12px; font-size:13.5px; font-weight:600;" />
                     <sc-if value="{{ c.showPicker }}" hint-placeholder-val="{{ false }}">
-                      <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:11px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
+                      <div style="position:absolute; top:100%; left:0; z-index:30; width:380px; max-width:78vw; background:#18181B; border:1px solid rgba(255,255,255,.08); border-radius:10px; box-shadow:0 14px 40px rgba(0,0,0,.5); overflow:hidden; animation:popDrop .12s ease;">
                       <div style="max-height:288px; overflow-y:auto;">
                         <sc-for list="{{ c.pickerResults }}" as="p" hint-placeholder-count="4">
                           <button onMouseDown="{{ p.onPick }}" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:8px 11px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
@@ -330,7 +330,7 @@
     <sc-if value="{{ isGallery }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(186px,1fr)); gap:13px;">
         <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
-          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:13px; overflow:hidden; box-shadow:none; display:flex; flex-direction:column;">
+          <div style="background:#18181B; border:1px solid rgba(255,255,255,.06); border-radius:12px; overflow:hidden; box-shadow:none; display:flex; flex-direction:column;">
             <div style="position:relative; aspect-ratio:63/88; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 9px,#1C1C1F 9px,#1C1C1F 18px); display:flex; align-items:center; justify-content:center;">
               <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ c.image }}'); background-size:cover; background-position:center;"></span></sc-if>
               <span style="position:relative; z-index:1; font-family:'Geist Mono',monospace; font-size:11px; color:#52525B; background:rgba(255,255,255,.92); padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.06);">{{ c.placeholder }}</span>
@@ -351,7 +351,7 @@
         </sc-for>
       </div>
       <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#18181B; border:1px dashed rgba(255,255,255,.08); border-radius:13px; padding:48px 24px; text-align:center; color:#A1A1AA; font-size:14px;">No cards yet. Switch to the Sheet view to add some.</div>
+        <div style="background:#18181B; border:1px dashed rgba(255,255,255,.08); border-radius:12px; padding:48px 24px; text-align:center; color:#A1A1AA; font-size:14px;">No cards yet. Switch to the Sheet view to add some.</div>
       </sc-if>
     </sc-if>
 
@@ -359,8 +359,8 @@
 
   <!-- ===== CARD HOVER PREVIEW ===== -->
   <div ref="{{ previewRef }}" style="position:fixed; left:0; top:0; z-index:80; display:none; pointer-events:none; width:232px;">
-    <div style="background:#0E1116; border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:8px; box-shadow:0 24px 60px rgba(8,11,18,.5);">
-      <div style="aspect-ratio:63/88; border-radius:9px; overflow:hidden; background-color:#1A1E26; background-image:repeating-linear-gradient(135deg,#20242E 0px,#20242E 9px,#1A1E26 9px,#1A1E26 18px);">
+    <div style="background:#0E1116; border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:8px; box-shadow:0 24px 60px rgba(8,11,18,.5);">
+      <div style="aspect-ratio:63/88; border-radius:10px; overflow:hidden; background-color:#1A1E26; background-image:repeating-linear-gradient(135deg,#20242E 0px,#20242E 9px,#1A1E26 9px,#1A1E26 18px);">
         <img ref="{{ previewImgRef }}" onLoad="{{ onPreviewImgLoad }}" onError="{{ onPreviewImgError }}" alt="" style="width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .18s;" />
       </div>
       <div ref="{{ previewCapRef }}" style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#3F3F46; text-align:center; padding:7px 4px 3px; letter-spacing:.02em;"></div>
@@ -369,7 +369,7 @@
 
   <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeScan }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(440px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(440px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:16px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
@@ -381,7 +381,7 @@
       <div style="padding:16px 20px 20px; overflow-y:auto;">
         <sc-if value="{{ scanShowCapture }}" hint-placeholder-val="{{ true }}">
           <!-- camera -->
-          <div style="position:relative; aspect-ratio:3/4; border-radius:13px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
+          <div style="position:relative; aspect-ratio:3/4; border-radius:12px; overflow:hidden; background:#0E1116; margin-bottom:12px;">
             <video ref="{{ scanVideoRef }}" autoplay="true" playsinline="true" muted="true" style="width:100%; height:100%; object-fit:cover; display:{{ scanVideoDisplay }};"></video>
             <sc-if value="{{ scanCamReady }}" hint-placeholder-val="{{ false }}">
               <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:68%; height:90%; border:2px solid rgba(255,255,255,.8); border-radius:12px; box-shadow:0 0 0 9999px rgba(8,11,18,.35);"></div>
@@ -392,7 +392,7 @@
 
           <!-- upload fallback -->
           <sc-if value="{{ scanShowUpload }}" hint-placeholder-val="{{ false }}">
-            <label style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;" style-hover="background:#27272A;">
+            <label style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;" style-hover="background:#27272A;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Upload card photo
               <input ref="{{ scanFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onScanFile }}" style="display:none;" />
             </label>
@@ -408,10 +408,10 @@
           <!-- search -->
           <div style="position:relative; margin-bottom:12px;">
             <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#52525B; font-size:14px; pointer-events:none;">&#8981;</span>
-            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:11px; padding:13px 14px 13px 34px; font-size:14.5px;" />
+            <input ref="{{ scanSearchRef }}" value="{{ scanQuery }}" onInput="{{ onScanQuery }}" placeholder="Type card name or number\u2026" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:13px 14px 13px 34px; font-size:14.5px;" />
           </div>
           <sc-if value="{{ scanSearchResults.length }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid rgba(255,255,255,.06); border-radius:11px; overflow:hidden; max-height:36vh; overflow-y:auto;">
+            <div style="border:1px solid rgba(255,255,255,.06); border-radius:10px; overflow:hidden; max-height:36vh; overflow-y:auto;">
               <sc-for list="{{ scanSearchResults }}" as="sr" hint-placeholder-count="4">
                 <button onClick="{{ sr.onPick }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:10px 12px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
                   <span style="position:relative; width:34px; height:47px; flex:none; border-radius:5px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);"><sc-if value="{{ sr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ sr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
@@ -438,8 +438,8 @@
               <div style="font-family:'Geist Mono',monospace; font-size:12px; color:#71717A; margin-top:2px;">{{ scanAutoNumber }}</div>
             </div>
             <div style="display:flex; gap:9px; width:100%;">
-              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Scan another</button>
-              <button onClick="{{ closeScan }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">Done</button>
+              <button onClick="{{ scanAgain }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Scan another</button>
+              <button onClick="{{ closeScan }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">Done</button>
             </div>
           </div>
         </sc-if>
@@ -450,7 +450,7 @@
   <!-- ===== LOOKUP MODAL ===== -->
   <sc-if value="{{ lookupOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeLookup }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(460px,94vw); max-height:92vh; overflow:hidden; background:#18181B; border-radius:16px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
@@ -463,16 +463,16 @@
         <sc-if value="{{ lookupShowSearch }}" hint-placeholder-val="{{ true }}">
           <div style="position:relative; margin-bottom:14px;">
             <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#52525B; font-size:14px; pointer-events:none;">⌕</span>
-            <input value="{{ lookupQuery }}" onInput="{{ onLookupQuery }}" placeholder="Type a card name or number…" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:11px; padding:13px 14px 13px 34px; font-size:14px;" />
+            <input value="{{ lookupQuery }}" onInput="{{ onLookupQuery }}" placeholder="Type a card name or number…" style="width:100%; border:1px solid rgba(255,255,255,.06); background:#18181B; border-radius:10px; padding:13px 14px 13px 34px; font-size:14px;" />
           </div>
           <div style="display:flex; gap:9px; margin-bottom:14px;">
-            <label style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#27272A;">
+            <label style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;" style-hover="background:#27272A;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan with camera
               <input ref="{{ lookupFileRef }}" type="file" accept="image/*" capture="environment" onChange="{{ onLookupFile }}" style="display:none;" />
             </label>
           </div>
           <sc-if value="{{ lookupResults.length }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid rgba(255,255,255,.06); border-radius:11px; overflow:hidden; max-height:46vh; overflow-y:auto;">
+            <div style="border:1px solid rgba(255,255,255,.06); border-radius:10px; overflow:hidden; max-height:46vh; overflow-y:auto;">
               <sc-for list="{{ lookupResults }}" as="lr" hint-placeholder-count="3">
                 <button onClick="{{ lr.onSelect }}" style="display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; border-bottom:1px solid rgba(255,255,255,.04); background:#18181B; padding:10px 12px; cursor:pointer;" style-hover="background:rgba(59,130,246,.08);">
                   <span style="position:relative; width:30px; height:42px; flex:none; border-radius:5px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 5px,#1C1C1F 5px,#1C1C1F 10px);"><sc-if value="{{ lr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ lr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
@@ -502,7 +502,7 @@
           </div>
 
           <sc-if value="{{ lookupHasOwned }}" hint-placeholder-val="{{ false }}">
-            <div style="background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.15); border-radius:11px; padding:13px 15px; margin-bottom:14px;">
+            <div style="background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.15); border-radius:10px; padding:13px 15px; margin-bottom:14px;">
               <div style="font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#71717A; margin-bottom:8px;">In your collection</div>
               <div style="display:flex; gap:20px;">
                 <div><div style="font-size:11px; color:#A1A1AA;">Qty</div><div style="font-family:'Geist Mono',monospace; font-size:15px; font-weight:600;">{{ lookupOwned.qty }}</div></div>
@@ -513,8 +513,8 @@
           </sc-if>
 
           <div style="display:flex; gap:9px;">
-            <button onClick="{{ lookupBack }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Search again</button>
-            <button onClick="{{ lookupAddCard }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">+ Add to collection</button>
+            <button onClick="{{ lookupBack }}" style="flex:1; border:1px solid rgba(255,255,255,.08); background:#18181B; color:#FAFAFA; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A;">Search again</button>
+            <button onClick="{{ lookupAddCard }}" style="flex:1; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">+ Add to collection</button>
           </div>
         </sc-if>
       </div>
@@ -533,14 +533,14 @@
         <div style="margin-bottom:16px;">
           <div style="font-size:14px; font-weight:500; margin-bottom:8px;">Currency</div>
           <div style="display:flex; gap:6px;">
-            <sc-for list="{{ currencyOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:10px 0; font-size:15px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
+            <sc-for list="{{ currencyOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:10px; padding:10px 0; font-size:15px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
           </div>
         </div>
         <div style="margin-bottom:8px;">
           <div style="font-size:14px; font-weight:500; margin-bottom:4px;">Profit / Loss compares against</div>
           <div style="font-size:12.5px; color:#71717A; margin-bottom:9px;">Raw market price, or the graded (PSA 10) ceiling.</div>
           <div style="display:flex; gap:6px;">
-            <sc-for list="{{ basisOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:9px; padding:10px 0; font-size:13.5px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
+            <sc-for list="{{ basisOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="flex:1; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; border-radius:10px; padding:10px 0; font-size:13.5px; font-weight:600; cursor:pointer;">{{ o.label }}</button></sc-for>
           </div>
         </div>
 
@@ -604,7 +604,7 @@
   <!-- ===== SHARE QR MODAL ===== -->
   <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeShare }}" style="position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(3px); z-index:70; animation:fadeIn .15s ease;"></div>
-    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(380px,92vw); background:#18181B; border-radius:18px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
+    <div style="position:fixed; z-index:71; left:50%; top:50%; transform:translate(-50%,-50%); width:min(380px,92vw); background:#18181B; border-radius:16px; box-shadow:0 32px 80px rgba(0,0,0,.6); display:flex; flex-direction:column; animation:popDrop .16s ease;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; background:#EAEEFB; color:#3B82F6;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></span>
@@ -618,7 +618,7 @@
           <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:#FAFAFA;">{{ shareCardCount }} cards · {{ shareValueFmt }}</div>
           <div style="font-size:12px; color:#71717A; margin-top:4px;">{{ shareNote }}</div>
         </div>
-        <button onClick="{{ copyShareLink }}" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3B82F6; color:#fff; border:none; border-radius:11px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">{{ copyLabel }}</button>
+        <button onClick="{{ copyShareLink }}" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#2563EB;">{{ copyLabel }}</button>
       </div>
     </div>
   </sc-if>
@@ -627,7 +627,7 @@
   <sc-if value="{{ isSharedView }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#3B82F6; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; font-size:14px; font-weight:600; box-shadow:0 -4px 20px rgba(62,99,221,.3);">
       <span>Viewing a shared collection ({{ shareCardCount }} cards)</span>
-      <button onClick="{{ importShared }}" style="border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15); color:#fff; border-radius:9px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(255,255,255,.25);">Import to my collection</button>
+      <button onClick="{{ importShared }}" style="border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="background:rgba(255,255,255,.25);">Import to my collection</button>
       <button onClick="{{ dismissShared }}" style="border:none; background:none; color:rgba(255,255,255,.7); font-size:18px; cursor:pointer; line-height:0; padding:4px;">×</button>
     </div>
   </sc-if>
