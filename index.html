@@ -1137,7 +1137,7 @@ class Component extends DCLogic {
     for (const c of webCodes) add(c, 3);
     for (const card of source) {
       const cn = card.name.toLowerCase();
-      if (cn.length >= 10 && nameHits.has(card.number)) add(card.number, 1);
+      if (cn.length >= 6 && nameHits.has(card.number)) add(card.number, 1);
     }
 
     // find the single best match
@@ -1353,7 +1353,7 @@ class Component extends DCLogic {
     return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(key), {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:feats }] })
+      body:JSON.stringify({ requests:[{ image:{ content:base64 }, features:feats, imageContext:{ languageHints:['en','ja'] } }] })
     }).then(r => r.json().then(data => {
       if (data.error) throw new Error(data.error.message || ('Error '+data.error.code));
       if (data.responses && data.responses[0] && data.responses[0].error) throw new Error(data.responses[0].error.message);
