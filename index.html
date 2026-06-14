@@ -1150,9 +1150,15 @@ class Component extends DCLogic {
     if (!this._watchSaved) this._watchSaved = new Map();
     const currentCard = bestCode ? source.find(c => norm(c.number) === norm(bestCode)) : null;
 
-    // if current card is new, add to saved with timestamp
-    if (currentCard && !this._watchSaved.has(currentCard.number)) {
-      this._watchSaved.set(currentCard.number, { card:currentCard, time:Date.now() });
+    // update the most recent detection — if it changes, replace it
+    if (currentCard) {
+      if (this._watchLastCode && this._watchLastCode !== currentCard.number) {
+        // API changed its mind — remove the old guess if user hasn't acted on it
+        const old = this._watchSaved.get(this._watchLastCode);
+        if (old && old.auto) this._watchSaved.delete(this._watchLastCode);
+      }
+      this._watchLastCode = currentCard.number;
+      this._watchSaved.set(currentCard.number, { card:currentCard, time:Date.now(), auto:true });
     }
 
     // build results: newest first
@@ -1208,7 +1214,7 @@ class Component extends DCLogic {
       this.pickInto('new', card);
       // save it in the saved list so it shows as "Owned"
       if (!this._watchSaved) this._watchSaved = new Map();
-      this._watchSaved.set(number, { card, current:false });
+      this._watchSaved.set(number, { card, time:Date.now(), auto:false });
     }
   }
 
