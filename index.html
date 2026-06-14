@@ -1076,6 +1076,25 @@ class Component extends DCLogic {
     const norm = s => String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
 
+    // extract bounding boxes for card numbers from text annotations
+    this._watchBoxes = [];
+    const annotations = resp.textAnnotations || [];
+    for (let i = 1; i < annotations.length; i++) {
+      const a = annotations[i];
+      const txt = (a.description||'').toUpperCase();
+      if (/(OP|ST|EB)\d{2}/.test(txt) || /\d{2}-\d{3}/.test(txt)) {
+        const verts = a.boundingPoly && a.boundingPoly.vertices;
+        if (verts && verts.length >= 4) {
+          const xs = verts.map(v=>v.x||0), ys = verts.map(v=>v.y||0);
+          this._watchBoxes.push({
+            x:Math.min(...xs), y:Math.min(...ys),
+            w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys),
+            label:txt
+          });
+        }
+      }
+    }
+
     // extract codes from text — primary method for screen watching
     const text = this.extractTextFromResponse(resp);
     const codes = this.extractAllCodes(text);
@@ -1145,7 +1164,7 @@ class Component extends DCLogic {
     this._watchPopup = window.open('', 'mytcg-watch', 'width=340,height=500,top=80,left='+Math.max(0,screen.width-380)+',toolbar=no,menubar=no,location=no,status=no');
     if (!this._watchPopup) return;
     const doc = this._watchPopup.document;
-    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>MyTCG Watch</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#09090B;color:#FAFAFA;font-family:-apple-system,system-ui,sans-serif;overflow-y:auto}#header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#09090B;z-index:1}.dot{width:8px;height:8px;border-radius:50%;background:#F87171;animation:pulse 1.5s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#preview{position:relative;border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden;background:#111}#preview canvas{width:100%;display:block}#scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#3B82F6,transparent);animation:scanmove 2s linear infinite;pointer-events:none}@keyframes scanmove{0%{top:0}100%{top:100%}}#cards{padding:4px 0}.card{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04)}.card img{width:28px;height:39px;border-radius:4px;object-fit:cover;background:#1C1C1F}.info{flex:1;min-width:0}.name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.num{font-family:monospace;font-size:10px;color:#71717A}.price{font-family:monospace;font-size:13px;font-weight:600;color:#4ADE80;text-align:right}.owned{font-family:monospace;font-size:9px;color:#3B82F6}.empty{padding:24px;text-align:center;color:#52525B;font-size:13px}.abtn{border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.1);color:#3B82F6;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer}.abtn:hover{background:rgba(59,130,246,.2)}.dbtn{border:1px solid rgba(255,255,255,.08);background:none;color:#52525B;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer}.dbtn:hover{color:#F87171;border-color:rgba(248,113,113,.3)}.clrbtn{margin-left:auto;border:1px solid rgba(255,255,255,.1);background:none;color:#71717A;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}.clrbtn:hover{color:#FAFAFA;border-color:rgba(255,255,255,.2)}</style></head><body><div id="header"><span class="dot"></span><span style="font-weight:600;font-size:13px;">Watching</span><span id="count" style="font-family:monospace;font-size:11px;color:#52525B;">0</span><button class="clrbtn" onclick="document.getElementById(\'cards\').innerHTML=\'<div class=empty>Cleared</div>\';document.getElementById(\'count\').textContent=\'0\'">Clear</button></div><div id="preview"><canvas id="prevCanvas"></canvas><div id="scanline"></div></div><div id="cards"><div class="empty">Browse a card marketplace \u2014 detected cards appear here</div></div></body></html>');
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>MyTCG Watch</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#09090B;color:#FAFAFA;font-family:-apple-system,system-ui,sans-serif;overflow-y:auto}#header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#09090B;z-index:1}.dot{width:8px;height:8px;border-radius:50%;background:#F87171;animation:pulse 1.5s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#preview{position:relative;border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden;background:#111}#preview canvas{width:100%;display:block}#scanline{position:absolute;inset:0;pointer-events:none;border:2px solid rgba(59,130,246,.3);animation:trackpulse 1.5s ease infinite}@keyframes trackpulse{0%,100%{border-color:rgba(59,130,246,.15)}50%{border-color:rgba(59,130,246,.5)}}#cards{padding:4px 0}.card{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04)}.card img{width:28px;height:39px;border-radius:4px;object-fit:cover;background:#1C1C1F}.info{flex:1;min-width:0}.name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.num{font-family:monospace;font-size:10px;color:#71717A}.price{font-family:monospace;font-size:13px;font-weight:600;color:#4ADE80;text-align:right}.owned{font-family:monospace;font-size:9px;color:#3B82F6}.empty{padding:24px;text-align:center;color:#52525B;font-size:13px}.abtn{border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.1);color:#3B82F6;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer}.abtn:hover{background:rgba(59,130,246,.2)}.dbtn{border:1px solid rgba(255,255,255,.08);background:none;color:#52525B;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer}.dbtn:hover{color:#F87171;border-color:rgba(248,113,113,.3)}.clrbtn{margin-left:auto;border:1px solid rgba(255,255,255,.1);background:none;color:#71717A;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}.clrbtn:hover{color:#FAFAFA;border-color:rgba(255,255,255,.2)}</style></head><body><div id="header"><span class="dot"></span><span style="font-weight:600;font-size:13px;">Watching</span><span id="count" style="font-family:monospace;font-size:11px;color:#52525B;">0</span><button class="clrbtn" onclick="document.getElementById(\'cards\').innerHTML=\'<div class=empty>Cleared</div>\';document.getElementById(\'count\').textContent=\'0\'">Clear</button></div><div id="preview"><canvas id="prevCanvas"></canvas><div id="scanline"></div></div><div id="cards"><div class="empty">Browse a card marketplace \u2014 detected cards appear here</div></div></body></html>');
     doc.close();
   }
 
@@ -1156,7 +1175,34 @@ class Component extends DCLogic {
     const pw = 340;
     const ph = Math.round(pw * vh / vw);
     if (pc.width !== pw) { pc.width = pw; pc.height = ph; }
-    pc.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, pw, ph);
+    const ctx = pc.getContext('2d');
+    ctx.drawImage(v, 0, 0, vw, vh, 0, 0, pw, ph);
+    // draw tracking boxes from last detection
+    if (this._watchBoxes && this._watchBoxes.length) {
+      const sx = pw / vw, sy = ph / vh;
+      // use the canvas dimensions that were sent to the API
+      const apiW = Math.min(1280, vw), apiH = Math.round(apiW * vh / vw);
+      const ax = pw / apiW, ay = ph / apiH;
+      ctx.strokeStyle = '#3B82F6';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#3B82F6';
+      ctx.shadowBlur = 8;
+      for (const box of this._watchBoxes) {
+        const x = box.x * ax, y = box.y * ay, w = box.w * ax, h = box.h * ay;
+        ctx.strokeRect(x, y, w, h);
+        // label
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(59,130,246,.85)';
+        const labelH = 14;
+        ctx.fillRect(x, y - labelH - 2, Math.min(w, ctx.measureText(box.label).width + 8), labelH);
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px -apple-system,sans-serif';
+        ctx.fillText(box.label, x + 4, y - 4);
+        ctx.shadowColor = '#3B82F6';
+        ctx.shadowBlur = 8;
+      }
+      ctx.shadowBlur = 0;
+    }
   }
 
   updateWatchPopup(results){
