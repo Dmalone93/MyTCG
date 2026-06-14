@@ -857,8 +857,13 @@ class Component extends DCLogic {
     if (priceRaw != null) { price = parseFloat(String(priceRaw).replace(/[^0-9.]/g,'')) || 0; }
     const img = c.card_image || c.image_url || c.imageUrl || c.image || c.img || c.cardImage
       || c.inventory_image || (c.images && (c.images.large || c.images.small)) || '';
+    const color = c.card_color || c.color || '';
+    const cardType = c.card_type || c.type || '';
+    const power = c.card_power || c.power || '';
+    const cost = c.card_cost || c.cost || '';
     return { number:String(num), name:String(name), set:String(setName),
-      rarity:this.mapRarity(rarRaw), price, graded: Math.round(price*4), image:String(img) };
+      rarity:this.mapRarity(rarRaw), price, graded: Math.round(price*4), image:String(img),
+      color:String(color), cardType:String(cardType), power:String(power), cost:String(cost) };
   }
 
   refreshPrices(){
@@ -1134,18 +1139,27 @@ class Component extends DCLogic {
       if (sn.length >= 6 && fullText.includes(sn)) extra += 2;
       // bonus if card number appears in text
       if (card.number && fullText.includes(card.number.toLowerCase())) extra += 3;
-      // bonus for rarity context — if rarity name appears on screen
+      // bonus if rarity name appears on screen
       const rn = (card.rarity||'').toLowerCase();
       if (rn.length >= 4 && fullText.includes(rn)) extra += 1;
-      // bonus for language context — if EN/JP appears and matches card
+      // bonus if card color appears on screen (red, green, blue, purple, black, yellow)
+      const col = (card.color||'').toLowerCase();
+      if (col && col.length >= 3 && fullText.includes(col)) extra += 1.5;
+      // bonus if card type appears (leader, character, event, stage)
+      const ct = (card.cardType||'').toLowerCase();
+      if (ct && ct.length >= 4 && fullText.includes(ct)) extra += 1;
+      // bonus for language context
       if (fullText.includes(' en ') || fullText.includes('english')) { if ((card.language||'EN')==='EN') extra += 0.5; }
       if (fullText.includes(' jp ') || fullText.includes('japanese')) { if ((card.language||'')==='JP') extra += 0.5; }
-      // newer sets slightly preferred (streamers show newer product)
+      // newer sets slightly preferred
       const setNum = parseInt((card.number||'').replace(/[^0-9]/g,'').slice(0,2));
       if (setNum >= 7) extra += 0.3;
       if (setNum >= 9) extra += 0.2;
-      // alt art / special rarities get shown off more on streams
+      // alt art / special rarities get shown off more
       if (rn.includes('manga') || rn.includes('special') || rn.includes('alt')) extra += 0.5;
+      // bonus if power/cost appears near the name
+      const pw = (card.power||'').replace(/[^0-9]/g,'');
+      if (pw.length >= 4 && fullText.includes(pw)) extra += 1;
       nameMatches.push({ card, extra });
     }
 
