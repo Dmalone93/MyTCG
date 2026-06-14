@@ -1049,6 +1049,33 @@ class Component extends DCLogic {
     this.setState({ watchActive:false });
   }
 
+  // detect if a frame is too blurry to bother sending to the API
+  isSharp(canvas){
+    const ctx = canvas.getContext('2d');
+    const w = Math.min(200, canvas.width);
+    const h = Math.round(w * canvas.height / canvas.width);
+    const small = document.createElement('canvas');
+    small.width = w; small.height = h;
+    small.getContext('2d').drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, w, h);
+    const data = small.getContext('2d').getImageData(0, 0, w, h).data;
+    // Laplacian variance — high = sharp, low = blurry
+    let sum = 0, sum2 = 0, n = 0;
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = (y * w + x) * 4;
+        const g = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+        const gU = 0.299*data[((y-1)*w+x)*4] + 0.587*data[((y-1)*w+x)*4+1] + 0.114*data[((y-1)*w+x)*4+2];
+        const gD = 0.299*data[((y+1)*w+x)*4] + 0.587*data[((y+1)*w+x)*4+1] + 0.114*data[((y+1)*w+x)*4+2];
+        const gL = 0.299*data[(y*w+x-1)*4] + 0.587*data[(y*w+x-1)*4+1] + 0.114*data[(y*w+x-1)*4+2];
+        const gR = 0.299*data[(y*w+x+1)*4] + 0.587*data[(y*w+x+1)*4+1] + 0.114*data[(y*w+x+1)*4+2];
+        const lap = gU + gD + gL + gR - 4*g;
+        sum += lap; sum2 += lap*lap; n++;
+      }
+    }
+    const variance = (sum2/n) - (sum/n)*(sum/n);
+    return variance > 50; // threshold — higher = stricter
+  }
+
   watchFrame(){
     const v = this._watchVideo;
     if (!v || !v.videoWidth || !this.state.watchActive) return;
@@ -1058,6 +1085,8 @@ class Component extends DCLogic {
     canvas.width = Math.min(1280, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    // skip blurry frames — don't waste API calls on motion blur
+    if (!this.isSharp(canvas)) return;
     const b64 = this.canvasToBase64(canvas, 0.8);
     // use both text detection and web detection for best results
     this.callVisionAPI(b64, [
@@ -1366,11 +1395,12 @@ class Component extends DCLogic {
   scanFrameVision(v){
     const gen = this._scanGen;
     const vw = v.videoWidth, vh = v.videoHeight;
-    // small image = faster upload + Google web detection doesn't need high res
     const canvas = document.createElement('canvas');
     canvas.width = Math.min(480, vw);
     canvas.height = Math.round(canvas.width * vh / vw);
     canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    // skip blurry frames
+    if (!this.isSharp(canvas)) return;
     const b64 = this.canvasToBase64(canvas, 0.6);
     // use both text detection and web detection (image matching)
     this.callVisionAPI(b64, [
