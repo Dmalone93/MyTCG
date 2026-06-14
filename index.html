@@ -1130,61 +1130,70 @@ class Component extends DCLogic {
       if (cn.length >= 6 && fullText.includes(cn)) nameHits.add(card.number);
     }
 
-    // === COLLECT ALL MATCHES ===
-    const all = new Set();
-    // card number in text = definite
-    for (const c of textCodes) all.add(c);
-    // card art matched by Google = definite
-    for (const c of webCodes) all.add(c);
-    // card name in text — only include if name is specific enough (10+ chars)
+    // === SCORE EACH CANDIDATE — pick the best one ===
+    const scores = new Map();
+    const add = (code, pts) => scores.set(code, (scores.get(code)||0) + pts);
+    for (const c of textCodes) add(c, 3);
+    for (const c of webCodes) add(c, 3);
     for (const card of source) {
       const cn = card.name.toLowerCase();
-      if (cn.length >= 10 && nameHits.has(card.number)) all.add(card.number);
+      if (cn.length >= 10 && nameHits.has(card.number)) add(card.number, 1);
     }
-    const confirmed = [...all];
 
-    // accumulate detected cards — persist until user removes them
-    if (!this._watchSeen) this._watchSeen = new Map();
-    for (const code of confirmed) {
-      if (this._watchSeen.has(code)) continue;
-      const cn = norm(code);
-      const match = source.find(c => norm(c.number) === cn);
-      if (match) this._watchSeen.set(code, match);
+    // find the single best match
+    let bestCode = null, bestScore = 0;
+    for (const [code, score] of scores) {
+      if (score > bestScore) { bestScore = score; bestCode = code; }
     }
-    const results = [...this._watchSeen.values()].map(c => ({
-      name: c.name, number: c.number,
-      priceFmt: c.price ? this.money(c.price) : '\u2014',
-      hasImage: !!c.image, image: c.image || '',
-      owned: ownedNums.has(c.number),
-    }));
+
+    // show the current best card at top + saved cards below (newest first)
+    if (!this._watchSaved) this._watchSaved = new Map();
+    const currentCard = bestCode ? source.find(c => norm(c.number) === norm(bestCode)) : null;
+
+    // if current card is new, add to saved with timestamp
+    if (currentCard && !this._watchSaved.has(currentCard.number)) {
+      this._watchSaved.set(currentCard.number, { card:currentCard, time:Date.now() });
+    }
+
+    // build results: newest first
+    const entries = [...this._watchSaved.values()].sort((a,b) => b.time - a.time);
+    const results = entries.map(v => {
+      const c = v.card;
+      return {
+        name: c.name, number: c.number,
+        priceFmt: c.price ? this.money(c.price) : '\u2014',
+        hasImage: !!c.image, image: c.image || '',
+        owned: ownedNums.has(c.number),
+        current: currentCard && c.number === currentCard.number,
+      };
+    });
     this.setState({ watchResults: results });
     this.updateWatchPopup(results);
   }
 
   watchClearAll(){
-    this._watchSeen = new Map();
+    this._watchSaved = new Map();
+    this._watchLastCurrent = null;
     this.setState({ watchResults:[] });
     this.updateWatchPopup([]);
   }
 
   watchRemoveCard(number){
-    if (this._watchSeen) this._watchSeen.delete(number);
+    if (this._watchSaved) this._watchSaved.delete(number);
     const results = this.state.watchResults.filter(r => r.number !== number);
     this.setState({ watchResults: results });
     this.updateWatchPopup(results);
   }
 
   watchAddCard(number){
-    if (!this._watchSeen) return;
-    const entry = this._watchSeen.get(number);
-    if (!entry) return;
     const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
     const card = source.find(c => c.number === number);
-    if (card) this.pickInto('new', card);
-    this._watchSeen.delete(number);
-    const results = this.state.watchResults.filter(r => r.number !== number);
-    this.setState({ watchResults: results });
-    this.updateWatchPopup(results);
+    if (card) {
+      this.pickInto('new', card);
+      // save it in the saved list so it shows as "Owned"
+      if (!this._watchSaved) this._watchSaved = new Map();
+      this._watchSaved.set(number, { card, current:false });
+    }
   }
 
   // floating popup window that stays on top of other apps
