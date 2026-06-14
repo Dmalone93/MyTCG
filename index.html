@@ -1134,6 +1134,18 @@ class Component extends DCLogic {
       if (sn.length >= 6 && fullText.includes(sn)) extra += 2;
       // bonus if card number appears in text
       if (card.number && fullText.includes(card.number.toLowerCase())) extra += 3;
+      // bonus for rarity context — if rarity name appears on screen
+      const rn = (card.rarity||'').toLowerCase();
+      if (rn.length >= 4 && fullText.includes(rn)) extra += 1;
+      // bonus for language context — if EN/JP appears and matches card
+      if (fullText.includes(' en ') || fullText.includes('english')) { if ((card.language||'EN')==='EN') extra += 0.5; }
+      if (fullText.includes(' jp ') || fullText.includes('japanese')) { if ((card.language||'')==='JP') extra += 0.5; }
+      // newer sets slightly preferred (streamers show newer product)
+      const setNum = parseInt((card.number||'').replace(/[^0-9]/g,'').slice(0,2));
+      if (setNum >= 7) extra += 0.3;
+      if (setNum >= 9) extra += 0.2;
+      // alt art / special rarities get shown off more on streams
+      if (rn.includes('manga') || rn.includes('special') || rn.includes('alt')) extra += 0.5;
       nameMatches.push({ card, extra });
     }
 
