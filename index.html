@@ -1022,6 +1022,7 @@ class Component extends DCLogic {
         this.setState({ watchActive:true, watchResults:[] });
         this._watchGen = 0;
         this._watchSeen = new Map();
+        this.openWatchPopup();
         // start scanning after video is ready
         this._watchVideo.addEventListener('loadedmetadata', () => {
           this._watchTimer = setInterval(() => this.watchFrame(), 3000);
@@ -1034,6 +1035,8 @@ class Component extends DCLogic {
   stopWatch(){
     if (this._watchTimer) { clearInterval(this._watchTimer); this._watchTimer = null; }
     if (this._watchStream) { this._watchStream.getTracks().forEach(t=>t.stop()); this._watchStream = null; }
+    if (this._watchPopup && !this._watchPopup.closed) this._watchPopup.close();
+    this._watchPopup = null;
     this._watchVideo = null;
     this._watchGen = (this._watchGen||0) + 1;
     this.setState({ watchActive:false });
@@ -1060,11 +1063,10 @@ class Component extends DCLogic {
     const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
     const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
     const ownedNums = new Set(this.state.cards.map(c => c.number));
+    const fullText = norm(text);
 
-    // extract card codes
+    // extract card codes (most reliable)
     const codes = this.extractAllCodes(text);
-    // also try to match card names from the text
-    const lines = text.split(/\n/).map(l => l.trim()).filter(l => l.length >= 4);
 
     const found = new Map(this._watchSeen || new Map());
 
@@ -1076,16 +1078,13 @@ class Component extends DCLogic {
       if (match) found.set(code, match);
     }
 
-    // match by name (exact substring in catalog)
-    for (const line of lines) {
-      const ln = norm(line);
-      if (ln.length < 5) continue;
-      for (const card of source) {
-        if (found.has(card.number)) continue;
-        const cn = norm(card.name);
-        if (cn.length >= 5 && (ln.includes(cn) || cn.includes(ln))) {
-          found.set(card.number, card);
-        }
+    // match by FULL card name appearing in the text
+    // only match names that are long enough to be specific (8+ chars normalized)
+    for (const card of source) {
+      if (found.has(card.number)) continue;
+      const cn = norm(card.name);
+      if (cn.length >= 8 && fullText.includes(cn)) {
+        found.set(card.number, card);
       }
     }
 
@@ -1097,6 +1096,38 @@ class Component extends DCLogic {
       owned: ownedNums.has(c.number),
     }));
     this.setState({ watchResults: results });
+    this.updateWatchPopup(results);
+  }
+
+  // floating popup window that stays on top of other apps
+  openWatchPopup(){
+    if (this._watchPopup && !this._watchPopup.closed) return;
+    this._watchPopup = window.open('', 'mytcg-watch', 'width=340,height=500,top=80,left='+Math.max(0,screen.width-380)+',toolbar=no,menubar=no,location=no,status=no');
+    if (!this._watchPopup) return;
+    const doc = this._watchPopup.document;
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>MyTCG Watch</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#09090B;color:#FAFAFA;font-family:-apple-system,system-ui,sans-serif;overflow-y:auto}#header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#09090B;z-index:1}.dot{width:8px;height:8px;border-radius:50%;background:#F87171;animation:pulse 1.5s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#cards{padding:4px 0}.card{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04)}.card img{width:28px;height:39px;border-radius:4px;object-fit:cover;background:#1C1C1F}.info{flex:1;min-width:0}.name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.num{font-family:monospace;font-size:10px;color:#71717A}.price{font-family:monospace;font-size:13px;font-weight:600;color:#4ADE80;text-align:right}.owned{font-family:monospace;font-size:9px;color:#3B82F6}.empty{padding:24px;text-align:center;color:#52525B;font-size:13px}</style></head><body><div id="header"><span class="dot"></span><span style="font-weight:600;font-size:13px;">Watching screen</span><span id="count" style="font-family:monospace;font-size:11px;color:#52525B;">0 detected</span></div><div id="cards"><div class="empty">Browse a card marketplace — detected cards appear here</div></div></body></html>');
+    doc.close();
+  }
+
+  updateWatchPopup(results){
+    if (!this._watchPopup || this._watchPopup.closed) return;
+    const doc = this._watchPopup.document;
+    const countEl = doc.getElementById('count');
+    const cardsEl = doc.getElementById('cards');
+    if (!countEl || !cardsEl) return;
+    countEl.textContent = results.length + ' detected';
+    if (!results.length) {
+      cardsEl.innerHTML = '<div class="empty">Browse a card marketplace \u2014 detected cards appear here</div>';
+      return;
+    }
+    cardsEl.innerHTML = results.map(c =>
+      '<div class="card">' +
+      (c.hasImage ? '<img src="'+c.image+'" alt="">' : '<div style="width:28px;height:39px;border-radius:4px;background:#1C1C1F;flex:none;"></div>') +
+      '<div class="info"><div class="name">'+c.name+'</div><div class="num">'+c.number+'</div></div>' +
+      '<div><div class="price">'+c.priceFmt+'</div>' +
+      (c.owned ? '<div class="owned">In collection</div>' : '') +
+      '</div></div>'
+    ).join('');
   }
 
   // ---- carousel ----
