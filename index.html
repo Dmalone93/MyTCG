@@ -1169,6 +1169,22 @@ class Component extends DCLogic {
     });
     this.setState({ watchResults: results });
     this.updateWatchPopup(results);
+    // update status with what the API saw
+    const webLabels = resp.webDetection && resp.webDetection.bestGuessLabels;
+    const guess = webLabels && webLabels[0] && webLabels[0].label;
+    const textPreview = (text||'').replace(/\n/g,' ').trim().slice(0,60);
+    let status = '';
+    if (bestCode) status = 'Matched: ' + bestCode;
+    else if (guess) status = 'Seeing: ' + guess;
+    else if (textPreview) status = 'Text: ' + textPreview;
+    else status = 'Scanning\u2026';
+    this.updateWatchStatus(status);
+  }
+
+  updateWatchStatus(msg){
+    if (!this._watchPopup || this._watchPopup.closed) return;
+    const el = this._watchPopup.document.getElementById('status');
+    if (el) el.textContent = msg;
   }
 
   watchClearAll(){
@@ -1202,7 +1218,7 @@ class Component extends DCLogic {
     this._watchPopup = window.open('', 'mytcg-watch', 'width=340,height=500,top=80,left='+Math.max(0,screen.width-380)+',toolbar=no,menubar=no,location=no,status=no');
     if (!this._watchPopup) return;
     const doc = this._watchPopup.document;
-    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>MyTCG Watch</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#09090B;color:#FAFAFA;font-family:-apple-system,system-ui,sans-serif;overflow-y:auto}#header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#09090B;z-index:1}.dot{width:8px;height:8px;border-radius:50%;background:#F87171;animation:pulse 1.5s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}@keyframes flashin{0%{background:rgba(59,130,246,.15)}100%{background:transparent}}.flash{animation:flashin .6s ease}#cards{padding:4px 0}.card{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04)}.card img{width:28px;height:39px;border-radius:4px;object-fit:cover;background:#1C1C1F}.info{flex:1;min-width:0}.name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.num{font-family:monospace;font-size:10px;color:#71717A}.price{font-family:monospace;font-size:13px;font-weight:600;color:#4ADE80;text-align:right}.owned{font-family:monospace;font-size:9px;color:#3B82F6}.empty{padding:24px;text-align:center;color:#52525B;font-size:13px}.abtn{border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.1);color:#3B82F6;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer}.abtn:hover{background:rgba(59,130,246,.2)}.dbtn{border:1px solid rgba(255,255,255,.08);background:none;color:#52525B;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer}.dbtn:hover{color:#F87171;border-color:rgba(248,113,113,.3)}.clrbtn{margin-left:auto;border:1px solid rgba(255,255,255,.1);background:none;color:#71717A;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}.clrbtn:hover{color:#FAFAFA;border-color:rgba(255,255,255,.2)}</style></head><body><div id="header"><span class="dot"></span><span style="font-weight:600;font-size:13px;">Watching</span><span id="count" style="font-family:monospace;font-size:11px;color:#52525B;">0</span><button class="clrbtn" onclick="window.opener.__watchClear()">Clear</button></div><div id="cards"><div class="empty">Browse a card marketplace \u2014 detected cards appear here</div></div></body></html>');
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>MyTCG Watch</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#09090B;color:#FAFAFA;font-family:-apple-system,system-ui,sans-serif;overflow-y:auto}#header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#09090B;z-index:1}.dot{width:8px;height:8px;border-radius:50%;background:#F87171;animation:pulse 1.5s ease infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}@keyframes flashin{0%{background:rgba(59,130,246,.15)}100%{background:transparent}}.flash{animation:flashin .6s ease}#cards{padding:4px 0}#status{padding:8px 14px;font-family:monospace;font-size:10px;color:#52525B;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04)}.card-img{width:60px;height:84px;border-radius:6px;object-fit:cover;background:#1C1C1F;flex:none}.card-noimg{width:60px;height:84px;border-radius:6px;background:#1C1C1F;flex:none}.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;justify-content:center}.name{font-weight:600;font-size:13px;line-height:1.3}.num{font-family:monospace;font-size:10px;color:#71717A}.price{font-family:monospace;font-size:15px;font-weight:600;color:#4ADE80}.owned{font-family:monospace;font-size:9px;color:#3B82F6}.empty{padding:24px;text-align:center;color:#52525B;font-size:13px}.abtn{border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.1);color:#3B82F6;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer}.abtn:hover{background:rgba(59,130,246,.2)}.dbtn{border:1px solid rgba(255,255,255,.08);background:none;color:#52525B;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer}.dbtn:hover{color:#F87171;border-color:rgba(248,113,113,.3)}.clrbtn{margin-left:auto;border:1px solid rgba(255,255,255,.1);background:none;color:#71717A;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}.clrbtn:hover{color:#FAFAFA;border-color:rgba(255,255,255,.2)}</style></head><body><div id="header"><span class="dot"></span><span style="font-weight:600;font-size:13px;">Watching</span><span id="count" style="font-family:monospace;font-size:11px;color:#52525B;">0</span><button class="clrbtn" onclick="window.opener.__watchClear()">Clear</button></div><div id="status">Waiting for first scan\u2026</div><div id="cards"><div class="empty">Browse a card marketplace \u2014 detected cards appear here</div></div></body></html>');
     doc.close();
   }
 
@@ -1222,12 +1238,10 @@ class Component extends DCLogic {
     this._prevWatchNums = cur;
     cardsEl.innerHTML = results.map(c =>
       '<div class="card'+(prev.has(c.number)?'':' flash')+'">' +
-      (c.hasImage ? '<img src="'+c.image+'" alt="">' : '<div style="width:28px;height:39px;border-radius:4px;background:#1C1C1F;flex:none;"></div>') +
-      '<div class="info"><div class="name">'+c.name+'</div><div class="num">'+c.number+'</div></div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">' +
-      '<div class="price">'+c.priceFmt+'</div>' +
-      '<div style="display:flex;gap:4px;">' +
-      (c.owned ? '<span class="owned">Owned</span>' : '<button class="abtn" onclick="window.opener.__watchAdd(\''+c.number+'\')">+Add</button>') +
+      (c.hasImage ? '<img class="card-img" src="'+c.image+'" alt="">' : '<div class="card-noimg"></div>') +
+      '<div class="info"><div class="name">'+c.name+'</div><div class="num">'+c.number+'</div><div class="price">'+c.priceFmt+'</div>' +
+      '<div style="display:flex;gap:4px;margin-top:4px;">' +
+      (c.owned ? '<span class="owned">Owned</span>' : '<button class="abtn" onclick="window.opener.__watchAdd(\''+c.number+'\')">+ Add to collection</button>') +
       '<button class="dbtn" onclick="window.opener.__watchRemove(\''+c.number+'\')">×</button>' +
       '</div></div></div>'
     ).join('');
