@@ -28,6 +28,7 @@
   @keyframes slideIn{ from{ transform:translateX(100%); } to{ transform:none; } }
   @keyframes popDrop{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
   @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
 </style>
 </helmet>
 
@@ -49,6 +50,9 @@
         </button>
         <button onClick="{{ openScan }}" style="display:inline-flex; align-items:center; gap:7px; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;" style-hover="background:#27272A; color:#FAFAFA;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
+        </button>
+        <button onClick="{{ startWatch }}" style="display:inline-flex; align-items:center; gap:7px; background:{{ watchBtnBg }}; color:{{ watchBtnFg }}; border:1px solid {{ watchBtnBorder }}; border-radius:10px; padding:11px 15px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;" style-hover="background:#27272A; color:#FAFAFA;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> {{ watchBtnLabel }}
         </button>
       </div>
       <div style="display:flex; gap:8px; width:100%;">
@@ -631,6 +635,38 @@
     </div>
   </sc-if>
 
+  <!-- ===== SCREEN WATCHER OVERLAY ===== -->
+  <sc-if value="{{ watchActive }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; bottom:20px; right:20px; z-index:90; width:min(380px,90vw); background:#111113; border:1px solid rgba(255,255,255,.08); border-radius:12px; box-shadow:0 16px 48px rgba(0,0,0,.6); animation:popDrop .16s ease; display:flex; flex-direction:column; max-height:60vh;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.06); flex:none;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="width:8px; height:8px; border-radius:50%; background:#F87171; animation:pulse 1.5s ease infinite;"></span>
+          <span style="font-weight:600; font-size:13px; color:#FAFAFA;">Watching screen</span>
+          <span style="font-family:'Geist Mono',monospace; font-size:11px; color:#52525B;">{{ watchCount }} detected</span>
+        </div>
+        <button onClick="{{ stopWatch }}" style="border:none; background:none; font-size:18px; color:#71717A; cursor:pointer; line-height:0; padding:4px;">×</button>
+      </div>
+      <div style="overflow-y:auto; flex:1;">
+        <sc-for list="{{ watchResults }}" as="wr" hint-placeholder-count="2">
+          <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.04);">
+            <span style="position:relative; width:28px; height:39px; flex:none; border-radius:4px; overflow:hidden; background-color:#1C1C1F; background-image:repeating-linear-gradient(135deg,#27272A 0px,#27272A 4px,#1C1C1F 4px,#1C1C1F 8px);"><sc-if value="{{ wr.hasImage }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; inset:0; background-image:url('{{ wr.image }}'); background-size:cover; background-position:center;"></span></sc-if></span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ wr.name }}</div>
+              <div style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#71717A;">{{ wr.number }}</div>
+            </div>
+            <div style="text-align:right; flex:none;">
+              <div style="font-family:'Geist Mono',monospace; font-size:13px; font-weight:600; color:#4ADE80;">{{ wr.priceFmt }}</div>
+              <sc-if value="{{ wr.owned }}" hint-placeholder-val="{{ false }}"><div style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#3B82F6;">In collection</div></sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ watchEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 16px; text-align:center; color:#52525B; font-size:13px;">Browse a card marketplace — detected cards will appear here</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- ===== SHARED VIEW BANNER ===== -->
   <sc-if value="{{ isSharedView }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#3B82F6; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; font-size:14px; font-weight:600; box-shadow:0 -4px 20px rgba(62,99,221,.3);">
@@ -681,6 +717,7 @@ class Component extends DCLogic {
       scanCamReady:false, scanStatusMsg:'',
       activeCardIdx:-1,
       priceMsg:'', priceOk:true,
+      watchActive:false, watchResults:[],
       shareOpen:false, shareCopied:false, sharedCards:null,
       lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
@@ -964,6 +1001,104 @@ class Component extends DCLogic {
   onPreviewImgLoad(){ if (this.previewImgRef.current) this.previewImgRef.current.style.opacity='1'; }
   onPreviewImgError(){ this.hidePreview(); }
 
+  // ---- screen watcher ----
+  startWatch(){
+    if (this.state.watchActive) { this.stopWatch(); return; }
+    if (!this.hasVisionKey()){
+      this.setState({ scanStatusMsg:'Add a Vision API key in Settings first' });
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+      alert('Screen sharing is not supported in this browser.');
+      return;
+    }
+    navigator.mediaDevices.getDisplayMedia({ video:{ cursor:'never' }, audio:false })
+      .then(stream => {
+        this._watchStream = stream;
+        this._watchVideo = document.createElement('video');
+        this._watchVideo.srcObject = stream;
+        this._watchVideo.play();
+        stream.getVideoTracks()[0].addEventListener('ended', () => this.stopWatch());
+        this.setState({ watchActive:true, watchResults:[] });
+        this._watchGen = 0;
+        this._watchSeen = new Map();
+        // start scanning after video is ready
+        this._watchVideo.addEventListener('loadedmetadata', () => {
+          this._watchTimer = setInterval(() => this.watchFrame(), 3000);
+          setTimeout(() => this.watchFrame(), 500);
+        });
+      })
+      .catch(() => {});
+  }
+
+  stopWatch(){
+    if (this._watchTimer) { clearInterval(this._watchTimer); this._watchTimer = null; }
+    if (this._watchStream) { this._watchStream.getTracks().forEach(t=>t.stop()); this._watchStream = null; }
+    this._watchVideo = null;
+    this._watchGen = (this._watchGen||0) + 1;
+    this.setState({ watchActive:false });
+  }
+
+  watchFrame(){
+    const v = this._watchVideo;
+    if (!v || !v.videoWidth || !this.state.watchActive) return;
+    const gen = this._watchGen;
+    const vw = v.videoWidth, vh = v.videoHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.min(800, vw);
+    canvas.height = Math.round(canvas.width * vh / vw);
+    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    const b64 = this.canvasToBase64(canvas, 0.6);
+    this.callVisionAPI(b64).then(text => {
+      if (gen !== this._watchGen || !this.state.watchActive) return;
+      this.processWatchText(text);
+    }).catch(() => {});
+  }
+
+  processWatchText(text){
+    if (!text) return;
+    const source = (this.state.settings.liveApi && this._catalog && this._catalog.length) ? this._catalog : this.localCards();
+    const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const ownedNums = new Set(this.state.cards.map(c => c.number));
+
+    // extract card codes
+    const codes = this.extractAllCodes(text);
+    // also try to match card names from the text
+    const lines = text.split(/\n/).map(l => l.trim()).filter(l => l.length >= 4);
+
+    const found = new Map(this._watchSeen || new Map());
+
+    // match by code
+    for (const code of codes) {
+      if (found.has(code)) continue;
+      const cn = norm(code);
+      const match = source.find(c => norm(c.number) === cn);
+      if (match) found.set(code, match);
+    }
+
+    // match by name (exact substring in catalog)
+    for (const line of lines) {
+      const ln = norm(line);
+      if (ln.length < 5) continue;
+      for (const card of source) {
+        if (found.has(card.number)) continue;
+        const cn = norm(card.name);
+        if (cn.length >= 5 && (ln.includes(cn) || cn.includes(ln))) {
+          found.set(card.number, card);
+        }
+      }
+    }
+
+    this._watchSeen = found;
+    const results = [...found.values()].map(c => ({
+      name: c.name, number: c.number,
+      priceFmt: c.price ? this.money(c.price) : '\u2014',
+      hasImage: !!c.image, image: c.image || '',
+      owned: ownedNums.has(c.number),
+    }));
+    this.setState({ watchResults: results });
+  }
+
   // ---- carousel ----
   onCarouselScroll(){
     const el = this.carouselRef.current;
@@ -1208,7 +1343,7 @@ class Component extends DCLogic {
     this.setState({ scanStage:'added', scanAutoAdded:card });
   }
 
-  componentWillUnmount(){ this.stopCamera(); }
+  componentWillUnmount(){ this.stopCamera(); this.stopWatch(); }
 
   componentWillUnmount(){}
 
@@ -1884,6 +2019,12 @@ class Component extends DCLogic {
       isSheet:S.view==='sheet', isGallery:S.view==='gallery',
       isEmpty: cards.length===0, hasCards: cards.length>0, cards, focusNew:()=>this.focusNew(), refreshPrices:()=>this.refreshPrices(),
       priceMsg:S.priceMsg, priceMsgColor:S.priceOk?GAIN:LOSS, priceMsgBg:S.priceOk?GAINBG:LOSSBG,
+      watchActive:S.watchActive, startWatch:()=>this.startWatch(), stopWatch:()=>this.stopWatch(),
+      watchResults:S.watchResults, watchCount:S.watchResults.length, watchEmpty:S.watchActive && S.watchResults.length===0,
+      watchBtnBg: S.watchActive ? 'rgba(248,113,113,.1)' : '#18181B',
+      watchBtnFg: S.watchActive ? '#F87171' : '#A1A1AA',
+      watchBtnBorder: S.watchActive ? 'rgba(248,113,113,.2)' : 'rgba(255,255,255,.06)',
+      watchBtnLabel: S.watchActive ? 'Stop' : 'Watch',
       carouselRef:this.carouselRef, onCarouselScroll:()=>this.onCarouselScroll(),
       newNameRef:this.newNameRef, nr, nrDot:nrMeta.dot, commitNew:()=>this.commitNewRow(),
       sheetScrollRef:this.sheetScrollRef,
