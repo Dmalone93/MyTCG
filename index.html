@@ -51,9 +51,17 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg> Scan
         </button>
       </div>
-      <button onClick="{{ focusNew }}" style="display:flex; align-items:center; justify-content:center; gap:7px; width:100%; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:12px 17px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(59,130,246,.3);" style-hover="background:#2563EB;">
-        <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
-      </button>
+      <div style="display:flex; gap:8px; width:100%;">
+        <button onClick="{{ focusNew }}" style="display:flex; align-items:center; justify-content:center; gap:7px; flex:1; background:#3B82F6; color:#fff; border:none; border-radius:10px; padding:12px 17px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(59,130,246,.3);" style-hover="background:#2563EB;">
+          <span style="font-size:16px; line-height:0; margin-top:-1px;">+</span> Add card
+        </button>
+        <button onClick="{{ refreshPrices }}" title="Update all card prices from catalog" style="display:flex; align-items:center; justify-content:center; gap:7px; flex:none; background:#18181B; color:#A1A1AA; border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:12px 16px; font-size:14px; font-weight:600; cursor:pointer;" style-hover="background:#27272A; color:#FAFAFA;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Update prices
+        </button>
+      </div>
+      <sc-if value="{{ priceMsg }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12.5px; font-weight:500; color:{{ priceMsgColor }}; background:{{ priceMsgBg }}; padding:9px 12px; border-radius:10px; width:100%; text-align:center;">{{ priceMsg }}</div>
+      </sc-if>
     </header>
 
     <!-- ===== METRIC STRIP ===== -->
@@ -672,6 +680,7 @@ class Component extends DCLogic {
       scanOpen:false, scanStage:'capture', scanQuery:'', scanAutoAdded:null,
       scanCamReady:false, scanStatusMsg:'',
       activeCardIdx:-1,
+      priceMsg:'', priceOk:true,
       shareOpen:false, shareCopied:false, sharedCards:null,
       lookupOpen:false, lookupStage:'search', lookupQuery:'', lookupCard:null,
       loaded: false,
@@ -809,6 +818,37 @@ class Component extends DCLogic {
       || c.inventory_image || (c.images && (c.images.large || c.images.small)) || '';
     return { number:String(num), name:String(name), set:String(setName),
       rarity:this.mapRarity(rarRaw), price, graded: Math.round(price*4), image:String(img) };
+  }
+
+  refreshPrices(){
+    if (!this._catalog || !this._catalog.length) {
+      this.setState({ priceMsg:'Catalog not loaded \u2014 check Settings', priceOk:false });
+      return;
+    }
+    const priceMap = {};
+    const gradedMap = {};
+    this._catalog.forEach(c => {
+      if (c.number && c.price) { priceMap[c.number] = c.price; gradedMap[c.number] = c.graded || Math.round(c.price * 4); }
+    });
+    let updated = 0;
+    const cards = this.state.cards.map(c => {
+      if (c.game === 'onepiece' && c.number && priceMap[c.number]) {
+        const newRaw = priceMap[c.number];
+        const newGraded = gradedMap[c.number] || c.gradedValue;
+        if (newRaw !== c.rawValue || newGraded !== c.gradedValue) {
+          updated++;
+          return { ...c, rawValue: newRaw, gradedValue: newGraded };
+        }
+      }
+      return c;
+    });
+    if (updated) {
+      this.persist({ cards });
+      this.setState({ priceMsg: updated + ' card' + (updated>1?'s':'') + ' updated with live prices', priceOk:true });
+    } else {
+      this.setState({ priceMsg:'All prices are already up to date', priceOk:true });
+    }
+    setTimeout(() => this.setState({ priceMsg:'' }), 4000);
   }
 
   enrichImages(){
@@ -1842,7 +1882,8 @@ class Component extends DCLogic {
       viewTabs:['sheet','gallery'].map(v => ({ key:v, label: v==='sheet'?'Sheet':'Gallery',
         bg: S.view===v?ACC:'#18181B', fg: S.view===v?'#fff':'#71717A', onClick:()=>this.setView(v) })),
       isSheet:S.view==='sheet', isGallery:S.view==='gallery',
-      isEmpty: cards.length===0, hasCards: cards.length>0, cards, focusNew:()=>this.focusNew(),
+      isEmpty: cards.length===0, hasCards: cards.length>0, cards, focusNew:()=>this.focusNew(), refreshPrices:()=>this.refreshPrices(),
+      priceMsg:S.priceMsg, priceMsgColor:S.priceOk?GAIN:LOSS, priceMsgBg:S.priceOk?GAINBG:LOSSBG,
       carouselRef:this.carouselRef, onCarouselScroll:()=>this.onCarouselScroll(),
       newNameRef:this.newNameRef, nr, nrDot:nrMeta.dot, commitNew:()=>this.commitNewRow(),
       sheetScrollRef:this.sheetScrollRef,
