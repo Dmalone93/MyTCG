@@ -1082,10 +1082,15 @@ class Component extends DCLogic {
     if (!v || !v.videoWidth || !this.state.watchActive) return;
     const gen = this._watchGen;
     const vw = v.videoWidth, vh = v.videoHeight;
+    // crop to center 65% — skip sidebars, chat, nav bars
+    const cropX = Math.round(vw * 0.175);
+    const cropY = Math.round(vh * 0.1);
+    const cropW = Math.round(vw * 0.65);
+    const cropH = Math.round(vh * 0.8);
     const canvas = document.createElement('canvas');
-    canvas.width = Math.min(1280, vw);
-    canvas.height = Math.round(canvas.width * vh / vw);
-    canvas.getContext('2d').drawImage(v, 0, 0, vw, vh, 0, 0, canvas.width, canvas.height);
+    canvas.width = Math.min(1024, cropW);
+    canvas.height = Math.round(canvas.width * cropH / cropW);
+    canvas.getContext('2d').drawImage(v, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
     const b64 = this.canvasToBase64(canvas, 0.8);
     // use all signals: text, image matching, everything
     this.callVisionAPI(b64, [
