@@ -207,25 +207,29 @@ export function CollectionShell({
 
   return (
     <div>
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {collections.map((col, i) => (
-          <CollectionTab
-            key={col.id}
-            collection={col}
-            isActive={col.id === activeId}
-            onClick={() => setActiveId(col.id)}
-            onRename={(name) => handleRenameCollection(col.id, name)}
-            onDelete={() => handleDeleteCollection(col.id)}
-            draggable
-            onDragStart={() => handleDragStart(i)}
-            onDragEnter={() => handleDragEnter(i)}
-            onDragEnd={handleDragEnd}
-            onDragOver={(e) => e.preventDefault()}
-          />
-        ))}
+      <div className="flex items-center gap-2 mb-4">
+        {/* Collection selector */}
+        {collections.length > 1 ? (
+          <select
+            value={activeId ?? ""}
+            onChange={(e) => setActiveId(e.target.value)}
+            className="bg-transparent border-none outline-none text-lg font-bold text-text cursor-pointer appearance-none pr-6 truncate max-w-[70%]"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23A1A1AA' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right center" }}
+          >
+            {collections.map((col) => (
+              <option key={col.id} value={col.id}>{col.name}</option>
+            ))}
+          </select>
+        ) : active ? (
+          <h2 className="text-lg font-bold text-text truncate">{active.name}</h2>
+        ) : null}
+
+        <div className="flex-1" />
+
+        {/* Add collection */}
         <button
           onClick={handleCreateCollection}
-          className="flex items-center justify-center w-9 h-9 rounded-lg border border-[rgba(255,255,255,0.06)] bg-bg-surface text-text-muted hover:bg-[#27272A] hover:text-text transition-colors text-lg flex-none"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors text-lg flex-none"
           title="New collection"
         >
           +
