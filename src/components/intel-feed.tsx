@@ -9,10 +9,10 @@ type IntelItem = {
   summary: string | null;
   source: string | null;
   published: string | null;
-  urgent: boolean;
-  jp_only: boolean;
-  card_names: string[];
-  fetched_at: string;
+  urgent: boolean | null;
+  jpOnly: boolean | null;
+  cardNames: string[] | null;
+  fetchedAt: Date | null;
   mentionsUserCard: boolean;
 };
 
@@ -109,12 +109,12 @@ function IntelCard({ item }: { item: IntelItem }) {
                 {CATEGORY_LABELS[item.category] ?? item.category}
               </span>
             )}
-            {item.urgent && (
+            {item.urgent === true && (
               <span className="text-[10px] font-mono tracking-[.08em] uppercase text-red-400 bg-red-400/10 px-2 py-0.5 rounded font-semibold">
                 Urgent
               </span>
             )}
-            {item.jp_only && (
+            {item.jpOnly === true && (
               <span className="text-[10px] font-mono tracking-[.08em] uppercase text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded">
                 JP only
               </span>
@@ -139,9 +139,9 @@ function IntelCard({ item }: { item: IntelItem }) {
           )}
 
           {/* Card names */}
-          {item.card_names && item.card_names.length > 0 && (
+          {item.cardNames && item.cardNames.length > 0 && (
             <div className="flex gap-1.5 mt-2 flex-wrap">
-              {item.card_names.map((name, i) => (
+              {item.cardNames.map((name, i) => (
                 <span
                   key={i}
                   className="text-[11px] font-mono text-text-muted bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded"

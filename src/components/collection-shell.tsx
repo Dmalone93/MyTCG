@@ -1,42 +1,53 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CollectionTab } from "./collection-tab";
 import { CardGrid } from "./card-grid";
 import { MetricStrip } from "./metric-strip";
+import {
+  createCollection as createCollectionAction,
+  renameCollection as renameCollectionAction,
+  deleteCollection as deleteCollectionAction,
+  reorderCollections,
+  getCards,
+  getPrices,
+  addCard as addCardAction,
+  updateCard as updateCardAction,
+  deleteCard as deleteCardAction,
+  moveCard as moveCardAction,
+} from "@/app/actions/collections";
 
 export type Collection = {
   id: string;
-  user_id: string;
+  userId: string;
   name: string;
-  sort_order: number;
-  created_at: string;
+  sortOrder: number | null;
+  createdAt: Date | null;
 };
 
 export type CollectionCard = {
   id: string;
-  collection_id: string;
-  user_id: string;
-  card_code: string;
-  card_name: string;
-  quantity: number;
+  collectionId: string;
+  userId: string;
+  cardCode: string;
+  cardName: string;
+  quantity: number | null;
   condition: string | null;
-  is_graded: boolean;
+  isGraded: boolean | null;
   grade: string | null;
-  graded_company: string | null;
-  acquired_price: number | null;
+  gradedCompany: string | null;
+  acquiredPrice: string | null;
   notes: string | null;
-  image_url: string | null;
-  created_at: string;
+  imageUrl: string | null;
+  createdAt: Date | null;
 };
 
 export type CardPrice = {
-  card_code: string;
-  raw_market: number | null;
-  graded_prices: Record<string, number> | null;
-  currency: string;
-  fetched_at: string;
+  cardCode: string;
+  rawMarket: string | null;
+  gradedPrices: unknown;
+  currency: string | null;
+  fetchedAt: Date | null;
 };
 
 export function CollectionShell({
@@ -47,7 +58,6 @@ export function CollectionShell({
   intelCardNames?: string[];
 }) {
   const intelSet = new Set(intelCardNames);
-  const supabase = createClient();
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [activeId, setActiveId] = useState<string | null>(
     initialCollections[0]?.id ?? null
@@ -58,86 +68,52 @@ export function CollectionShell({
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
 
-  // Fetch cards when active collection changes
-  const fetchCards = useCallback(
-    async (collectionId: string) => {
-      setLoadingCards(true);
-      const { data } = await supabase
-        .from("collection_cards")
-        .select("*")
-        .eq("collection_id", collectionId)
-        .order("created_at", { ascending: true });
-      setCards(data ?? []);
-      setLoadingCards(false);
+  const fetchCards = useCallback(async (collectionId: string) => {
+    setLoadingCards(true);
+    const data = await getCards(collectionId);
+    setCards(data);
+    setLoadingCards(false);
 
-      // Fetch prices for these cards
-      if (data && data.length > 0) {
-        const codes = [...new Set(data.map((c) => c.card_code))];
-        const { data: priceData } = await supabase
-          .from("card_prices")
-          .select("*")
-          .in("card_code", codes);
-        if (priceData) {
-          const map: Record<string, CardPrice> = {};
-          priceData.forEach((p) => (map[p.card_code] = p));
-          setPrices(map);
-        }
-      } else {
-        setPrices({});
-      }
-    },
-    [supabase]
-  );
+    if (data.length > 0) {
+      const codes = [...new Set(data.map((c) => c.cardCode))];
+      const priceData = await getPrices(codes);
+      const map: Record<string, CardPrice> = {};
+      priceData.forEach((p) => (map[p.cardCode] = p));
+      setPrices(map);
+    } else {
+      setPrices({});
+    }
+  }, []);
 
   useEffect(() => {
     if (activeId) fetchCards(activeId);
   }, [activeId, fetchCards]);
 
-  // Create a new collection
-  async function createCollection() {
+  async function handleCreateCollection() {
     const name = `Collection ${collections.length + 1}`;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("collections")
-      .insert({
-        user_id: user.id,
-        name,
-        sort_order: collections.length,
-      })
-      .select()
-      .single();
-
-    if (data && !error) {
-      setCollections((prev) => [...prev, data]);
-      setActiveId(data.id);
-    }
+    const row = await createCollectionAction(name, collections.length);
+    setCollections((prev) => [...prev, row]);
+    setActiveId(row.id);
   }
 
-  // Rename a collection
-  async function renameCollection(id: string, newName: string) {
+  async function handleRenameCollection(id: string, newName: string) {
     const trimmed = newName.trim();
     if (!trimmed) return;
-    await supabase.from("collections").update({ name: trimmed }).eq("id", id);
+    await renameCollectionAction(id, trimmed);
     setCollections((prev) =>
       prev.map((c) => (c.id === id ? { ...c, name: trimmed } : c))
     );
   }
 
-  // Delete a collection
-  async function deleteCollection(id: string) {
-    await supabase.from("collections").delete().eq("id", id);
+  async function handleDeleteCollection(id: string) {
+    await deleteCollectionAction(id);
     setCollections((prev) => {
       const next = prev.filter((c) => c.id !== id);
-      if (activeId === id) {
-        setActiveId(next[0]?.id ?? null);
-      }
+      if (activeId === id) setActiveId(next[0]?.id ?? null);
       return next;
     });
   }
 
-  // Reorder via drag
   function handleDragStart(index: number) {
     dragItem.current = index;
   }
@@ -156,74 +132,54 @@ export function CollectionShell({
     const [moved] = reordered.splice(from, 1);
     reordered.splice(to, 0, moved);
 
-    // Update sort_order
-    const updated = reordered.map((c, i) => ({ ...c, sort_order: i }));
+    const updated = reordered.map((c, i) => ({ ...c, sortOrder: i }));
     setCollections(updated);
-
-    // Persist
-    for (const c of updated) {
-      await supabase
-        .from("collections")
-        .update({ sort_order: c.sort_order })
-        .eq("id", c.id);
-    }
+    await reorderCollections(updated.map((c) => ({ id: c.id, sortOrder: c.sortOrder! })));
 
     dragItem.current = null;
     dragOver.current = null;
   }
 
-  // Add a card to the active collection
-  async function addCard(card: Omit<CollectionCard, "id" | "user_id" | "collection_id" | "created_at">) {
+  async function handleAddCard(card: {
+    cardCode: string;
+    cardName: string;
+    quantity: number;
+    condition: string | null;
+    isGraded: boolean;
+    grade: string | null;
+    gradedCompany: string | null;
+    acquiredPrice: string | null;
+    notes: string | null;
+    imageUrl: string | null;
+  }) {
     if (!activeId) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("collection_cards")
-      .insert({
-        ...card,
-        collection_id: activeId,
-        user_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (data && !error) {
-      setCards((prev) => [...prev, data]);
-    }
+    const row = await addCardAction({ ...card, collectionId: activeId });
+    setCards((prev) => [...prev, row]);
   }
 
-  // Update a card
-  async function updateCard(cardId: string, updates: Partial<CollectionCard>) {
-    const { data, error } = await supabase
-      .from("collection_cards")
-      .update(updates)
-      .eq("id", cardId)
-      .select()
-      .single();
-
-    if (data && !error) {
-      setCards((prev) => prev.map((c) => (c.id === cardId ? data : c)));
-    }
+  async function handleUpdateCard(id: string, updates: Partial<CollectionCard>) {
+    const row = await updateCardAction(id, {
+      quantity: updates.quantity ?? undefined,
+      condition: updates.condition,
+      isGraded: updates.isGraded ?? undefined,
+      grade: updates.grade,
+      gradedCompany: updates.gradedCompany,
+      acquiredPrice: updates.acquiredPrice,
+      notes: updates.notes,
+    });
+    if (row) setCards((prev) => prev.map((c) => (c.id === id ? row : c)));
   }
 
-  // Delete a card
-  async function deleteCard(cardId: string) {
-    await supabase.from("collection_cards").delete().eq("id", cardId);
+  async function handleDeleteCard(cardId: string) {
+    await deleteCardAction(cardId);
     setCards((prev) => prev.filter((c) => c.id !== cardId));
   }
 
-  // Move a card to another collection
-  async function moveCard(cardId: string, targetCollectionId: string) {
-    await supabase
-      .from("collection_cards")
-      .update({ collection_id: targetCollectionId })
-      .eq("id", cardId);
-    // Remove from current view (optimistic)
+  async function handleMoveCard(cardId: string, targetCollectionId: string) {
+    await moveCardAction(cardId, targetCollectionId);
     setCards((prev) => prev.filter((c) => c.id !== cardId));
   }
 
-  // Refresh prices via the server route, then re-fetch from cache
   async function refreshPrices() {
     try {
       await fetch("/api/refresh-prices", {
@@ -233,9 +189,8 @@ export function CollectionShell({
         },
       });
     } catch {
-      // Manual trigger may fail if CRON_SECRET isn't exposed — that's OK for dev
+      // OK
     }
-    // Re-fetch cached prices regardless
     if (activeId) await fetchCards(activeId);
   }
 
@@ -243,7 +198,6 @@ export function CollectionShell({
 
   return (
     <div>
-      {/* Tab bar */}
       <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
         {collections.map((col, i) => (
           <CollectionTab
@@ -251,8 +205,8 @@ export function CollectionShell({
             collection={col}
             isActive={col.id === activeId}
             onClick={() => setActiveId(col.id)}
-            onRename={(name) => renameCollection(col.id, name)}
-            onDelete={() => deleteCollection(col.id)}
+            onRename={(name) => handleRenameCollection(col.id, name)}
+            onDelete={() => handleDeleteCollection(col.id)}
             draggable
             onDragStart={() => handleDragStart(i)}
             onDragEnter={() => handleDragEnter(i)}
@@ -261,7 +215,7 @@ export function CollectionShell({
           />
         ))}
         <button
-          onClick={createCollection}
+          onClick={handleCreateCollection}
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-[rgba(255,255,255,0.06)] bg-bg-surface text-text-muted hover:bg-[#27272A] hover:text-text transition-colors text-lg flex-none"
           title="New collection"
         >
@@ -269,7 +223,6 @@ export function CollectionShell({
         </button>
       </div>
 
-      {/* Content */}
       {active ? (
         <>
           <MetricStrip cards={cards} prices={prices} />
@@ -280,20 +233,18 @@ export function CollectionShell({
             collections={collections}
             activeCollectionId={activeId!}
             intelCardNames={intelSet}
-            onAddCard={addCard}
-            onUpdateCard={updateCard}
-            onDeleteCard={deleteCard}
-            onMoveCard={moveCard}
+            onAddCard={handleAddCard}
+            onUpdateCard={handleUpdateCard}
+            onDeleteCard={handleDeleteCard}
+            onMoveCard={handleMoveCard}
             onRefreshPrices={refreshPrices}
           />
         </>
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-text-muted text-sm mb-4">
-            No collections yet
-          </p>
+          <p className="text-text-muted text-sm mb-4">No collections yet</p>
           <button
-            onClick={createCollection}
+            onClick={handleCreateCollection}
             className="inline-flex items-center gap-2 bg-accent text-white font-semibold text-sm py-2.5 px-5 rounded-lg hover:bg-accent-hover transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
           >
             <span className="text-base">+</span> Create your first collection

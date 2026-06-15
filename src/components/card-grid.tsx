@@ -15,12 +15,18 @@ function fmt(n: number): string {
   }).format(n);
 }
 
+function num(v: string | number | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return isNaN(n) ? 0 : n;
+}
+
 function isInTheNews(card: CollectionCard, intelNames: Set<string>): boolean {
   return (
-    intelNames.has(card.card_code.toUpperCase()) ||
-    intelNames.has(card.card_code.toLowerCase()) ||
-    intelNames.has(card.card_name.toUpperCase()) ||
-    intelNames.has(card.card_name.toLowerCase())
+    intelNames.has(card.cardCode.toUpperCase()) ||
+    intelNames.has(card.cardCode.toLowerCase()) ||
+    intelNames.has(card.cardName.toUpperCase()) ||
+    intelNames.has(card.cardName.toLowerCase())
   );
 }
 
@@ -43,7 +49,18 @@ export function CardGrid({
   collections: Collection[];
   activeCollectionId: string;
   intelCardNames?: Set<string>;
-  onAddCard: (card: Omit<CollectionCard, "id" | "user_id" | "collection_id" | "created_at">) => Promise<void>;
+  onAddCard: (card: {
+    cardCode: string;
+    cardName: string;
+    quantity: number;
+    condition: string | null;
+    isGraded: boolean;
+    grade: string | null;
+    gradedCompany: string | null;
+    acquiredPrice: string | null;
+    notes: string | null;
+    imageUrl: string | null;
+  }) => Promise<void>;
   onUpdateCard: (id: string, updates: Partial<CollectionCard>) => Promise<void>;
   onDeleteCard: (id: string) => Promise<void>;
   onMoveCard: (id: string, targetCollectionId: string) => Promise<void>;
@@ -178,7 +195,7 @@ export function CardGrid({
                 <CardTableRow
                   key={card.id}
                   card={card}
-                  price={prices[card.card_code] ?? null}
+                  price={prices[card.cardCode] ?? null}
                   inNews={intelCardNames ? isInTheNews(card, intelCardNames) : false}
                   onClick={() => setSelectedCard(card)}
                   onContextMenu={(x, y) => openContextMenu(card, x, y)}
@@ -196,7 +213,7 @@ export function CardGrid({
             <CardGridTile
               key={card.id}
               card={card}
-              price={prices[card.card_code] ?? null}
+              price={prices[card.cardCode] ?? null}
               inNews={intelCardNames ? isInTheNews(card, intelCardNames) : false}
               onClick={() => setSelectedCard(card)}
               onContextMenu={(x, y) => openContextMenu(card, x, y)}
@@ -209,7 +226,7 @@ export function CardGrid({
       {selectedCard && (
         <CardDetailModal
           card={selectedCard}
-          price={prices[selectedCard.card_code] ?? null}
+          price={prices[selectedCard.cardCode] ?? null}
           onClose={() => setSelectedCard(null)}
           onUpdate={async (id, updates) => {
             await onUpdateCard(id, updates);
@@ -237,7 +254,7 @@ export function CardGrid({
             setContextMenu(null);
           }}
           onDelete={async () => {
-            if (confirm(`Delete "${contextMenu.card.card_name}"?`)) {
+            if (confirm(`Delete "${contextMenu.card.cardName}"?`)) {
               await onDeleteCard(contextMenu.card.id);
             }
             setContextMenu(null);
@@ -267,9 +284,9 @@ function CardTableRow({
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
 
-  const market = price?.raw_market ?? null;
+  const market = num(price?.rawMarket);
   const grade = card.grade ?? "PSA 10";
-  const graded = price?.graded_prices?.[grade] ?? null;
+  const gp = (price?.gradedPrices as Record<string, number> | null)?.[grade] ?? 0;
 
   return (
     <tr
@@ -282,11 +299,11 @@ function CardTableRow({
       onPointerLeave={longPress.onPointerLeave}
     >
       <td className="py-2.5 px-3 font-mono text-text-muted">
-        {card.card_code}
+        {card.cardCode}
       </td>
       <td className="py-2.5 px-3 font-medium text-text">
         <span className="flex items-center gap-1.5">
-          {card.card_name}
+          {card.cardName}
           {inNews && (
             <span className="text-[9px] font-mono tracking-[.08em] uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded flex-none">
               news
@@ -294,18 +311,18 @@ function CardTableRow({
           )}
         </span>
       </td>
-      <td className="py-2.5 px-3 text-right font-mono">{card.quantity}</td>
+      <td className="py-2.5 px-3 text-right font-mono">{card.quantity ?? 1}</td>
       <td className="py-2.5 px-3 text-text-muted">
         {card.condition ?? "—"}
       </td>
       <td className="py-2.5 px-3 text-right font-mono">
-        {card.acquired_price != null ? fmt(card.acquired_price) : "—"}
+        {card.acquiredPrice != null ? fmt(num(card.acquiredPrice)) : "—"}
       </td>
       <td className="py-2.5 px-3 text-right font-mono">
-        {market != null ? fmt(market) : "—"}
+        {market > 0 ? fmt(market) : "—"}
       </td>
       <td className="py-2.5 px-3 text-right font-mono text-[#4ADE80]">
-        {graded != null ? fmt(graded) : "—"}
+        {gp > 0 ? fmt(gp) : "—"}
       </td>
     </tr>
   );
@@ -329,9 +346,9 @@ function CardGridTile({
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
 
-  const market = price?.raw_market ?? null;
+  const market = num(price?.rawMarket);
   const grade = card.grade ?? "PSA 10";
-  const graded = price?.graded_prices?.[grade] ?? null;
+  const gp = (price?.gradedPrices as Record<string, number> | null)?.[grade] ?? 0;
 
   return (
     <div
@@ -343,18 +360,18 @@ function CardGridTile({
       onPointerMove={longPress.onPointerMove}
       onPointerLeave={longPress.onPointerLeave}
     >
-      {card.image_url && (
+      {card.imageUrl && (
         <img
-          src={card.image_url}
-          alt={card.card_name}
+          src={card.imageUrl}
+          alt={card.cardName}
           className="w-full rounded-lg mb-3 aspect-[2.5/3.5] object-cover"
         />
       )}
       <div className="font-mono text-xs text-text-dim mb-1">
-        {card.card_code}
+        {card.cardCode}
       </div>
       <div className="font-medium text-sm text-text mb-2 truncate">
-        {card.card_name}
+        {card.cardName}
       </div>
       {inNews && (
         <div className="mb-2">
@@ -365,10 +382,10 @@ function CardGridTile({
       )}
       <div className="flex justify-between text-xs">
         <span className="text-text-muted">
-          {market != null ? fmt(market) : "—"}
+          {market > 0 ? fmt(market) : "—"}
         </span>
-        {graded != null && (
-          <span className="text-[#4ADE80] font-mono">{fmt(graded)}</span>
+        {gp > 0 && (
+          <span className="text-[#4ADE80] font-mono">{fmt(gp)}</span>
         )}
       </div>
     </div>

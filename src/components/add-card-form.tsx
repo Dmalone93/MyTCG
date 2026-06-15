@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { CollectionCard } from "./collection-shell";
 
-type NewCard = Omit<CollectionCard, "id" | "user_id" | "collection_id" | "created_at">;
+type NewCard = {
+  cardCode: string;
+  cardName: string;
+  quantity: number;
+  condition: string | null;
+  isGraded: boolean;
+  grade: string | null;
+  gradedCompany: string | null;
+  acquiredPrice: string | null;
+  notes: string | null;
+  imageUrl: string | null;
+};
 
 export function AddCardForm({
   onSubmit,
@@ -24,16 +34,16 @@ export function AddCardForm({
     if (!cardCode.trim() || !cardName.trim()) return;
     setLoading(true);
     await onSubmit({
-      card_code: cardCode.trim().toUpperCase(),
-      card_name: cardName.trim(),
+      cardCode: cardCode.trim().toUpperCase(),
+      cardName: cardName.trim(),
       quantity,
       condition,
-      is_graded: false,
+      isGraded: false,
       grade: null,
-      graded_company: null,
-      acquired_price: acquiredPrice ? parseFloat(acquiredPrice) : null,
+      gradedCompany: null,
+      acquiredPrice: acquiredPrice || null,
       notes: null,
-      image_url: null,
+      imageUrl: null,
     });
     setLoading(false);
   }

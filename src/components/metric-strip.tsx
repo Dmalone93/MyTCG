@@ -10,6 +10,12 @@ function fmt(n: number, currency = "EUR"): string {
   }).format(n);
 }
 
+function num(v: string | number | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return isNaN(n) ? 0 : n;
+}
+
 export function MetricStrip({
   cards,
   prices,
@@ -17,20 +23,20 @@ export function MetricStrip({
   cards: CollectionCard[];
   prices: Record<string, CardPrice>;
 }) {
-  const totalQty = cards.reduce((s, c) => s + c.quantity, 0);
+  const totalQty = cards.reduce((s, c) => s + (c.quantity ?? 1), 0);
   const totalSpent = cards.reduce(
-    (s, c) => s + (c.acquired_price ?? 0) * c.quantity,
+    (s, c) => s + num(c.acquiredPrice) * (c.quantity ?? 1),
     0
   );
   const totalRaw = cards.reduce((s, c) => {
-    const p = prices[c.card_code];
-    return s + (p?.raw_market ?? 0) * c.quantity;
+    const p = prices[c.cardCode];
+    return s + num(p?.rawMarket) * (c.quantity ?? 1);
   }, 0);
   const totalGraded = cards.reduce((s, c) => {
-    const p = prices[c.card_code];
+    const p = prices[c.cardCode];
     const grade = c.grade ?? "PSA 10";
-    const gp = p?.graded_prices?.[grade] ?? 0;
-    return s + gp * c.quantity;
+    const gp = (p?.gradedPrices as Record<string, number> | null)?.[grade] ?? 0;
+    return s + gp * (c.quantity ?? 1);
   }, 0);
 
   const pl = totalRaw - totalSpent;

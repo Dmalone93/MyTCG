@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@/components/logout-button";
+import { UserButton } from "@clerk/nextjs";
 import { NavLinks } from "@/components/nav-links";
 
 export const dynamic = "force-dynamic";
@@ -10,20 +10,8 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", user.id)
-    .single();
+  const user = await currentUser();
+  if (!user) redirect("/login");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -34,11 +22,11 @@ export default async function AppLayout({
           </h1>
           <NavLinks />
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-3 items-center">
           <span className="text-sm text-text-muted">
-            {profile?.display_name ?? user.email}
+            {user.firstName ?? user.emailAddresses[0]?.emailAddress}
           </span>
-          <LogoutButton />
+          <UserButton />
         </div>
       </header>
 

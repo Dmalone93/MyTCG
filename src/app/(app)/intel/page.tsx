@@ -1,41 +1,33 @@
-import { createClient } from "@/lib/supabase/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { intelItems, collectionCards } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { IntelFeed } from "@/components/intel-feed";
 
-export const revalidate = 300; // 5 minutes stale-while-revalidate
+export const revalidate = 300;
 
 export default async function IntelPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await currentUser();
   if (!user) redirect("/login");
 
-  // Fetch intel items (newest first)
-  const { data: items } = await supabase
-    .from("intel_items")
-    .select("*")
-    .order("fetched_at", { ascending: false })
+  const items = await db
+    .select()
+    .from(intelItems)
+    .orderBy(desc(intelItems.fetchedAt))
     .limit(100);
 
-  // Fetch user's card codes for cross-linking
-  const { data: userCards } = await supabase
-    .from("collection_cards")
-    .select("card_code, card_name")
-    .eq("user_id", user.id);
+  const userCards = await db
+    .select({ cardCode: collectionCards.cardCode, cardName: collectionCards.cardName })
+    .from(collectionCards)
+    .where(eq(collectionCards.userId, user.id));
 
-  const userCardCodes = new Set(
-    (userCards ?? []).map((c) => c.card_code.toUpperCase())
-  );
-  const userCardNames = new Set(
-    (userCards ?? []).map((c) => c.card_name.toLowerCase())
-  );
+  const userCardCodes = new Set(userCards.map((c) => c.cardCode.toUpperCase()));
+  const userCardNames = new Set(userCards.map((c) => c.cardName.toLowerCase()));
 
-  // Mark which intel items mention user's cards
-  const enrichedItems = (items ?? []).map((item) => {
-    const mentionsUserCard = (item.card_names ?? []).some(
-      (name: string) =>
+  const enrichedItems = items.map((item) => {
+    const mentionsUserCard = (item.cardNames ?? []).some(
+      (name) =>
         userCardCodes.has(name.toUpperCase()) ||
         userCardNames.has(name.toLowerCase())
     );

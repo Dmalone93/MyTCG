@@ -1,37 +1,28 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { db } from "@/lib/db";
+import { intelItems } from "@/lib/db/schema";
 
 const CATEGORIES = [
   {
     key: "tcg_japan",
-    label: "TCG Japan releases",
-    query:
-      "One Piece TCG Japan new card set release 2026 site:reddit.com OR site:twitter.com OR site:onepiece-cardgame.com",
+    query: "One Piece TCG Japan new card set release 2026 site:reddit.com OR site:twitter.com OR site:onepiece-cardgame.com",
   },
   {
     key: "tcg_english",
-    label: "TCG English releases",
-    query:
-      "One Piece TCG English booster pack release date 2026 new set announcement",
+    query: "One Piece TCG English booster pack release date 2026 new set announcement",
   },
   {
     key: "sec_alt_arts",
-    label: "Secret & alt art reveals",
-    query:
-      "One Piece TCG secret rare alt art reveal new card 2026 SEC manga art",
+    query: "One Piece TCG secret rare alt art reveal new card 2026 SEC manga art",
   },
   {
     key: "anime_manga",
-    label: "Anime & manga news",
-    query:
-      "One Piece anime manga chapter episode 2026 new arc announcement",
+    query: "One Piece anime manga chapter episode 2026 new arc announcement",
   },
   {
     key: "prices",
-    label: "Price movements",
-    query:
-      "One Piece TCG card price spike market value increase 2026 most expensive",
+    query: "One Piece TCG card price spike market value increase 2026 most expensive",
   },
 ];
 
@@ -47,7 +38,6 @@ type IntelResult = {
 };
 
 export async function POST(request: Request) {
-  // Verify cron secret
   const auth = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
 
@@ -57,15 +47,10 @@ export async function POST(request: Request) {
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY not set" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY not set" }, { status: 500 });
   }
 
   const client = new Anthropic({ apiKey: anthropicKey });
-  const supabase = createAdminClient();
-
   const allResults: IntelResult[] = [];
   const errors: string[] = [];
 
@@ -74,41 +59,18 @@ export async function POST(request: Request) {
       const response = await client.messages.create({
         model: "claude-sonnet-4-6-20250514",
         max_tokens: 1500,
-        tools: [
-          {
-            type: "web_search_20250305",
-            name: "web_search",
-            max_uses: 3,
-          },
-        ],
-        messages: [
-          {
-            role: "user",
-            content: `Search the web for the latest news about: ${cat.query}
-
-Return ONLY a JSON array of news items (max 5). Each item must have these fields:
-- "title": string (unique, descriptive headline)
-- "summary": string (2-3 sentences)
-- "source": string (source URL or domain)
-- "published": string (date or "recent" if unknown)
-- "urgent": boolean (true only if it's breaking news or affects card values immediately)
-- "jp_only": boolean (true if this is Japan-only content not yet available in English markets)
-- "card_names": string[] (any specific card codes like "OP13-001" or card names like "Monkey D. Luffy" mentioned)
-
-Return ONLY the JSON array, no other text.`,
-          },
-        ],
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+        messages: [{
+          role: "user",
+          content: `Search the web for the latest news about: ${cat.query}\n\nReturn ONLY a JSON array of news items (max 5). Each item must have these fields:\n- "title": string\n- "summary": string (2-3 sentences)\n- "source": string (URL or domain)\n- "published": string (date or "recent")\n- "urgent": boolean\n- "jp_only": boolean\n- "card_names": string[]\n\nReturn ONLY the JSON array, no other text.`,
+        }],
       });
 
-      // Extract text from response
       let text = "";
       for (const block of response.content) {
-        if (block.type === "text") {
-          text += block.text;
-        }
+        if (block.type === "text") text += block.text;
       }
 
-      // Parse JSON from response
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         const items: IntelResult[] = JSON.parse(jsonMatch[0]).map(
@@ -120,21 +82,16 @@ Return ONLY the JSON array, no other text.`,
             published: String(item.published ?? ""),
             urgent: Boolean(item.urgent),
             jp_only: Boolean(item.jp_only),
-            card_names: Array.isArray(item.card_names)
-              ? item.card_names.map(String)
-              : [],
+            card_names: Array.isArray(item.card_names) ? item.card_names.map(String) : [],
           })
         );
         allResults.push(...items);
       }
     } catch (err) {
-      errors.push(
-        `${cat.key}: ${err instanceof Error ? err.message : "unknown error"}`
-      );
+      errors.push(`${cat.key}: ${err instanceof Error ? err.message : "unknown error"}`);
     }
   }
 
-  // Dedupe by title and upsert
   let inserted = 0;
   const seen = new Set<string>();
 
@@ -142,22 +99,36 @@ Return ONLY the JSON array, no other text.`,
     if (!item.title || seen.has(item.title)) continue;
     seen.add(item.title);
 
-    const { error } = await supabase.from("intel_items").upsert(
-      {
-        category: item.category,
-        title: item.title,
-        summary: item.summary,
-        source: item.source,
-        published: item.published,
-        urgent: item.urgent,
-        jp_only: item.jp_only,
-        card_names: item.card_names,
-        fetched_at: new Date().toISOString(),
-      },
-      { onConflict: "title" }
-    );
-
-    if (!error) inserted++;
+    try {
+      await db
+        .insert(intelItems)
+        .values({
+          category: item.category,
+          title: item.title,
+          summary: item.summary,
+          source: item.source,
+          published: item.published,
+          urgent: item.urgent,
+          jpOnly: item.jp_only,
+          cardNames: item.card_names,
+          fetchedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: intelItems.title,
+          set: {
+            summary: item.summary,
+            source: item.source,
+            published: item.published,
+            urgent: item.urgent,
+            jpOnly: item.jp_only,
+            cardNames: item.card_names,
+            fetchedAt: new Date(),
+          },
+        });
+      inserted++;
+    } catch {
+      // duplicate or other error — skip
+    }
   }
 
   return NextResponse.json({

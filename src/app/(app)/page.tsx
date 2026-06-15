@@ -1,32 +1,29 @@
-import { createClient } from "@/lib/supabase/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { collections, intelItems } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { CollectionShell } from "@/components/collection-shell";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await currentUser();
   if (!user) redirect("/login");
 
-  const { data: collections } = await supabase
-    .from("collections")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const userCollections = await db
+    .select()
+    .from(collections)
+    .where(eq(collections.userId, user.id))
+    .orderBy(collections.sortOrder, collections.createdAt);
 
-  // Fetch card names/codes mentioned in recent intel items for cross-linking
-  const { data: intelItems } = await supabase
-    .from("intel_items")
-    .select("card_names")
-    .order("fetched_at", { ascending: false })
+  const recentIntel = await db
+    .select({ cardNames: intelItems.cardNames })
+    .from(intelItems)
+    .orderBy(desc(intelItems.fetchedAt))
     .limit(200);
 
   const intelCardNames = new Set<string>();
-  (intelItems ?? []).forEach((item) => {
-    (item.card_names ?? []).forEach((name: string) => {
+  recentIntel.forEach((item) => {
+    (item.cardNames ?? []).forEach((name) => {
       intelCardNames.add(name.toUpperCase());
       intelCardNames.add(name.toLowerCase());
     });
@@ -34,7 +31,7 @@ export default async function DashboardPage() {
 
   return (
     <CollectionShell
-      initialCollections={collections ?? []}
+      initialCollections={userCollections}
       intelCardNames={[...intelCardNames]}
     />
   );
