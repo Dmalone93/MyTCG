@@ -28,6 +28,8 @@ type FilterKey = "all" | "tcg_japan" | "tcg_english" | "sec_alt_arts" | "anime_m
 
 export function IntelFeed({ items }: { items: IntelItem[] }) {
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState("");
 
   const filtered = items.filter((item) => {
     if (filter === "all") return true;
@@ -37,13 +39,42 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
 
   const myCardCount = items.filter((i) => i.mentionsUserCard).length;
 
+  async function handleRefresh() {
+    setRefreshing(true);
+    setRefreshMsg("");
+    try {
+      const res = await fetch("/api/scan-intel", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setRefreshMsg(`Fetched ${data.inserted ?? 0} items — reload to see them`);
+      } else {
+        setRefreshMsg(data.error ?? "Failed");
+      }
+    } catch {
+      setRefreshMsg("Network error");
+    }
+    setRefreshing(false);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5">
         <h2 className="font-bold text-lg text-text">Intel Feed</h2>
-        <span className="text-xs text-text-dim font-mono">
-          {items.length} items · refreshes every 6h
-        </span>
+        <div className="flex items-center gap-3">
+          {refreshMsg && (
+            <span className="text-xs text-text-muted">{refreshMsg}</span>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-1.5 disabled:opacity-50 transition-colors"
+          >
+            {refreshing ? "Scanning..." : "Refresh Intel"}
+          </button>
+          <span className="text-xs text-text-dim font-mono">
+            {items.length} items
+          </span>
+        </div>
       </div>
 
       {/* Filters */}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { intelItems } from "@/lib/db/schema";
@@ -38,11 +39,15 @@ type IntelResult = {
 };
 
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
+  const authHeader = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
+  const cronAuth = secret && authHeader === `Bearer ${secret}`;
 
-  if (!secret || auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!cronAuth) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;

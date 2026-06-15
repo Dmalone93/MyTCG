@@ -196,12 +196,7 @@ export function CollectionShell({
 
   async function refreshPrices() {
     try {
-      await fetch("/api/refresh-prices", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ""}`,
-        },
-      });
+      await fetch("/api/refresh-prices", { method: "POST" });
     } catch {
       // OK
     }

@@ -1,22 +1,27 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { collectionCards, cardPrices } from "@/lib/db/schema";
 import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
 
 /**
  * POST /api/refresh-prices
- * Refreshes cached prices from optcgapi.com catalog for all cards in collections.
- * Protected by CRON_SECRET.
+ * Refreshes cached prices from optcgapi.com catalog.
+ * Accepts either CRON_SECRET (for Vercel cron) or Clerk auth (for manual trigger).
  */
 export async function POST(request: Request) {
-  const auth = request.headers.get("authorization");
+  // Check cron secret OR Clerk auth
+  const authHeader = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
+  const cronAuth = secret && authHeader === `Bearer ${secret}`;
 
-  if (!secret || auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!cronAuth) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
-  // Get all card codes in collections
   const cards = await db
     .select({ cardCode: collectionCards.cardCode })
     .from(collectionCards);
@@ -26,7 +31,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "No cards to refresh", updated: 0 });
   }
 
-  // Fetch the full catalog and index by card code
   const catalog = await fetchCatalog();
   const catalogMap = new Map(catalog.map((c) => [c.cardSetId, c]));
 
