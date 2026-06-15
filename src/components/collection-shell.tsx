@@ -156,13 +156,18 @@ export function CollectionShell({
     if (!activeId) return;
     const row = await addCardAction({ ...card, collectionId: activeId });
     setCards((prev) => [...prev, row]);
-    // Re-fetch prices to include the newly cached price
-    if (card.marketPrice) {
-      const codes = [...new Set([...cards.map((c) => c.cardCode), card.cardCode])];
-      const priceData = await getPrices(codes);
-      const map: Record<string, CardPrice> = {};
-      priceData.forEach((p) => (map[p.cardCode] = p));
-      setPrices(map);
+    // Update prices state immediately with the catalog price
+    if (card.marketPrice != null) {
+      setPrices((prev) => ({
+        ...prev,
+        [card.cardCode]: {
+          cardCode: card.cardCode,
+          rawMarket: String(card.marketPrice),
+          gradedPrices: null,
+          currency: "EUR",
+          fetchedAt: new Date(),
+        },
+      }));
     }
   }
 
