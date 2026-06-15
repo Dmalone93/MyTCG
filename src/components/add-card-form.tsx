@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CatalogCard } from "@/lib/catalog/types";
 
 type NewCard = {
   cardCode: string;
@@ -16,14 +17,16 @@ type NewCard = {
 };
 
 export function AddCardForm({
+  prefill,
   onSubmit,
   onCancel,
 }: {
+  prefill?: CatalogCard;
   onSubmit: (card: NewCard) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [cardCode, setCardCode] = useState("");
-  const [cardName, setCardName] = useState("");
+  const [cardCode, setCardCode] = useState(prefill?.cardSetId ?? "");
+  const [cardName, setCardName] = useState(prefill?.cardName ?? "");
   const [quantity, setQuantity] = useState(1);
   const [condition, setCondition] = useState("NM");
   const [acquiredPrice, setAcquiredPrice] = useState("");
@@ -43,7 +46,7 @@ export function AddCardForm({
       gradedCompany: null,
       acquiredPrice: acquiredPrice || null,
       notes: null,
-      imageUrl: null,
+      imageUrl: prefill?.imageUrl ?? null,
     });
     setLoading(false);
   }
@@ -56,6 +59,32 @@ export function AddCardForm({
       onSubmit={handleSubmit}
       className="bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3"
     >
+      {/* Card preview from catalog */}
+      {prefill && (
+        <div className="flex items-center gap-3 pb-2 border-b border-[rgba(255,255,255,0.04)]">
+          <div className="relative w-10 h-14 flex-none rounded-lg overflow-hidden bg-[#1C1C1F]">
+            <img
+              src={prefill.imageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-sm text-text truncate">
+              {prefill.cardName}
+            </div>
+            <div className="text-xs text-text-dim">
+              {prefill.cardSetId} · {prefill.setName} · {prefill.rarity}
+            </div>
+            {prefill.marketPrice != null && prefill.marketPrice > 0 && (
+              <div className="font-mono text-xs text-[#4ADE80] mt-0.5">
+                Market: €{prefill.marketPrice.toFixed(2)}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-[1fr_2fr] gap-3">
         <div>
           <label className="block text-[10px] font-mono tracking-[.1em] uppercase text-text-dim mb-1.5">

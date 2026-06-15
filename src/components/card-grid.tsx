@@ -3,9 +3,11 @@
 import { useCallback, useState } from "react";
 import type { Collection, CollectionCard, CardPrice } from "./collection-shell";
 import { AddCardForm } from "./add-card-form";
+import { CardPicker } from "./card-picker";
 import { CardDetailModal } from "./card-detail-modal";
 import { ContextMenu } from "./context-menu";
 import { useLongPress } from "@/hooks/use-long-press";
+import type { CatalogCard } from "@/lib/catalog/types";
 
 function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", {
@@ -66,7 +68,8 @@ export function CardGrid({
   onMoveCard: (id: string, targetCollectionId: string) => Promise<void>;
   onRefreshPrices?: () => Promise<void>;
 }) {
-  const [showAdd, setShowAdd] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickedCard, setPickedCard] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CollectionCard | null>(null);
@@ -93,7 +96,7 @@ export function CardGrid({
       {/* Toolbar */}
       <div className="flex items-center gap-2 mb-3">
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={() => { setShowPicker(true); setPickedCard(null); }}
           className="inline-flex items-center gap-[7px] flex-1 justify-center bg-accent text-white font-semibold text-sm py-[12px] px-[17px] rounded-[10px] hover:bg-accent-hover transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
         >
           <span className="text-base leading-none -mt-px">+</span> Add card
@@ -137,23 +140,34 @@ export function CardGrid({
         </div>
       </div>
 
-      {/* Add card form */}
-      {showAdd && (
+      {/* Card picker → add form flow */}
+      {showPicker && !pickedCard && (
+        <CardPicker
+          onPick={(card) => setPickedCard(card)}
+          onCancel={() => setShowPicker(false)}
+        />
+      )}
+      {showPicker && pickedCard && (
         <AddCardForm
+          prefill={pickedCard}
           onSubmit={async (card) => {
             await onAddCard(card);
-            setShowAdd(false);
+            setPickedCard(null);
+            setShowPicker(false);
           }}
-          onCancel={() => setShowAdd(false)}
+          onCancel={() => {
+            setPickedCard(null);
+            setShowPicker(false);
+          }}
         />
       )}
 
       {/* Empty state */}
-      {cards.length === 0 && !showAdd && (
+      {cards.length === 0 && !showPicker && (
         <div className="py-16 text-center">
           <p className="text-text-dim text-sm mb-4">No cards in this collection</p>
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={() => { setShowPicker(true); setPickedCard(null); }}
             className="text-accent text-sm font-semibold hover:underline"
           >
             + Add your first card
