@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   for (const cat of CATEGORIES) {
     try {
       const response = await client.messages.create({
-        model: "claude-sonnet-4-6-20250514",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 1500,
         tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
         messages: [{
