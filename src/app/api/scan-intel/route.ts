@@ -32,6 +32,9 @@ type IntelResult = {
   title: string;
   summary: string;
   source: string;
+  source_url: string;
+  author: string;
+  image_url: string;
   published: string;
   urgent: boolean;
   jp_only: boolean;
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
         tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
         messages: [{
           role: "user",
-          content: `Search the web for the latest news about: ${cat.query}\n\nReturn ONLY a JSON array of news items (max 5). Each item must have these fields:\n- "title": string\n- "summary": string (2-3 sentences)\n- "source": string (URL or domain)\n- "published": string (date or "recent")\n- "urgent": boolean\n- "jp_only": boolean\n- "card_names": string[]\n\nReturn ONLY the JSON array, no other text.`,
+          content: `Search the web for the latest news about: ${cat.query}\n\nReturn ONLY a JSON array of news items (max 5). Each item must have these fields:\n- "title": string (unique, descriptive headline)\n- "summary": string (2-3 sentences)\n- "source": string (site name e.g. "Reddit", "Twitter", "YouTube")\n- "source_url": string (full URL to the article/post/video)\n- "author": string (username or author name, or "" if unknown)\n- "image_url": string (URL to a relevant image/thumbnail, or "" if none)\n- "published": string (date like "2026-06-14" or "recent")\n- "urgent": boolean (true only for breaking news affecting card values)\n- "jp_only": boolean (true if Japan-only content)\n- "card_names": string[] (specific card codes like "OP13-001" or names mentioned)\n\nReturn ONLY the JSON array, no other text.`,
         }],
       });
 
@@ -84,6 +87,9 @@ export async function POST(request: Request) {
             title: String(item.title ?? "").slice(0, 500),
             summary: String(item.summary ?? "").slice(0, 2000),
             source: String(item.source ?? ""),
+            source_url: String(item.source_url ?? ""),
+            author: String(item.author ?? ""),
+            image_url: String(item.image_url ?? ""),
             published: String(item.published ?? ""),
             urgent: Boolean(item.urgent),
             jp_only: Boolean(item.jp_only),
@@ -112,6 +118,9 @@ export async function POST(request: Request) {
           title: item.title,
           summary: item.summary,
           source: item.source,
+          sourceUrl: item.source_url || null,
+          author: item.author || null,
+          imageUrl: item.image_url || null,
           published: item.published,
           urgent: item.urgent,
           jpOnly: item.jp_only,
@@ -123,6 +132,9 @@ export async function POST(request: Request) {
           set: {
             summary: item.summary,
             source: item.source,
+            sourceUrl: item.source_url || null,
+            author: item.author || null,
+            imageUrl: item.image_url || null,
             published: item.published,
             urgent: item.urgent,
             jpOnly: item.jp_only,

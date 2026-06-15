@@ -8,6 +8,9 @@ type IntelItem = {
   title: string | null;
   summary: string | null;
   source: string | null;
+  sourceUrl: string | null;
+  author: string | null;
+  imageUrl: string | null;
   published: string | null;
   urgent: boolean | null;
   jpOnly: boolean | null;
@@ -123,16 +126,38 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
 }
 
 function IntelCard({ item }: { item: IntelItem }) {
+  const Wrapper = item.sourceUrl
+    ? ({ children, className }: { children: React.ReactNode; className: string }) => (
+        <a href={item.sourceUrl!} target="_blank" rel="noopener noreferrer" className={className}>
+          {children}
+        </a>
+      )
+    : ({ children, className }: { children: React.ReactNode; className: string }) => (
+        <div className={className}>{children}</div>
+      );
+
   return (
-    <div
-      className={`bg-bg-elevated border rounded-xl p-4 transition-colors ${
+    <Wrapper
+      className={`block bg-bg-elevated border rounded-xl overflow-hidden transition-colors hover:border-[rgba(255,255,255,0.12)] ${
         item.mentionsUserCard
           ? "border-accent/30 bg-accent/[0.03]"
           : "border-[rgba(255,255,255,0.05)]"
       }`}
     >
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
+      <div className="flex">
+        {/* Thumbnail */}
+        {item.imageUrl && (
+          <div className="flex-none w-[120px] min-h-[100px] relative bg-[#1C1C1F] hidden sm:block">
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0 p-4">
           {/* Badges */}
           <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
             {item.category && (
@@ -186,12 +211,18 @@ function IntelCard({ item }: { item: IntelItem }) {
           {/* Footer */}
           <div className="flex items-center gap-3 mt-3 text-xs text-text-dim">
             {item.source && (
-              <span className="truncate max-w-[200px]">{item.source}</span>
+              <span className="font-medium text-text-muted">{item.source}</span>
+            )}
+            {item.author && (
+              <span>by {item.author}</span>
             )}
             {item.published && <span>{item.published}</span>}
+            {item.sourceUrl && (
+              <span className="text-accent ml-auto">Read →</span>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </Wrapper>
   );
 }
