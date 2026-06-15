@@ -24,11 +24,11 @@ function timeAgo(d: string): string {
   if (isNaN(parsed.getTime())) return d;
   const diff = Date.now() - parsed.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
+  if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d`;
+  if (days < 7) return `${days}d ago`;
   return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
@@ -39,14 +39,52 @@ const CAT_LABEL: Record<string, string> = {
   sec_alt_arts: "Alt Art", prices: "Price", anime_manga: "Anime",
 };
 
+/** Extract key facts from items — dates, prices, locations */
+function extractHighlights(items: IntelItem[]): string[] {
+  const highlights: string[] = [];
+  const seen = new Set<string>();
+
+  for (const item of items) {
+    if (!item.summary) continue;
+    const text = item.summary;
+
+    // Extract dates like "June 2026", "July 25, 2026", "Q3 2026"
+    const dateMatches = text.match(
+      /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,?\s+\d{4})?|\b(?:Q[1-4]\s+\d{4})\b|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}/gi
+    );
+
+    // Extract prices like "€89.99", "£45", "$120"
+    const priceMatches = text.match(/[€£$]\d+(?:\.\d{2})?/g);
+
+    // Extract card codes
+    const codeMatches = text.match(/(?:OP|ST|EB|PRB)-?\d{1,2}-?\d{2,3}/gi);
+
+    // Build highlight from title + key facts
+    const facts: string[] = [];
+    if (dateMatches) facts.push(...dateMatches.slice(0, 1));
+    if (priceMatches) facts.push(...priceMatches.slice(0, 1));
+    if (codeMatches) facts.push(...codeMatches.slice(0, 1));
+
+    if (facts.length > 0 && item.title) {
+      const h = `${item.title} — ${facts.join(" · ")}`;
+      if (!seen.has(item.title)) {
+        highlights.push(h);
+        seen.add(item.title);
+      }
+    }
+  }
+
+  return highlights.slice(0, 5);
+}
+
 export function IntelFeed({ items }: { items: IntelItem[] }) {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  // Split into action items and regular feed
   const actionItems = items.filter((i) => i.urgent || i.mentionsUserCard);
   const feedItems = items.filter((i) => !i.urgent && !i.mentionsUserCard);
+  const highlights = extractHighlights(items);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -63,27 +101,46 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <h2 className="font-bold text-base sm:text-lg text-text">Intel</h2>
-        <span className="text-[10px] font-mono text-text-dim">{items.length} items</span>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="font-bold text-lg text-text">Intel</h2>
         <div className="flex-1" />
-        {refreshMsg && <span className="text-[10px] text-text-dim">{refreshMsg}</span>}
+        {refreshMsg && <span className="text-sm text-text-dim">{refreshMsg}</span>}
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="text-xs text-text-dim hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
+          className="text-sm text-text-muted hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
         >
-          {refreshing ? "..." : "Refresh"}
+          {refreshing ? "Scanning..." : "Refresh"}
         </button>
       </div>
 
-      {/* Action needed — urgent + your cards */}
+      {/* Highlights banner */}
+      {highlights.length > 0 && (
+        <div className="mb-6 border border-[rgba(255,255,255,0.08)] rounded-xl p-4 bg-[rgba(255,255,255,0.02)]">
+          <div className="text-sm font-semibold text-text mb-3">Key highlights</div>
+          <div className="space-y-2.5">
+            {highlights.map((h, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] mt-2 flex-none" />
+                <span className="text-sm text-text leading-relaxed">{h}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action needed */}
       {actionItems.length > 0 && (
-        <div className="mb-5">
-          <div className="text-[10px] font-mono uppercase text-text-dim tracking-wider mb-2">Action needed</div>
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-text mb-3">Action needed</div>
           <div className="space-y-1">
             {actionItems.map((item) => (
-              <FeedRow key={item.id} item={item} isExpanded={expanded === item.id} onToggle={() => setExpanded(expanded === item.id ? null : item.id)} />
+              <FeedRow
+                key={item.id}
+                item={item}
+                isExpanded={expanded === item.id}
+                onToggle={() => setExpanded(expanded === item.id ? null : item.id)}
+              />
             ))}
           </div>
         </div>
@@ -93,18 +150,23 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
       {feedItems.length > 0 && (
         <div>
           {actionItems.length > 0 && (
-            <div className="text-[10px] font-mono uppercase text-text-dim tracking-wider mb-2">Latest</div>
+            <div className="text-sm font-semibold text-text mb-3">Latest</div>
           )}
           <div className="space-y-1">
             {feedItems.map((item) => (
-              <FeedRow key={item.id} item={item} isExpanded={expanded === item.id} onToggle={() => setExpanded(expanded === item.id ? null : item.id)} />
+              <FeedRow
+                key={item.id}
+                item={item}
+                isExpanded={expanded === item.id}
+                onToggle={() => setExpanded(expanded === item.id ? null : item.id)}
+              />
             ))}
           </div>
         </div>
       )}
 
       {items.length === 0 && (
-        <div className="py-16 text-center text-text-dim text-sm">
+        <div className="py-16 text-center text-text-muted text-sm">
           No intel yet. Hit Refresh to scan.
         </div>
       )}
@@ -112,7 +174,15 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
   );
 }
 
-function FeedRow({ item, isExpanded, onToggle }: { item: IntelItem; isExpanded: boolean; onToggle: () => void }) {
+function FeedRow({
+  item,
+  isExpanded,
+  onToggle,
+}: {
+  item: IntelItem;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
   const isAction = item.urgent || item.mentionsUserCard;
 
   return (
@@ -120,50 +190,57 @@ function FeedRow({ item, isExpanded, onToggle }: { item: IntelItem; isExpanded: 
       {/* Row */}
       <button
         onClick={onToggle}
-        className={`flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-lg transition-colors active:opacity-80 ${
+        className={`flex items-center gap-3 w-full text-left px-3 py-3 rounded-lg transition-colors active:opacity-80 ${
           isExpanded ? "" : "hover:bg-[rgba(255,255,255,0.02)]"
         }`}
       >
         {/* Urgency dot */}
         {isAction && (
-          <span className={`w-1.5 h-1.5 rounded-full flex-none ${
+          <span className={`w-2 h-2 rounded-full flex-none ${
             item.urgent ? "bg-red-400" : "bg-[#34D399]"
           }`} />
         )}
 
-        {/* Category pill */}
-        <span className="text-[10px] font-mono text-text-dim bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 rounded flex-none w-[52px] text-center truncate">
+        {/* Category */}
+        <span className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded flex-none">
           {CAT_LABEL[item.category ?? ""] ?? item.category}
         </span>
 
         {/* Title */}
-        <span className={`flex-1 text-[13px] leading-snug min-w-0 ${isExpanded ? "text-text" : "text-text-muted"} truncate`}>
+        <span className={`flex-1 text-sm leading-relaxed min-w-0 ${
+          isExpanded ? "text-text" : "text-text-muted"
+        }`}>
           {item.title}
         </span>
 
         {/* Time */}
-        <span className="text-[10px] font-mono text-text-dim flex-none">
+        <span className="text-sm text-text-dim flex-none">
           {item.published ? timeAgo(item.published) : ""}
         </span>
       </button>
 
       {/* Expanded detail */}
       {isExpanded && (
-        <div className="px-3 pb-3">
-          <div className="ml-[68px] sm:ml-[72px]">
+        <div className="px-3 pb-4">
+          <div className="pl-3 sm:pl-[72px] border-l-2 border-[rgba(255,255,255,0.06)] sm:border-0 ml-3 sm:ml-0">
             {item.summary && (
-              <p className="text-xs text-text-muted leading-relaxed mb-2">{item.summary}</p>
+              <p className="text-sm text-text leading-relaxed mb-3">{item.summary}</p>
             )}
 
             {item.cardNames && item.cardNames.length > 0 && (
-              <div className="flex gap-1 mb-2 flex-wrap">
+              <div className="flex gap-1.5 mb-3 flex-wrap">
                 {item.cardNames.map((name, i) => (
-                  <span key={i} className="text-[10px] font-mono text-text-dim bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 rounded">{name}</span>
+                  <span
+                    key={i}
+                    className="text-sm text-text-muted bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded"
+                  >
+                    {name}
+                  </span>
                 ))}
               </div>
             )}
 
-            <div className="flex items-center gap-3 text-[11px] text-text-dim">
+            <div className="flex items-center gap-3 text-sm text-text-dim">
               {item.source && <span>{item.source}</span>}
               {item.sourceUrl && (
                 <a
@@ -173,7 +250,7 @@ function FeedRow({ item, isExpanded, onToggle }: { item: IntelItem; isExpanded: 
                   className="text-text-muted hover:text-text transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Open →
+                  Open link →
                 </a>
               )}
             </div>
