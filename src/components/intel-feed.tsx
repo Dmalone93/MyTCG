@@ -61,20 +61,20 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <h2 className="font-bold text-lg text-text">Intel Feed</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-2 mb-5">
+        <h2 className="font-bold text-base sm:text-lg text-text">Intel Feed</h2>
+        <div className="flex items-center gap-2 sm:gap-3">
           {refreshMsg && (
-            <span className="text-xs text-text-muted">{refreshMsg}</span>
+            <span className="text-xs text-text-muted hidden sm:inline">{refreshMsg}</span>
           )}
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-1.5 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text active:opacity-70 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2.5 sm:py-1.5 disabled:opacity-50 transition-colors"
           >
-            {refreshing ? "Scanning..." : "Refresh Intel"}
+            {refreshing ? "Scanning..." : "Refresh"}
           </button>
-          <span className="text-xs text-text-dim font-mono">
+          <span className="text-xs text-text-dim font-mono hidden sm:inline">
             {items.length} items
           </span>
         </div>
@@ -96,7 +96,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-2 sm:py-1.5 rounded-lg border text-xs font-medium whitespace-nowrap transition-colors active:opacity-70 ${
               filter === key
                 ? "bg-bg-surface border-accent text-text"
                 : "border-[rgba(255,255,255,0.06)] text-text-muted hover:text-text"
@@ -209,7 +209,7 @@ function IntelCard({ item }: { item: IntelItem }) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center gap-3 mt-3 text-xs text-text-dim">
+          <div className="flex items-center gap-2 sm:gap-3 mt-3 text-xs text-text-dim flex-wrap">
             {item.source && (
               <span className="font-medium text-text-muted">{item.source}</span>
             )}

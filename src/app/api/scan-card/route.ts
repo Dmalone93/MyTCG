@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getExtendedCards } from "@/lib/catalog/extended-cards";
 
 function extractCode(text: string): string {
   const up = text.toUpperCase().replace(/[^A-Z0-9-]/g, " ");
@@ -66,6 +67,73 @@ function extractCodesFromWeb(
   return [...new Set(codes)];
 }
 
+function extractCardName(text: string, webLabels: string[]): string | null {
+  const extCards = getExtendedCards();
+  const textLower = text.toLowerCase();
+
+  // First: try to match a known card name from the extended database
+  // Sort by name length descending to match longer names first
+  const nameMatches = extCards
+    .filter((c) => c.name.length > 3 && textLower.includes(c.name.toLowerCase()))
+    .sort((a, b) => b.name.length - a.name.length);
+
+  if (nameMatches.length > 0) {
+    return nameMatches[0].name;
+  }
+
+  // Second: check web labels against known card names
+  for (const label of webLabels) {
+    const labelLower = label.toLowerCase();
+    const match = extCards.find((c) =>
+      c.name.length > 3 && labelLower.includes(c.name.toLowerCase())
+    );
+    if (match) return match.name;
+  }
+
+  // Third: fall back to OCR text line analysis
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (/^[A-Z0-9-]{2,10}$/.test(line)) continue;
+    if (line.length < 3 || line.length > 50) continue;
+    if (/^(COUNTER|BLOCKER|RUSH|TRIGGER|COST|POWER|DON|ONE PIECE)/i.test(line)) continue;
+
+    const words = line.split(/\s+/);
+    if (words.length >= 1 && words.length <= 5 && /[A-Za-z]/.test(line)) {
+      return line;
+    }
+  }
+
+  // Fourth: web labels that look like character names
+  for (const label of webLabels) {
+    if (label.length > 3 && label.length < 40 && !/^(one piece|tcg|card|trading)/i.test(label)) {
+      return label;
+    }
+  }
+
+  return null;
+}
+
+function extractRarity(text: string): string | null {
+  const up = text.toUpperCase();
+  if (up.includes("SECRET") || /\bSEC\b/.test(up)) return "SEC";
+  if (/\bSR\b/.test(up) || up.includes("SUPER RARE")) return "SR";
+  if (/\bSP\b/.test(up) || up.includes("SPECIAL")) return "SP";
+  if (up.includes("UNCOMMON") || /\bUC\b/.test(up)) return "UC";
+  if (up.includes("COMMON") && !up.includes("UNCOMMON")) return "C";
+  if (/\bR\b/.test(up) && up.includes("RARE") && !up.includes("SUPER")) return "R";
+  if (/\bL\b/.test(up) || up.includes("LEADER")) return "L";
+  return null;
+}
+
+function extractColor(text: string, labels: string[]): string | null {
+  const all = (text + " " + labels.join(" ")).toUpperCase();
+  const colors = ["RED", "BLUE", "GREEN", "PURPLE", "BLACK", "YELLOW"];
+  for (const c of colors) {
+    if (all.includes(c)) return c;
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   const key = process.env.GOOGLE_CLOUD_VISION_API_KEY;
   if (!key) {
@@ -93,7 +161,8 @@ export async function POST(request: Request) {
               image: { content: base64 },
               features: [
                 { type: "DOCUMENT_TEXT_DETECTION", maxResults: 10 },
-                { type: "WEB_DETECTION", maxResults: 5 },
+                { type: "WEB_DETECTION", maxResults: 10 },
+                { type: "LABEL_DETECTION", maxResults: 10 },
               ],
               imageContext: { languageHints: ["en", "ja"] },
             },
@@ -134,10 +203,33 @@ export async function POST(request: Request) {
     const bestGuess =
       resp.webDetection?.bestGuessLabels?.[0]?.label ?? null;
 
+    // Labels from label detection
+    const labels: string[] = (resp.labelAnnotations ?? [])
+      .map((l: Record<string, unknown>) => String(l.description ?? ""))
+      .filter(Boolean);
+
+    // Web entities
+    const webEntities: string[] = (resp.webDetection?.webEntities ?? [])
+      .map((e: Record<string, unknown>) => String(e.description ?? ""))
+      .filter(Boolean);
+
+    // Try to extract card name from OCR text
+    const cardName = extractCardName(text, [...webEntities, ...labels]);
+
+    // Try to detect rarity from text
+    const rarity = extractRarity(text);
+
+    // Try to detect color from text/labels
+    const color = extractColor(text, labels);
+
     return NextResponse.json({
       codes,
-      text: text.slice(0, 200),
+      text: text.slice(0, 300),
       bestGuess,
+      labels: [...webEntities, ...labels].slice(0, 15),
+      cardName,
+      rarity,
+      color,
     });
   } catch (err) {
     return NextResponse.json(

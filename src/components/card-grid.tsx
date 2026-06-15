@@ -97,20 +97,20 @@ export function CardGrid({
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-[7px] flex-1 justify-center bg-accent text-white font-semibold text-sm py-[12px] px-[17px] rounded-[10px] hover:bg-accent-hover transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+          className="inline-flex items-center gap-[7px] flex-1 min-w-[120px] justify-center bg-accent text-white font-semibold text-sm py-3 px-4 rounded-[10px] hover:bg-accent-hover active:opacity-80 transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
         >
           <span className="text-base leading-none -mt-px">+</span> Add card
         </button>
         <button
           onClick={() => setShowScan(true)}
-          className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-[12px] px-[16px] text-sm font-semibold hover:bg-[#27272A] hover:text-text transition-colors"
+          className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-3 px-4 text-sm font-semibold hover:bg-[#27272A] hover:text-text active:opacity-80 transition-colors"
           title="Scan a card"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
-          Scan
+          <span className="hidden sm:inline">Scan</span>
         </button>
         {onRefreshPrices && (
           <button
@@ -120,27 +120,27 @@ export function CardGrid({
               setRefreshing(false);
             }}
             disabled={refreshing}
-            className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-[12px] px-[16px] text-sm font-semibold hover:bg-[#27272A] hover:text-text disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-3 px-4 text-sm font-semibold hover:bg-[#27272A] hover:text-text disabled:opacity-50 active:opacity-80 transition-colors"
             title="Update all card prices"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "animate-spin" : ""}><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-            Update prices
+            <span className="hidden sm:inline">Update prices</span>
           </button>
         )}
         <div className="flex border border-[rgba(255,255,255,0.06)] bg-bg-surface rounded-[10px] overflow-hidden flex-none">
           <button
             onClick={() => setView("table")}
-            className={`px-[14px] py-[10px] text-[13.5px] font-semibold transition-colors ${
+            className={`px-3.5 py-2.5 text-[13.5px] font-semibold transition-colors ${
               view === "table"
                 ? "bg-[#27272A] text-text"
                 : "text-text-muted hover:text-text"
             }`}
           >
-            Table
+            List
           </button>
           <button
             onClick={() => setView("grid")}
-            className={`px-[14px] py-[10px] text-[13.5px] font-semibold transition-colors ${
+            className={`px-3.5 py-2.5 text-[13.5px] font-semibold transition-colors ${
               view === "grid"
                 ? "bg-[#27272A] text-text"
                 : "text-text-muted hover:text-text"
@@ -186,54 +186,57 @@ export function CardGrid({
         </div>
       )}
 
-      {/* Table view */}
+      {/* Table view — compact list on mobile, full table on sm+ */}
       {cards.length > 0 && view === "table" && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.06)]">
-                <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Code
-                </th>
-                <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Name
-                </th>
-                <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Qty
-                </th>
-                <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Condition
-                </th>
-                <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Paid
-                </th>
-                <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Market
-                </th>
-                <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">
-                  Graded
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {cards.map((card) => (
-                <CardTableRow
-                  key={card.id}
-                  card={card}
-                  price={prices[card.cardCode] ?? null}
-                  inNews={intelCardNames ? isInTheNews(card, intelCardNames) : false}
-                  onClick={() => setSelectedCard(card)}
-                  onContextMenu={(x, y) => openContextMenu(card, x, y)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[rgba(255,255,255,0.06)]">
+                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Code</th>
+                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Name</th>
+                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Qty</th>
+                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Condition</th>
+                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Paid</th>
+                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Market</th>
+                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Graded</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cards.map((card) => (
+                  <CardTableRow
+                    key={card.id}
+                    card={card}
+                    price={prices[card.cardCode] ?? null}
+                    inNews={intelCardNames ? isInTheNews(card, intelCardNames) : false}
+                    onClick={() => setSelectedCard(card)}
+                    onContextMenu={(x, y) => openContextMenu(card, x, y)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile list */}
+          <div className="sm:hidden space-y-2">
+            {cards.map((card) => (
+              <CardMobileRow
+                key={card.id}
+                card={card}
+                price={prices[card.cardCode] ?? null}
+                inNews={intelCardNames ? isInTheNews(card, intelCardNames) : false}
+                onClick={() => setSelectedCard(card)}
+                onContextMenu={(x, y) => openContextMenu(card, x, y)}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Grid view */}
       {cards.length > 0 && view === "grid" && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2 sm:gap-3">
           {cards.map((card) => (
             <CardGridTile
               key={card.id}
@@ -365,6 +368,70 @@ function CardTableRow({
   );
 }
 
+/** Mobile compact list row */
+function CardMobileRow({
+  card,
+  price,
+  inNews,
+  onClick,
+  onContextMenu,
+}: {
+  card: CollectionCard;
+  price: CardPrice | null;
+  inNews: boolean;
+  onClick: () => void;
+  onContextMenu: (x: number, y: number) => void;
+}) {
+  const longPress = useLongPress(
+    useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
+  );
+
+  const market = num(price?.rawMarket);
+  const grade = card.grade ?? "PSA 10";
+  const gp = (price?.gradedPrices as Record<string, number> | null)?.[grade] ?? 0;
+
+  return (
+    <div
+      className="flex items-center gap-3 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-3 active:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer select-none"
+      onClick={onClick}
+      onContextMenu={longPress.onContextMenu}
+      onPointerDown={longPress.onPointerDown}
+      onPointerUp={longPress.onPointerUp}
+      onPointerMove={longPress.onPointerMove}
+      onPointerLeave={longPress.onPointerLeave}
+    >
+      {card.imageUrl && (
+        <img
+          src={card.imageUrl}
+          alt={card.cardName}
+          className="w-12 h-[67px] rounded-md object-cover flex-none"
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="font-medium text-sm text-text truncate">{card.cardName}</span>
+          {inNews && (
+            <span className="text-[9px] font-mono tracking-[.08em] uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded flex-none">
+              news
+            </span>
+          )}
+        </div>
+        <div className="font-mono text-xs text-text-dim">
+          {card.cardCode} {card.quantity && card.quantity > 1 ? `× ${card.quantity}` : ""}
+        </div>
+      </div>
+      <div className="text-right flex-none">
+        <div className="font-mono text-sm text-text">
+          {market > 0 ? fmt(market) : "—"}
+        </div>
+        {gp > 0 && (
+          <div className="font-mono text-xs text-[#4ADE80]">{fmt(gp)}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Grid tile with click + long-press/right-click */
 function CardGridTile({
   card,
@@ -389,7 +456,7 @@ function CardGridTile({
 
   return (
     <div
-      className="bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-4 hover:border-[rgba(255,255,255,0.12)] transition-colors cursor-pointer select-none"
+      className="bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-3 sm:p-4 hover:border-[rgba(255,255,255,0.12)] active:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}

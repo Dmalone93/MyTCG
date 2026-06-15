@@ -96,7 +96,7 @@ export function CardPicker({
   return (
     <div className="bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-xl mb-3 overflow-hidden shadow-[0_14px_40px_rgba(0,0,0,0.5)]">
       {/* Search header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-[rgba(255,255,255,0.06)]">
+      <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-[rgba(255,255,255,0.06)]">
         <svg
           width="14"
           height="14"
@@ -124,14 +124,14 @@ export function CardPicker({
         )}
         <button
           onClick={onCancel}
-          className="text-text-dim hover:text-text text-sm transition-colors"
+          className="text-text-dim hover:text-text active:opacity-70 text-sm py-1 px-2 transition-colors flex-none"
         >
           Cancel
         </button>
       </div>
 
       {/* Results */}
-      <div ref={listRef} className="max-h-[320px] overflow-y-auto">
+      <div ref={listRef} className="max-h-[50vh] sm:max-h-[320px] overflow-y-auto">
         {results.length === 0 && query.length > 0 && !loading && (
           <div className="py-8 text-center text-text-dim text-sm">
             No cards found
@@ -150,7 +150,7 @@ export function CardPicker({
               onPick(card);
             }}
             onMouseEnter={() => setSelectedIndex(i)}
-            className={`flex items-center gap-2.5 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-3 py-2 cursor-pointer transition-colors ${
+            className={`flex items-center gap-2.5 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-3 py-3 sm:py-2 cursor-pointer transition-colors active:opacity-80 ${
               i === selectedIndex
                 ? "bg-[rgba(59,130,246,0.08)]"
                 : "bg-bg-surface hover:bg-[rgba(59,130,246,0.05)]"
@@ -164,7 +164,7 @@ export function CardPicker({
                 loading="lazy"
               />
             </div>
-            <span className="font-mono text-[11px] text-text-dim flex-none w-[72px]">
+            <span className="font-mono text-[11px] text-text-dim flex-none w-[72px] hidden sm:block">
               {card.cardSetId}
             </span>
             <span className="flex-1 min-w-0">

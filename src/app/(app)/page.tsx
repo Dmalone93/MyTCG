@@ -5,6 +5,7 @@ import { collections, intelItems } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { CollectionShell } from "@/components/collection-shell";
 import { IntelTicker } from "@/components/intel-ticker";
+import { Recommendations } from "@/components/recommendations";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -34,6 +35,7 @@ export default async function DashboardPage() {
   return (
     <>
       <IntelTicker items={recentIntel} />
+      <Recommendations />
       <CollectionShell
         initialCollections={userCollections}
         intelCardNames={[...intelCardNames]}

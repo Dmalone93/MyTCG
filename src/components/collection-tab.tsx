@@ -48,7 +48,7 @@ export function CollectionTab({
 
   return (
     <div
-      className={`group relative flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer select-none transition-colors flex-none ${
+      className={`group relative flex items-center gap-1 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-medium cursor-pointer select-none transition-colors flex-none active:opacity-80 ${
         isActive
           ? "bg-bg-surface text-text border border-[rgba(255,255,255,0.06)]"
           : "text-text-muted hover:text-text hover:bg-[rgba(255,255,255,0.03)]"
@@ -95,7 +95,7 @@ export function CollectionTab({
               onDelete();
             }
           }}
-          className="ml-1 text-text-dim hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+          className="ml-1 text-text-dim hover:text-red-400 active:text-red-400 text-xs sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1"
           title="Delete collection"
         >
           ×

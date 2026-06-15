@@ -22,7 +22,7 @@ export function NavLinks() {
           <Link
             key={link.href}
             href={link.href}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-2.5 sm:py-1.5 rounded-lg text-sm font-medium transition-colors active:opacity-70 ${
               isActive
                 ? "bg-bg-surface text-text"
                 : "text-text-muted hover:text-text"

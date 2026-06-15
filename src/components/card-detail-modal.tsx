@@ -74,21 +74,25 @@ export function CardDetailModal({
     "bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-text focus:outline-2 focus:outline-accent";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+        className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-bg-elevated border-b border-[rgba(255,255,255,0.04)] px-5 py-4 flex items-start justify-between gap-3 z-10">
-          <div>
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
+        </div>
+        <div className="sticky top-0 bg-bg-elevated border-b border-[rgba(255,255,255,0.04)] px-4 sm:px-5 py-3 sm:py-4 flex items-start justify-between gap-3 z-10">
+          <div className="min-w-0">
             <div className="font-mono text-xs text-text-dim mb-1">{card.cardCode}</div>
-            <h2 className="font-semibold text-lg text-text leading-tight">{card.cardName}</h2>
+            <h2 className="font-semibold text-base sm:text-lg text-text leading-tight truncate">{card.cardName}</h2>
           </div>
-          <button onClick={onClose} className="text-text-dim hover:text-text text-xl leading-none mt-1 transition-colors">×</button>
+          <button onClick={onClose} className="text-text-dim hover:text-text active:opacity-70 text-xl leading-none mt-1 p-1 transition-colors flex-none">×</button>
         </div>
 
-        <div className="px-5 py-4 space-y-5">
+        <div className="px-4 sm:px-5 py-4 space-y-5">
           {card.imageUrl && (
             <img src={card.imageUrl} alt={card.cardName} className="w-full max-w-[240px] mx-auto rounded-lg aspect-[2.5/3.5] object-cover" />
           )}
@@ -137,8 +141,8 @@ export function CardDetailModal({
               )}
               {card.notes && (<div><span className="text-text-dim block mb-1">Notes</span><p className="text-text text-sm">{card.notes}</p></div>)}
               <div className="flex gap-2 pt-3">
-                <button onClick={() => setEditing(true)} className="flex-1 bg-bg-surface border border-[rgba(255,255,255,0.06)] text-text font-semibold text-sm py-2 px-4 rounded-lg hover:bg-[#27272A] transition-colors">Edit</button>
-                <button onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }} className="bg-bg-surface border border-[rgba(255,255,255,0.06)] text-red-400 font-semibold text-sm py-2 px-4 rounded-lg hover:bg-red-400/10 transition-colors">Delete</button>
+                <button onClick={() => setEditing(true)} className="flex-1 bg-bg-surface border border-[rgba(255,255,255,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#27272A] active:opacity-80 transition-colors">Edit</button>
+                <button onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }} className="bg-bg-surface border border-[rgba(255,255,255,0.06)] text-red-400 font-semibold text-sm py-3 px-4 rounded-lg hover:bg-red-400/10 active:opacity-80 transition-colors">Delete</button>
               </div>
             </div>
           ) : (
@@ -181,8 +185,8 @@ export function CardDetailModal({
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={inputClass + " w-full resize-none"} />
               </div>
               <div className="flex gap-2 pt-1">
-                <button onClick={handleSave} disabled={saving} className="flex-1 bg-accent text-white font-semibold text-sm py-2 px-4 rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors">{saving ? "..." : "Save"}</button>
-                <button onClick={() => setEditing(false)} className="text-sm text-text-muted hover:text-text px-4 py-2 transition-colors">Cancel</button>
+                <button onClick={handleSave} disabled={saving} className="flex-1 bg-accent text-white font-semibold text-sm py-3 px-4 rounded-lg hover:bg-accent-hover active:opacity-80 disabled:opacity-50 transition-colors">{saving ? "..." : "Save"}</button>
+                <button onClick={() => setEditing(false)} className="text-sm text-text-muted hover:text-text active:opacity-70 px-4 py-3 transition-colors">Cancel</button>
               </div>
             </div>
           )}

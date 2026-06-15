@@ -87,7 +87,7 @@ export function AddCardForm({
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_2fr] gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-3">
         <div>
           <label className="block text-[10px] font-mono tracking-[.1em] uppercase text-text-dim mb-1.5">
             Card code
@@ -113,7 +113,7 @@ export function AddCardForm({
           />
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div>
           <label className="block text-[10px] font-mono tracking-[.1em] uppercase text-text-dim mb-1.5">
             Qty
@@ -161,14 +161,14 @@ export function AddCardForm({
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 bg-accent text-white font-semibold text-sm py-2 px-4 rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+          className="inline-flex items-center justify-center gap-2 bg-accent text-white font-semibold text-sm py-3 px-4 rounded-lg hover:bg-accent-hover active:opacity-80 disabled:opacity-50 transition-colors flex-1 sm:flex-none"
         >
           {loading ? "..." : "Add card"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-text-muted hover:text-text px-4 py-2 transition-colors"
+          className="text-sm text-text-muted hover:text-text active:opacity-70 px-4 py-3 transition-colors"
         >
           Cancel
         </button>
