@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import type { Collection, CollectionCard, CardPrice } from "./collection-shell";
 import { AddCardForm } from "./add-card-form";
 import { CardPicker } from "./card-picker";
+import { ScanModal } from "./scan-modal";
 import { CardDetailModal } from "./card-detail-modal";
 import { ContextMenu } from "./context-menu";
 import { useLongPress } from "@/hooks/use-long-press";
@@ -69,6 +70,7 @@ export function CardGrid({
   onRefreshPrices?: () => Promise<void>;
 }) {
   const [showPicker, setShowPicker] = useState(false);
+  const [showScan, setShowScan] = useState(false);
   const [pickedCard, setPickedCard] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
   const [refreshing, setRefreshing] = useState(false);
@@ -100,6 +102,14 @@ export function CardGrid({
           className="inline-flex items-center gap-[7px] flex-1 justify-center bg-accent text-white font-semibold text-sm py-[12px] px-[17px] rounded-[10px] hover:bg-accent-hover transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
         >
           <span className="text-base leading-none -mt-px">+</span> Add card
+        </button>
+        <button
+          onClick={() => setShowScan(true)}
+          className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-[12px] px-[16px] text-sm font-semibold hover:bg-[#27272A] hover:text-text transition-colors"
+          title="Scan a card"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+          Scan
         </button>
         {onRefreshPrices && (
           <button
@@ -274,6 +284,18 @@ export function CardGrid({
             setContextMenu(null);
           }}
           onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Scan modal */}
+      {showScan && (
+        <ScanModal
+          onResult={(card) => {
+            setShowScan(false);
+            setPickedCard(card);
+            setShowPicker(true);
+          }}
+          onClose={() => setShowScan(false)}
         />
       )}
     </div>
