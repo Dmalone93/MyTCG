@@ -410,7 +410,12 @@ function CardTableRow({
       onPointerMove={longPress.onPointerMove}
       onPointerLeave={longPress.onPointerLeave}
     >
-      <td className="py-1.5 px-2 w-[44px]">
+      <td
+        ref={nameRef}
+        className="py-1.5 px-2 w-[44px]"
+        onMouseEnter={handleNameEnter}
+        onMouseLeave={handleNameLeave}
+      >
         {card.imageUrl ? (
           <div className="w-[30px] h-[42px] rounded overflow-hidden bg-[#1C1C1F] flex-none">
             <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -418,25 +423,6 @@ function CardTableRow({
         ) : (
           <div className="w-[30px] h-[42px] rounded bg-[#1C1C1F]" />
         )}
-      </td>
-      <td className="py-2.5 px-3 font-mono text-text-muted">
-        {card.cardCode}
-      </td>
-      <td
-        ref={nameRef}
-        className="py-2.5 px-3 font-medium text-text"
-        onMouseEnter={handleNameEnter}
-        onMouseLeave={handleNameLeave}
-      >
-        <span className="flex items-center gap-1.5">
-          {card.cardName}
-          {inNews && (
-            <span className="text-[9px] font-mono tracking-[.08em] uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded flex-none">
-              news
-            </span>
-          )}
-        </span>
-        {/* Hover preview — uses fixed positioning to avoid overflow clipping */}
         {showPreview && card.imageUrl && nameRef.current && (() => {
           const rect = nameRef.current!.getBoundingClientRect();
           return (
@@ -450,6 +436,19 @@ function CardTableRow({
             </div>
           );
         })()}
+      </td>
+      <td className="py-2.5 px-3 font-mono text-text-muted">
+        {card.cardCode}
+      </td>
+      <td className="py-2.5 px-3 font-medium text-text">
+        <span className="flex items-center gap-1.5">
+          {card.cardName}
+          {inNews && (
+            <span className="text-[9px] font-mono tracking-[.08em] uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded flex-none">
+              news
+            </span>
+          )}
+        </span>
       </td>
       <td className="py-2.5 px-3 text-right font-mono">{card.quantity ?? 1}</td>
       <td className="py-2.5 px-3 text-text-muted">
