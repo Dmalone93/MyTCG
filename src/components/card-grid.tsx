@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import type { Collection, CollectionCard, CardPrice } from "./collection-shell";
 import { AddCardForm } from "./add-card-form";
 import { CardPicker } from "./card-picker";
@@ -215,6 +215,7 @@ export function CardGrid({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[rgba(255,255,255,0.06)]">
+                  <th className="w-[44px] py-2 px-2"></th>
                   <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Code</th>
                   <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Name</th>
                   <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Qty</th>
@@ -346,7 +347,7 @@ export function CardGrid({
   );
 }
 
-/** Table row with click + long-press/right-click */
+/** Table row with click + long-press/right-click + thumbnail + hover preview */
 function CardTableRow({
   card,
   price,
@@ -363,10 +364,23 @@ function CardTableRow({
   const longPress = useLongPress(
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
+  const [showPreview, setShowPreview] = useState(false);
+  const previewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nameRef = useRef<HTMLTableCellElement>(null);
 
   const market = num(price?.rawMarket);
   const grade = card.grade ?? "PSA 10";
   const gp = (price?.gradedPrices as Record<string, number> | null)?.[grade] ?? 0;
+
+  function handleNameEnter() {
+    if (!card.imageUrl) return;
+    previewTimeout.current = setTimeout(() => setShowPreview(true), 300);
+  }
+
+  function handleNameLeave() {
+    if (previewTimeout.current) clearTimeout(previewTimeout.current);
+    setShowPreview(false);
+  }
 
   return (
     <tr
@@ -378,10 +392,24 @@ function CardTableRow({
       onPointerMove={longPress.onPointerMove}
       onPointerLeave={longPress.onPointerLeave}
     >
+      <td className="py-1.5 px-2 w-[44px]">
+        {card.imageUrl ? (
+          <div className="w-[30px] h-[42px] rounded overflow-hidden bg-[#1C1C1F] flex-none">
+            <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+          </div>
+        ) : (
+          <div className="w-[30px] h-[42px] rounded bg-[#1C1C1F]" />
+        )}
+      </td>
       <td className="py-2.5 px-3 font-mono text-text-muted">
         {card.cardCode}
       </td>
-      <td className="py-2.5 px-3 font-medium text-text">
+      <td
+        ref={nameRef}
+        className="py-2.5 px-3 font-medium text-text relative"
+        onMouseEnter={handleNameEnter}
+        onMouseLeave={handleNameLeave}
+      >
         <span className="flex items-center gap-1.5">
           {card.cardName}
           {inNews && (
@@ -390,6 +418,14 @@ function CardTableRow({
             </span>
           )}
         </span>
+        {/* Hover preview */}
+        {showPreview && card.imageUrl && (
+          <div className="absolute left-0 bottom-full mb-2 z-50 pointer-events-none">
+            <div className="w-[160px] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-[rgba(255,255,255,0.1)]">
+              <img src={card.imageUrl} alt={card.cardName} className="w-full aspect-[2.5/3.5] object-cover" />
+            </div>
+          </div>
+        )}
       </td>
       <td className="py-2.5 px-3 text-right font-mono">{card.quantity ?? 1}</td>
       <td className="py-2.5 px-3 text-text-muted">
