@@ -2,6 +2,8 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/login(.*)",
   "/api/refresh-prices",
   "/api/scan-intel",
 ]);
@@ -15,5 +17,7 @@ export default clerkMiddleware(async (auth, request) => {
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/(api|trpc)(.*)",
+    "/__clerk/:path*",
   ],
 };
