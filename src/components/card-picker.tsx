@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchCatalog, searchCatalog } from "@/lib/catalog/fetch-catalog";
+import { useEffect, useRef, useState } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
 
 function fmt(n: number): string {
@@ -21,42 +20,66 @@ export function CardPicker({
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CatalogCard[]>([]);
-  const [catalog, setCatalog] = useState<CatalogCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetchCatalog().then((data) => {
-      setCatalog(data);
-      setLoading(false);
-    });
-  }, []);
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const doSearch = useCallback(
-    (q: string) => {
-      setQuery(q);
-      setSelectedIndex(0);
-      if (catalog.length === 0) return;
-      setResults(searchCatalog(catalog, q));
-    },
-    [catalog]
-  );
+  function doSearch(q: string) {
+    setQuery(q);
+    setSelectedIndex(0);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
+
+    if (q.trim().length < 1) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const res = await fetch(
+          `/api/search-cards?q=${encodeURIComponent(q.trim())}`,
+          { signal: controller.signal }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setResults(data);
+        }
+      } catch {
+        // aborted or network error
+      } finally {
+        setLoading(false);
+      }
+    }, 150);
+  }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
-      scrollToSelected(selectedIndex + 1);
+      setSelectedIndex((i) => {
+        const next = Math.min(i + 1, results.length - 1);
+        scrollToIndex(next);
+        return next;
+      });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((i) => Math.max(i - 1, 0));
-      scrollToSelected(selectedIndex - 1);
+      setSelectedIndex((i) => {
+        const next = Math.max(i - 1, 0);
+        scrollToIndex(next);
+        return next;
+      });
     } else if (e.key === "Enter" && results[selectedIndex]) {
       e.preventDefault();
       onPick(results[selectedIndex]);
@@ -65,7 +88,7 @@ export function CardPicker({
     }
   }
 
-  function scrollToSelected(index: number) {
+  function scrollToIndex(index: number) {
     const el = listRef.current?.children[index] as HTMLElement | undefined;
     el?.scrollIntoView({ block: "nearest" });
   }
@@ -96,6 +119,9 @@ export function CardPicker({
           placeholder="Search by card name or code..."
           className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder:text-text-dim"
         />
+        {loading && (
+          <span className="text-text-dim text-xs animate-pulse">...</span>
+        )}
         <button
           onClick={onCancel}
           className="text-text-dim hover:text-text text-sm transition-colors"
@@ -104,20 +130,8 @@ export function CardPicker({
         </button>
       </div>
 
-      {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#0D0D0F] border-b border-[rgba(255,255,255,0.06)]">
-        <span className="font-mono text-[9.5px] tracking-[.08em] uppercase text-text-dim">
-          One Piece catalog
-        </span>
-        <span className="font-mono text-[9.5px] font-semibold text-text-dim">
-          {loading
-            ? "Loading..."
-            : `${catalog.length.toLocaleString()} cards`}
-        </span>
-      </div>
-
       {/* Results */}
-      <div ref={listRef} className="max-h-[288px] overflow-y-auto">
+      <div ref={listRef} className="max-h-[320px] overflow-y-auto">
         {results.length === 0 && query.length > 0 && !loading && (
           <div className="py-8 text-center text-text-dim text-sm">
             No cards found
@@ -142,7 +156,6 @@ export function CardPicker({
                 : "bg-bg-surface hover:bg-[rgba(59,130,246,0.05)]"
             }`}
           >
-            {/* Card thumbnail */}
             <div className="relative w-6 h-[33px] flex-none rounded overflow-hidden bg-[#1C1C1F]">
               <img
                 src={card.imageUrl}
@@ -151,13 +164,9 @@ export function CardPicker({
                 loading="lazy"
               />
             </div>
-
-            {/* Code */}
             <span className="font-mono text-[11px] text-text-dim flex-none w-[72px]">
               {card.cardSetId}
             </span>
-
-            {/* Name + set */}
             <span className="flex-1 min-w-0">
               <span className="text-[13px] font-semibold text-text block truncate">
                 {card.cardName}
@@ -166,8 +175,6 @@ export function CardPicker({
                 {card.setName} · {card.rarity}
               </span>
             </span>
-
-            {/* Price */}
             {card.marketPrice != null && card.marketPrice > 0 && (
               <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
                 {fmt(card.marketPrice)}
@@ -177,9 +184,9 @@ export function CardPicker({
         ))}
       </div>
 
-      {results.length >= 40 && (
+      {results.length >= 30 && (
         <div className="py-1.5 bg-[#0D0D0F] border-t border-[rgba(255,255,255,0.04)] text-center font-mono text-[10px] text-text-dim">
-          Showing top 40 results — refine your search
+          Showing top 30 — refine your search
         </div>
       )}
     </div>
