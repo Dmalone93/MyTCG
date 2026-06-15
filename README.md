@@ -1,57 +1,36 @@
-# MyTCG — One Piece Card Collection Tracker
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A sleek, spreadsheet-style tracker for your One Piece TCG collection. Add cards as
-fast as typing in a row, track spend vs. market value, profit/loss, and graded
-upside, and look cards up against the live community catalog.
+## Getting Started
 
-![MyTCG](screenshots/sheet.png)
-
-## Features
-
-- **Excel-like sheet** — every cell is inline-editable (name, number, set, rarity,
-  condition, qty, paid / raw / graded). A permanent add-row at the top.
-- **Live catalog lookup** — autocomplete pulls real cards, art and market prices
-  from [optcgapi.com](https://optcgapi.com) (booster sets + starter decks).
-  Self-heals if the API hiccups.
-- **Scan a card** — camera + on-device OCR (Tesseract.js) reads the printed card
-  number and matches it to the catalog. Photo-upload fallback for desktop.
-- **EN / JP language** column with colour-coded badges.
-- **Hover preview** — hover a card's number to see its full art.
-- **Trends** — value-over-time chart and a monthly-budget tracker with a spend ring.
-- **Gallery view**, filtering by number/set, sorting, CSV import/export.
-- Currency, columns and summary cards are all configurable in Settings.
-
-## Run it
-
-It's a single static page — no build step.
+First, run the development server:
 
 ```bash
-# any static server, e.g.
-python3 -m http.server 8000
-# then open http://localhost:8000
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Or just open `index.html` in a browser. (A server is recommended so the camera /
-OCR features work, which require a secure context.)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### GitHub Pages
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Push to GitHub (see below), then in the repo: **Settings → Pages → Source: `main` /
-root**. Your tracker will be live at `https://<you>.github.io/MyTCG/`.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Data & persistence
+## Learn More
 
-Your collection is stored in your browser's `localStorage` (per-device). Use
-**Settings → Export CSV** for backups, and **Import from CSV** to restore or move
-between devices. (A cloud-sync option via Supabase can be added — see issues.)
+To learn more about Next.js, take a look at the following resources:
 
-## Tech
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- Vanilla front-end rendered by a small component runtime (`support.js`).
-- [Tesseract.js](https://github.com/naptha/tesseract.js) for OCR (loaded from CDN).
-- One Piece data courtesy of the community [optcgapi.com](https://optcgapi.com) API.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## License
+## Deploy on Vercel
 
-MIT — see `LICENSE`. One Piece is © Eiichiro Oda / Shueisha / Bandai; card images
-and data belong to their respective owners. This is a personal, non-commercial tool.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
