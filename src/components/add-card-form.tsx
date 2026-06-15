@@ -14,6 +14,7 @@ type NewCard = {
   acquiredPrice: string | null;
   notes: string | null;
   imageUrl: string | null;
+  marketPrice?: number | null;
 };
 
 export function AddCardForm({
@@ -47,6 +48,7 @@ export function AddCardForm({
       acquiredPrice: acquiredPrice || null,
       notes: null,
       imageUrl: prefill?.imageUrl ?? null,
+      marketPrice: prefill?.marketPrice ?? null,
     });
     setLoading(false);
   }

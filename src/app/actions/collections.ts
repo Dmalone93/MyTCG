@@ -96,6 +96,7 @@ export async function addCard(data: {
   acquiredPrice: string | null;
   notes: string | null;
   imageUrl: string | null;
+  marketPrice?: number | null;
 }) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -117,6 +118,27 @@ export async function addCard(data: {
       imageUrl: data.imageUrl,
     })
     .returning();
+
+  // Cache the market price from the catalog if provided
+  if (data.marketPrice != null && data.marketPrice > 0) {
+    await db
+      .insert(cardPrices)
+      .values({
+        cardCode: data.cardCode,
+        rawMarket: String(data.marketPrice),
+        gradedPrices: null,
+        currency: "EUR",
+        fetchedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: cardPrices.cardCode,
+        set: {
+          rawMarket: String(data.marketPrice),
+          fetchedAt: new Date(),
+        },
+      });
+  }
+
   return row;
 }
 

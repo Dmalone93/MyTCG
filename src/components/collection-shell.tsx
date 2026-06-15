@@ -151,10 +151,19 @@ export function CollectionShell({
     acquiredPrice: string | null;
     notes: string | null;
     imageUrl: string | null;
+    marketPrice?: number | null;
   }) {
     if (!activeId) return;
     const row = await addCardAction({ ...card, collectionId: activeId });
     setCards((prev) => [...prev, row]);
+    // Re-fetch prices to include the newly cached price
+    if (card.marketPrice) {
+      const codes = [...new Set([...cards.map((c) => c.cardCode), card.cardCode])];
+      const priceData = await getPrices(codes);
+      const map: Record<string, CardPrice> = {};
+      priceData.forEach((p) => (map[p.cardCode] = p));
+      setPrices(map);
+    }
   }
 
   async function handleUpdateCard(id: string, updates: Partial<CollectionCard>) {

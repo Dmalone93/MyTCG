@@ -63,6 +63,7 @@ export function CardGrid({
     acquiredPrice: string | null;
     notes: string | null;
     imageUrl: string | null;
+    marketPrice?: number | null;
   }) => Promise<void>;
   onUpdateCard: (id: string, updates: Partial<CollectionCard>) => Promise<void>;
   onDeleteCard: (id: string) => Promise<void>;
