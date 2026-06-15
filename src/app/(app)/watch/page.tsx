@@ -65,11 +65,21 @@ export default function WatchPage() {
   const pipWindowRef = useRef<Window | null>(null);
   const widgetContainerRef = useRef<HTMLDivElement>(null);
 
+  // Evidence accumulation — card must be seen in N frames before confirmed
+  const evidenceRef = useRef<Map<string, { count: number; card: CardIndex[0]; firstSeen: number }>>(new Map());
+  const CONFIRM_THRESHOLD = 3; // Need 3 sightings to confirm
+
   const [watching, setWatching] = useState(false);
   const [detected, setDetected] = useState<DetectedCard[]>([]);
+  const [pending, setPending] = useState<Array<{ code: string; name: string; count: number; needed: number }>>([]);
   const [status, setStatus] = useState("");
   const [scanCount, setScanCount] = useState(0);
   const [isPopped, setIsPopped] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<DetectedCard | null>(null);
+  const [detailExt, setDetailExt] = useState<{ card: Record<string, unknown>; synergies: Array<{ cid: string; name: string; imageUrl: string }> } | null>(null);
+  const detectedRef = useRef<DetectedCard[]>([]);
+
+  useEffect(() => { detectedRef.current = detected; }, [detected]);
 
   // Load card index
   useEffect(() => {
@@ -106,7 +116,9 @@ export default function WatchPage() {
       setWatching(true);
       setStatus("Watching...");
       setDetected([]);
+      setPending([]);
       setScanCount(0);
+      evidenceRef.current = new Map();
 
       scanTimerRef.current = setInterval(scanFrame, 1500);
     } catch {
@@ -210,40 +222,90 @@ export default function WatchPage() {
       const matches = matchLocalIndex(allText, cardIndexRef.current);
       const codes = data.codes ?? [];
 
-      const newCards: DetectedCard[] = [];
+      // Collect all candidate cards from this frame
+      const candidates: CardIndex = [];
 
       for (const code of codes) {
         const m = cardIndexRef.current.find((c) => c.id.toUpperCase() === code.toUpperCase());
-        if (m) {
-          newCards.push({
-            code: m.id, name: m.n, rarity: m.r, color: m.c,
-            imageUrl: m.img, marketPrice: await getPrice(m.id), detectedAt: Date.now(),
-          });
-        }
+        if (m && !candidates.some((c) => c.id === m.id)) candidates.push(m);
       }
 
       for (const match of matches) {
-        if (!newCards.some((c) => c.code === match.id)) {
-          newCards.push({
-            code: match.id, name: match.n, rarity: match.r, color: match.c,
-            imageUrl: match.img, marketPrice: await getPrice(match.id), detectedAt: Date.now(),
-          });
+        if (!candidates.some((c) => c.id === match.id)) candidates.push(match);
+      }
+
+      // Accumulate evidence for each candidate
+      const now = Date.now();
+      const ev = evidenceRef.current;
+
+      // Decay old evidence — if not seen for 10 seconds, reduce count
+      for (const [key, val] of ev) {
+        if (now - val.firstSeen > 15000 && val.count < CONFIRM_THRESHOLD) {
+          ev.delete(key);
         }
       }
 
-      if (newCards.length > 0) {
-        setDetected((prev) => {
-          const existing = new Set(prev.map((c) => c.code));
-          const fresh = newCards.filter((c) => !existing.has(c.code));
-          if (fresh.length === 0) return prev;
-          return [...fresh, ...prev].slice(0, 50);
-        });
-        setStatus(`Found: ${newCards[0].name}`);
+      for (const card of candidates) {
+        const existing = ev.get(card.id);
+        if (existing) {
+          existing.count++;
+        } else {
+          ev.set(card.id, { count: 1, card, firstSeen: now });
+        }
       }
+
+      // Check for newly confirmed cards
+      const newlyConfirmed: DetectedCard[] = [];
+
+      for (const [code, val] of ev) {
+        if (val.count >= CONFIRM_THRESHOLD) {
+          // Confirmed — add to detected if not already there
+          const alreadyDetected = detectedRef.current.some((d) => d.code === code);
+          if (!alreadyDetected) {
+            newlyConfirmed.push({
+              code: val.card.id, name: val.card.n, rarity: val.card.r, color: val.card.c,
+              imageUrl: val.card.img, marketPrice: await getPrice(val.card.id), detectedAt: now,
+            });
+          }
+          // Remove from evidence once confirmed
+          ev.delete(code);
+        }
+      }
+
+      if (newlyConfirmed.length > 0) {
+        setDetected((prev) => [...newlyConfirmed, ...prev].slice(0, 50));
+        setStatus(`Confirmed: ${newlyConfirmed[0].name}`);
+      } else if (candidates.length > 0) {
+        const topCandidate = [...ev.entries()].sort((a, b) => b[1].count - a[1].count)[0];
+        if (topCandidate) {
+          setStatus(`Checking: ${topCandidate[1].card.n} (${topCandidate[1].count}/${CONFIRM_THRESHOLD})`);
+        }
+      }
+
+      // Update pending display
+      setPending(
+        [...ev.entries()]
+          .filter(([code]) => !detectedRef.current.some((d) => d.code === code))
+          .sort((a, b) => b[1].count - a[1].count)
+          .slice(0, 3)
+          .map(([, val]) => ({
+            code: val.card.id, name: val.card.n,
+            count: val.count, needed: CONFIRM_THRESHOLD,
+          }))
+      );
     } catch { /* continue */ }
 
     pendingRef.current = false;
   }, []);
+
+  async function openDetail(card: DetectedCard) {
+    setSelectedDetail(card);
+    setDetailExt(null);
+    try {
+      const res = await fetch(`/api/card-info?code=${encodeURIComponent(card.code)}`);
+      if (res.ok) setDetailExt(await res.json());
+    } catch { /* */ }
+  }
 
   async function getPrice(code: string): Promise<number | null> {
     if (priceCache.current.has(code)) return priceCache.current.get(code) ?? null;
@@ -304,11 +366,43 @@ export default function WatchPage() {
       <div id="watch-anchor">
         <div ref={widgetContainerRef}>
           {/* Detected cards */}
+          {/* Pending cards — building confidence */}
+          {pending.length > 0 && (
+            <div style={{ padding: isPopped ? "12px 12px 0" : undefined }} className={isPopped ? "" : "mb-3"}>
+              <div style={isPopped ? { fontSize: "10px", color: "#4E4E52", marginBottom: "6px" } : undefined} className={isPopped ? "" : "text-[10px] text-text-dim mb-1.5"}>
+                Identifying...
+              </div>
+              {pending.map((p) => (
+                <div
+                  key={p.code}
+                  style={isPopped ? { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#8B8B8F", marginBottom: "4px" } : undefined}
+                  className={isPopped ? "" : "flex items-center gap-2 text-xs text-text-muted mb-1"}
+                >
+                  <span style={isPopped ? { flex: 1 } : undefined} className={isPopped ? "" : "flex-1 truncate"}>{p.name}</span>
+                  <span style={isPopped ? { fontFamily: "monospace", fontSize: "10px", color: "#4E4E52" } : undefined} className={isPopped ? "" : "font-mono text-[10px] text-text-dim"}>
+                    {p.count}/{p.needed}
+                  </span>
+                  <div style={isPopped ? { width: "40px", height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" } : undefined} className={isPopped ? "" : "w-10 h-[3px] bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden"}>
+                    <div
+                      style={{
+                        width: `${(p.count / p.needed) * 100}%`,
+                        height: "100%",
+                        background: "#34D399",
+                        borderRadius: "2px",
+                        transition: "width 0.3s",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {detected.length > 0 && (
             <div style={{ padding: isPopped ? "12px" : undefined }}>
               {!isPopped && (
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-medium text-text-muted">{detected.length} cards found</span>
+                  <span className="text-xs font-medium text-text-muted">{detected.length} confirmed</span>
                   {!watching && (
                     <button onClick={() => setDetected([])} className="text-[10px] text-text-dim hover:text-text-muted ml-auto">Clear</button>
                   )}
@@ -319,12 +413,13 @@ export default function WatchPage() {
                 {detected.map((card) => (
                   <div
                     key={card.code}
+                    onClick={() => openDetail(card)}
                     style={isPopped ? {
                       display: "flex", alignItems: "center", gap: "10px",
                       background: "#161618", border: "1px solid rgba(255,255,255,0.06)",
-                      borderRadius: "10px", padding: "10px",
+                      borderRadius: "10px", padding: "10px", cursor: "pointer",
                     } : undefined}
-                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-2.5"}
+                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-2.5 cursor-pointer hover:border-[rgba(255,255,255,0.12)] active:opacity-80 transition-colors"}
                   >
                     <div
                       style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#1C1C1F" } : undefined}
@@ -376,7 +471,83 @@ export default function WatchPage() {
         <div className="py-16 text-center">
           <div className="text-text-dim text-sm mb-1">Share your screen to start</div>
           <div className="text-text-dim text-xs mb-4">Cards will be identified with market prices</div>
-          <div className="text-text-dim text-[10px]">Tip: use "Pop out" to float the results over your stream</div>
+          <div className="text-text-dim text-[10px]">Tip: use &quot;Pop out&quot; to float the results over your stream</div>
+        </div>
+      )}
+
+      {/* Card detail modal */}
+      {selectedDetail && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setSelectedDetail(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sm:hidden flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
+            </div>
+            <div className="flex items-start justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)]">
+              <div className="min-w-0">
+                <div className="font-mono text-xs text-text-dim">{selectedDetail.code}</div>
+                <h3 className="font-semibold text-base text-text">{selectedDetail.name}</h3>
+              </div>
+              <button onClick={() => setSelectedDetail(null)} className="text-text-dim hover:text-text text-xl p-1">×</button>
+            </div>
+            <div className="p-4 space-y-4">
+              <img src={selectedDetail.imageUrl} alt={selectedDetail.name} className="w-full max-w-[200px] mx-auto rounded-lg aspect-[2.5/3.5] object-cover" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-text-dim">Market Price</span>
+                {selectedDetail.marketPrice != null && selectedDetail.marketPrice > 0 ? (
+                  <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(selectedDetail.marketPrice)}</span>
+                ) : (
+                  <span className="text-sm text-text-dim">—</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-text-dim">{selectedDetail.rarity}</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-text-dim">{selectedDetail.color}</span>
+              </div>
+
+              {detailExt && (
+                <>
+                  {(detailExt.card as Record<string, unknown>).traits && (
+                    <div>
+                      <div className="text-[10px] font-mono text-text-dim uppercase mb-1">Traits</div>
+                      <div className="text-xs text-text-muted">{String((detailExt.card as Record<string, unknown>).traits)}</div>
+                    </div>
+                  )}
+                  {(detailExt.card as Record<string, unknown>).effect && (
+                    <div>
+                      <div className="text-[10px] font-mono text-text-dim uppercase mb-1">Effect</div>
+                      <p className="text-xs text-text-muted leading-relaxed whitespace-pre-line">{String((detailExt.card as Record<string, unknown>).effect)}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    {(detailExt.card as Record<string, unknown>).cost != null && (
+                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
+                        <div className="text-[9px] font-mono text-text-dim">Cost</div>
+                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).cost)}</div>
+                      </div>
+                    )}
+                    {(detailExt.card as Record<string, unknown>).power != null && (
+                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
+                        <div className="text-[9px] font-mono text-text-dim">Power</div>
+                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).power)}</div>
+                      </div>
+                    )}
+                    {(detailExt.card as Record<string, unknown>).life != null && (
+                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
+                        <div className="text-[9px] font-mono text-text-dim">Life</div>
+                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).life)}</div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
