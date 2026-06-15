@@ -3,7 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { collectionCards } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { recommendForCollection, findExtended } from "@/lib/catalog/extended-cards";
+import { recommendForCollection } from "@/lib/catalog/extended-cards";
+import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
 
 export async function GET() {
   const { userId } = await auth();
@@ -24,6 +25,12 @@ export async function GET() {
 
   const recommendations = recommendForCollection(codes, 12);
 
+  // Get prices from catalog
+  const catalog = await fetchCatalog();
+  const priceMap = new Map(
+    catalog.filter((c) => c.marketPrice != null).map((c) => [c.cardSetId.toUpperCase(), c.marketPrice])
+  );
+
   return NextResponse.json({
     recommendations: recommendations.map((r) => ({
       cardSetId: r.cid,
@@ -38,6 +45,7 @@ export async function GET() {
       setName: r.setName,
       altArt: r.altArt,
       effect: r.effect.slice(0, 200),
+      marketPrice: priceMap.get(r.cid.toUpperCase()) ?? null,
     })),
     basedOn: codes.length,
   }, {

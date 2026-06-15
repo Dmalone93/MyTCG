@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getExtendedCards } from "@/lib/catalog/extended-cards";
+import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -8,7 +9,12 @@ export async function GET(request: Request) {
   const cards = getExtendedCards();
 
   if (setName) {
-    // Return cards from a specific set
+    // Get prices from the main catalog
+    const catalog = await fetchCatalog();
+    const priceMap = new Map(
+      catalog.filter((c) => c.marketPrice != null).map((c) => [c.cardSetId.toUpperCase(), c.marketPrice])
+    );
+
     const setCards = cards
       .filter((c) => c.setName === setName && c.type !== "DON")
       .sort((a, b) => a.cid.localeCompare(b.cid))
@@ -23,7 +29,7 @@ export async function GET(request: Request) {
         cardCost: c.cost != null ? String(c.cost) : "",
         cardPower: c.power != null ? String(c.power) : "",
         imageUrl: c.imageUrl,
-        marketPrice: null,
+        marketPrice: priceMap.get(c.cid.toUpperCase()) ?? null,
         inventoryPrice: null,
       }));
 

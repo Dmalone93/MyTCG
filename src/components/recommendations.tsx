@@ -15,7 +15,12 @@ type Recommendation = {
   setName: string;
   altArt: string | null;
   effect: string;
+  marketPrice: number | null;
 };
+
+function fmt(n: number): string {
+  return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
+}
 
 export function Recommendations() {
   const [recs, setRecs] = useState<Recommendation[]>([]);
@@ -98,8 +103,13 @@ export function Recommendations() {
                     {rec.color}
                   </span>
                 </div>
+                {rec.marketPrice != null && rec.marketPrice > 0 && (
+                  <div className="font-mono text-[11px] text-[#4ADE80] font-semibold mt-1">
+                    {fmt(rec.marketPrice)}
+                  </div>
+                )}
                 {rec.traits && (
-                  <div className="text-[9px] text-text-dim mt-1 truncate">
+                  <div className="text-[9px] text-text-dim mt-0.5 truncate">
                     {rec.traits}
                   </div>
                 )}

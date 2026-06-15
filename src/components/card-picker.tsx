@@ -15,9 +15,11 @@ type CardSet = { name: string; count: number; date: string | null };
 
 export function CardPicker({
   onPick,
+  onPickMultiple,
   onCancel,
 }: {
   onPick: (card: CatalogCard) => void;
+  onPickMultiple?: (cards: CatalogCard[]) => void;
   onCancel: () => void;
 }) {
   const [mode, setMode] = useState<"search" | "browse">("search");
@@ -35,6 +37,28 @@ export function CardPicker({
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
   const [setCards, setSetCards] = useState<CatalogCard[]>([]);
   const [loadingSets, setLoadingSets] = useState(false);
+
+  // Multi-select state (browse mode only)
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggleSelect(card: CatalogCard) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(card.cardSetId)) {
+        next.delete(card.cardSetId);
+      } else {
+        next.add(card.cardSetId);
+      }
+      return next;
+    });
+  }
+
+  function addSelected() {
+    if (!onPickMultiple || selected.size === 0) return;
+    const cards = setCards.filter((c) => selected.has(c.cardSetId));
+    onPickMultiple(cards);
+    setSelected(new Set());
+  }
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 100);
@@ -222,12 +246,42 @@ export function CardPicker({
             </>
           )}
 
-          {/* Browse mode — cards in selected set */}
+          {/* Browse mode — cards in selected set (multi-select) */}
           {mode === "browse" && selectedSet && (
             <>
               {loadingSets && <div className="py-8 text-center text-text-dim text-sm">Loading cards...</div>}
               {setCards.map((card, i) => (
-                <CardRow key={card.cardSetId + i} card={card} selected={false} onPick={onPick} onHover={() => {}} />
+                <div
+                  key={card.cardSetId + i}
+                  className={`flex items-center gap-3 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
+                    selected.has(card.cardSetId) ? "bg-[rgba(59,130,246,0.1)]" : "hover:bg-[rgba(59,130,246,0.05)]"
+                  }`}
+                  onClick={() => toggleSelect(card)}
+                >
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
+                    selected.has(card.cardSetId) ? "bg-accent border-accent" : "border-[rgba(255,255,255,0.2)]"
+                  }`}>
+                    {selected.has(card.cardSetId) && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#1C1C1F]">
+                    <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+                    <span className="text-[11px] text-text-dim">
+                      {card.cardSetId} · {card.rarity} · {card.cardColor}
+                    </span>
+                  </span>
+                  {card.marketPrice != null && card.marketPrice > 0 && (
+                    <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
+                      {fmt(card.marketPrice)}
+                    </span>
+                  )}
+                </div>
               ))}
             </>
           )}
@@ -236,6 +290,28 @@ export function CardPicker({
         {results.length >= 30 && mode === "search" && (
           <div className="flex-none py-1.5 bg-[#0D0D0F] border-t border-[rgba(255,255,255,0.04)] text-center font-mono text-[10px] text-text-dim">
             Top 30 — refine your search
+          </div>
+        )}
+
+        {/* Multi-select action bar */}
+        {mode === "browse" && selected.size > 0 && (
+          <div className="flex-none flex items-center gap-3 px-4 py-3 bg-bg-elevated border-t border-[rgba(255,255,255,0.08)]">
+            <span className="text-sm text-text-muted">
+              {selected.size} card{selected.size !== 1 ? "s" : ""} selected
+            </span>
+            <div className="flex-1" />
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-text-dim hover:text-text active:opacity-70 px-2 py-1"
+            >
+              Clear
+            </button>
+            <button
+              onClick={addSelected}
+              className="bg-accent text-white font-semibold text-sm py-2.5 px-5 rounded-lg hover:bg-accent-hover active:opacity-80 transition-colors"
+            >
+              Add {selected.size} card{selected.size !== 1 ? "s" : ""}
+            </button>
           </div>
         )}
       </div>

@@ -176,6 +176,26 @@ export function CardGrid({
       {showPicker && !pickedCard && (
         <CardPicker
           onPick={(card) => setPickedCard(card)}
+          onPickMultiple={async (cards) => {
+            for (const card of cards) {
+              await onAddCard({
+                cardCode: card.cardSetId,
+                cardName: card.cardName,
+                quantity: 1,
+                condition: "NM",
+                isGraded: false,
+                grade: null,
+                gradedCompany: null,
+                acquiredPrice: null,
+                notes: null,
+                imageUrl: card.imageUrl ?? null,
+                marketPrice: card.marketPrice ?? null,
+              });
+            }
+            setShowPicker(false);
+            setQuickAddMsg(`✓ Added ${cards.length} cards`);
+            setTimeout(() => setQuickAddMsg(null), 2000);
+          }}
           onCancel={() => setShowPicker(false)}
         />
       )}
