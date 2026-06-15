@@ -126,7 +126,14 @@ export function CardGrid({
           <span className="text-sm leading-none">+</span> Add
         </button>
         <button
-          onClick={() => setShowQuickScan(true)}
+          onClick={() => {
+            // Desktop: screen capture. Mobile: camera.
+            if (window.innerWidth >= 640) {
+              window.location.href = "/watch";
+            } else {
+              setShowQuickScan(true);
+            }
+          }}
           className="inline-flex items-center gap-1.5 flex-none border border-[rgba(255,255,255,0.08)] text-text-muted text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:text-text hover:border-[rgba(255,255,255,0.15)] active:opacity-70 transition-colors"
           title="Quick scan"
         >
