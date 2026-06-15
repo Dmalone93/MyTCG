@@ -277,7 +277,7 @@ export function CardPicker({
                     </span>
                   </span>
                   {card.marketPrice != null && card.marketPrice > 0 && (
-                    <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
+                    <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
                       {fmt(card.marketPrice)}
                     </span>
                   )}
@@ -308,7 +308,7 @@ export function CardPicker({
             </button>
             <button
               onClick={addSelected}
-              className="bg-accent text-white font-semibold text-sm py-2.5 px-5 rounded-lg hover:bg-accent-hover active:opacity-80 transition-colors"
+              className="border border-[rgba(255,255,255,0.15)] text-text font-medium text-sm py-2.5 px-5 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
             >
               Add {selected.size} card{selected.size !== 1 ? "s" : ""}
             </button>
@@ -349,7 +349,7 @@ function CardRow({
         </span>
       </span>
       {card.marketPrice != null && card.marketPrice > 0 && (
-        <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
+        <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
           {fmt(card.marketPrice)}
         </span>
       )}

@@ -79,7 +79,7 @@ export function AddCardForm({
               {prefill.cardSetId} · {prefill.setName} · {prefill.rarity}
             </div>
             {prefill.marketPrice != null && prefill.marketPrice > 0 && (
-              <div className="font-mono text-xs text-[#4ADE80] mt-0.5">
+              <div className="font-mono text-xs text-[#34D399] mt-0.5">
                 Market: €{prefill.marketPrice.toFixed(2)}
               </div>
             )}
@@ -161,7 +161,7 @@ export function AddCardForm({
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 bg-accent text-white font-semibold text-sm py-3 px-4 rounded-lg hover:bg-accent-hover active:opacity-80 disabled:opacity-50 transition-colors flex-1 sm:flex-none"
+          className="inline-flex items-center justify-center gap-2 border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 disabled:opacity-40 transition-colors flex-1 sm:flex-none"
         >
           {loading ? "..." : "Add card"}
         </button>

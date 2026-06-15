@@ -113,7 +113,7 @@ export default function SearchPage() {
 
               {/* Price */}
               {selected.marketPrice != null && selected.marketPrice > 0 ? (
-                <div className="font-mono font-semibold text-xl text-[#4ADE80]">
+                <div className="font-mono font-semibold text-xl text-[#34D399]">
                   {fmt(selected.marketPrice)}
                 </div>
               ) : (
@@ -215,7 +215,7 @@ export default function SearchPage() {
                 <span className="text-[11px] text-text-dim">{card.cardSetId} · {card.rarity}</span>
               </span>
               {card.marketPrice != null && card.marketPrice > 0 ? (
-                <span className="font-mono text-sm font-semibold text-[#4ADE80] flex-none">{fmt(card.marketPrice)}</span>
+                <span className="font-mono text-sm font-semibold text-[#34D399] flex-none">{fmt(card.marketPrice)}</span>
               ) : (
                 <span className="text-xs text-text-dim flex-none">—</span>
               )}
@@ -238,7 +238,7 @@ export default function SearchPage() {
                     <div className="text-[11px] font-semibold text-text truncate">{card.cardName}</div>
                     <div className="text-[9px] font-mono text-text-dim">{card.cardSetId}</div>
                     {card.marketPrice != null && card.marketPrice > 0 ? (
-                      <div className="font-mono text-[11px] font-semibold text-[#4ADE80] mt-0.5">{fmt(card.marketPrice)}</div>
+                      <div className="font-mono text-[11px] font-semibold text-[#34D399] mt-0.5">{fmt(card.marketPrice)}</div>
                     ) : (
                       <div className="text-[9px] text-text-dim mt-0.5">—</div>
                     )}

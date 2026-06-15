@@ -82,7 +82,7 @@ export function CardDetailModal({
   const market = num(price?.rawMarket);
   const paid = num(card.acquiredPrice);
   const pl = market > 0 ? (market - paid) * (card.quantity ?? 1) : null;
-  const plColor = pl != null ? (pl >= 0 ? "#4ADE80" : "#F87171") : undefined;
+  const plColor = pl != null ? (pl >= 0 ? "#34D399" : "#F87171") : undefined;
 
   const gradedPrices = (price?.gradedPrices as Record<string, number> | null) ?? {};
   const sortedGrades = GRADE_ORDER.filter((g) => g in gradedPrices);
@@ -229,7 +229,7 @@ export function CardDetailModal({
                 {sortedGrades.map((g) => (
                   <div key={g} className="flex justify-between items-center px-4 py-2.5 border-b border-[rgba(255,255,255,0.03)] last:border-0">
                     <span className="text-sm text-text-muted">{g}</span>
-                    <span className="font-mono font-semibold text-sm text-[#4ADE80]">{fmt(gradedPrices[g])}</span>
+                    <span className="font-mono font-semibold text-sm text-[#34D399]">{fmt(gradedPrices[g])}</span>
                   </div>
                 ))}
               </div>
@@ -307,7 +307,7 @@ export function CardDetailModal({
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={inputClass + " w-full resize-none"} />
               </div>
               <div className="flex gap-2 pt-1">
-                <button onClick={handleSave} disabled={saving} className="flex-1 bg-accent text-white font-semibold text-sm py-3 px-4 rounded-lg hover:bg-accent-hover active:opacity-80 disabled:opacity-50 transition-colors">{saving ? "..." : "Save"}</button>
+                <button onClick={handleSave} disabled={saving} className="flex-1 border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 disabled:opacity-40 transition-colors">{saving ? "..." : "Save"}</button>
                 <button onClick={() => setEditing(false)} className="text-sm text-text-muted hover:text-text active:opacity-70 px-4 py-3 transition-colors">Cancel</button>
               </div>
             </div>

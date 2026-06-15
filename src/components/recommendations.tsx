@@ -104,7 +104,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   </span>
                 </div>
                 {rec.marketPrice != null && rec.marketPrice > 0 && (
-                  <div className="font-mono text-[11px] text-[#4ADE80] font-semibold mt-1">
+                  <div className="font-mono text-[11px] text-[#34D399] font-semibold mt-1">
                     {fmt(rec.marketPrice)}
                   </div>
                 )}

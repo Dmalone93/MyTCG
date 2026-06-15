@@ -453,7 +453,7 @@ export function ScanModal({
   }
 
   const confidenceColor =
-    confidence >= 80 ? "#4ADE80" : confidence >= 40 ? "#FACC15" : "rgba(255,255,255,0.2)";
+    confidence >= 80 ? "#34D399" : confidence >= 40 ? "#FACC15" : "rgba(255,255,255,0.2)";
 
   return (
     <div
@@ -547,7 +547,7 @@ export function ScanModal({
                   </span>
                 </span>
                 {card.marketPrice != null && card.marketPrice > 0 && (
-                  <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
+                  <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
                     €{card.marketPrice.toFixed(2)}
                   </span>
                 )}
@@ -577,7 +577,7 @@ export function ScanModal({
           {!scanning && cameraReady && matchedCards.length === 0 && (
             <button
               onClick={startScanning}
-              className="flex-1 bg-accent text-white font-semibold text-sm py-3 px-4 rounded-lg hover:bg-accent-hover active:opacity-80 transition-colors"
+              className="flex-1 border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
             >
               Scan again
             </button>

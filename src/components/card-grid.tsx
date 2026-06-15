@@ -118,20 +118,19 @@ export function CardGrid({
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-[7px] flex-1 min-w-[120px] justify-center bg-accent text-white font-semibold text-sm py-3 px-4 rounded-[10px] hover:bg-accent-hover active:opacity-80 transition-colors shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+          className="inline-flex items-center gap-1.5 flex-1 min-w-[100px] justify-center border border-[rgba(255,255,255,0.12)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
         >
-          <span className="text-base leading-none -mt-px">+</span> Add card
+          <span className="text-sm leading-none">+</span> Add
         </button>
         <button
           onClick={() => setShowQuickScan(true)}
-          className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-3 px-4 text-sm font-semibold hover:bg-[#27272A] hover:text-text active:opacity-80 transition-colors"
-          title="Quick scan — auto-add to collection"
+          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(255,255,255,0.08)] text-text-muted text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:text-text hover:border-[rgba(255,255,255,0.15)] active:opacity-70 transition-colors"
+          title="Quick scan"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
-          <span className="hidden sm:inline">Scan</span>
+          Scan
         </button>
         {onRefreshPrices && (
           <button
@@ -141,30 +140,29 @@ export function CardGrid({
               setRefreshing(false);
             }}
             disabled={refreshing}
-            className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-3 px-4 text-sm font-semibold hover:bg-[#27272A] hover:text-text disabled:opacity-50 active:opacity-80 transition-colors"
-            title="Update all card prices"
+            className="inline-flex items-center gap-1.5 flex-none text-text-dim text-[13px] font-medium py-2.5 px-3 rounded-lg hover:text-text-muted disabled:opacity-40 active:opacity-70 transition-colors"
+            title="Update prices"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "animate-spin" : ""}><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-            <span className="hidden sm:inline">Update prices</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "animate-spin" : ""}><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
           </button>
         )}
-        <div className="flex border border-[rgba(255,255,255,0.06)] bg-bg-surface rounded-[10px] overflow-hidden flex-none">
+        <div className="flex rounded-lg overflow-hidden flex-none ml-auto">
           <button
             onClick={() => setView("table")}
-            className={`px-3.5 py-2.5 text-[13.5px] font-semibold transition-colors ${
+            className={`px-2.5 py-2 text-xs transition-colors ${
               view === "table"
-                ? "bg-[#27272A] text-text"
-                : "text-text-muted hover:text-text"
+                ? "text-text"
+                : "text-text-dim hover:text-text-muted"
             }`}
           >
             List
           </button>
           <button
             onClick={() => setView("grid")}
-            className={`px-3.5 py-2.5 text-[13.5px] font-semibold transition-colors ${
+            className={`px-2.5 py-2 text-xs transition-colors ${
               view === "grid"
-                ? "bg-[#27272A] text-text"
-                : "text-text-muted hover:text-text"
+                ? "text-text"
+                : "text-text-dim hover:text-text-muted"
             }`}
           >
             Grid
@@ -457,7 +455,7 @@ function CardTableRow({
       <td className="py-2.5 px-3 text-right font-mono">
         {market > 0 ? fmt(market) : "—"}
       </td>
-      <td className="py-2.5 px-3 text-right font-mono text-[#4ADE80]">
+      <td className="py-2.5 px-3 text-right font-mono text-[#34D399]">
         {gp > 0 ? fmt(gp) : "—"}
       </td>
     </tr>
@@ -521,7 +519,7 @@ function CardMobileRow({
           {market > 0 ? fmt(market) : "—"}
         </div>
         {gp > 0 && (
-          <div className="font-mono text-xs text-[#4ADE80]">{fmt(gp)}</div>
+          <div className="font-mono text-xs text-[#34D399]">{fmt(gp)}</div>
         )}
       </div>
     </div>
@@ -585,7 +583,7 @@ function CardGridTile({
           {market > 0 ? fmt(market) : "—"}
         </span>
         {gp > 0 && (
-          <span className="text-[#4ADE80] font-mono">{fmt(gp)}</span>
+          <span className="text-[#34D399] font-mono">{fmt(gp)}</span>
         )}
       </div>
     </div>

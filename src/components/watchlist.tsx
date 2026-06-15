@@ -154,7 +154,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                     <span className="text-[10px] text-text-dim">{card.cardSetId}</span>
                   </span>
                   {card.marketPrice != null && card.marketPrice > 0 && (
-                    <span className="font-mono text-xs text-[#4ADE80] flex-none">{fmt(card.marketPrice)}</span>
+                    <span className="font-mono text-xs text-[#34D399] flex-none">{fmt(card.marketPrice)}</span>
                   )}
                 </button>
               ))}
@@ -198,7 +198,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                       <div className="flex items-center gap-2 text-[10px] text-text-dim">
                         <span className="font-mono">{item.cardCode}</span>
                         {target != null && (
-                          <span className={belowTarget ? "text-[#4ADE80] font-semibold" : ""}>
+                          <span className={belowTarget ? "text-[#34D399] font-semibold" : ""}>
                             Target: {fmt(target)}
                           </span>
                         )}

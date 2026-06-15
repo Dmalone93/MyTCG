@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #09090B;
+  --bg: #0A0A0B;
   --bg-elevated: #111113;
-  --bg-surface: #18181B;
-  --text: #FAFAFA;
-  --text-muted: #A1A1AA;
-  --text-dim: #52525B;
-  --accent: #3B82F6;
-  --accent-hover: #2563EB;
+  --bg-surface: #161618;
+  --text: #ECECEF;
+  --text-muted: #8B8B8F;
+  --text-dim: #4E4E52;
+  --accent: #ECECEF;
+  --accent-hover: #FFFFFF;
+  --accent-subtle: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.06);
-  --border-focus: #3B82F6;
+  --border-focus: rgba(255, 255, 255, 0.3);
+  --green: #34D399;
+  --red: #F87171;
 }
 
 @theme inline {
@@ -31,13 +34,14 @@ body {
   color: var(--text);
   font-family: var(--font-sans), -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--border-focus);
-  outline-offset: -1px;
+  outline: 1px solid var(--border-focus);
+  outline-offset: 0;
 }
 
 ::placeholder {
@@ -45,25 +49,20 @@ textarea:focus {
 }
 
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272A;
-  border-radius: 8px;
-  border: 3px solid var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 @keyframes ticker {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-ticker {

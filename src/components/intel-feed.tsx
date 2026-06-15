@@ -19,6 +19,12 @@ type IntelItem = {
   mentionsUserCard: boolean;
 };
 
+function formatDate(d: string): string {
+  const parsed = new Date(d);
+  if (isNaN(parsed.getTime())) return d;
+  return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 const CATEGORY_LABELS: Record<string, string> = {
   tcg_japan: "Japan",
   tcg_english: "English",
@@ -216,9 +222,9 @@ function IntelCard({ item }: { item: IntelItem }) {
             {item.author && (
               <span>by {item.author}</span>
             )}
-            {item.published && <span>{item.published}</span>}
+            {item.published && <span>{formatDate(item.published)}</span>}
             {item.sourceUrl && (
-              <span className="text-accent ml-auto">Read →</span>
+              <span className="text-text-muted ml-auto">Read →</span>
             )}
           </div>
         </div>

@@ -41,8 +41,8 @@ export function MetricStrip({
 
   const pl = totalRaw - totalSpent;
   const plPct = totalSpent > 0 ? (pl / totalSpent) * 100 : 0;
-  const plColor = pl >= 0 ? "#4ADE80" : "#F87171";
-  const plBg = pl >= 0 ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.1)";
+  const plColor = pl >= 0 ? "#34D399" : "#F87171";
+  const plBg = pl >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)";
 
   return (
     <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch bg-bg-elevated border border-[rgba(255,255,255,0.05)] rounded-xl overflow-hidden mb-3">
@@ -108,7 +108,7 @@ export function MetricStrip({
           <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
             If graded · PSA 10
           </div>
-          <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight text-[#4ADE80]">
+          <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight text-[#34D399]">
             {fmt(totalGraded)}
           </div>
         </div>
