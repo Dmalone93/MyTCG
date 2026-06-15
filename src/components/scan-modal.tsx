@@ -11,9 +11,11 @@ type ScanResult = {
   cardName: string | null;
   rarity: string | null;
   color: string | null;
+  variantCounts?: Record<string, number>;
+  matchingImageUrls?: string[];
 };
 
-type CardIndex = Array<{ id: string; n: string; r: string; c: string; img: string }>;
+type CardIndex = Array<{ id: string; n: string; r: string; c: string; img: string; alt?: string }>;
 
 /** Extract card codes from text using regex (runs instantly, no API) */
 function extractCodesLocal(text: string): string[] {
@@ -186,11 +188,11 @@ export function ScanModal({
     const gen = scanGenRef.current;
 
     try {
-      // Every frame hits the API with fast mode (TEXT_DETECTION only, ~300ms vs 1.5s)
       visionCallCount.current++;
       const base64 = captureFrame();
       if (!base64) { pendingScanRef.current = false; return; }
 
+      // PASS 1: Fast text-only detection (~300ms)
       const res = await fetch("/api/scan-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -201,23 +203,83 @@ export function ScanModal({
 
       const data: ScanResult = await res.json();
 
-      // Try local index match with Vision OCR text
+      // Try local index match with OCR text
       const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
       const localMatches = matchLocalIndex(allText, cardIndexRef.current);
 
       if (data.codes && data.codes.length > 0) {
-        stopScanning();
-        setConfidence(100);
-        setStatus(`Found: ${data.codes[0]}`);
-        await lookupCard(data.codes[0]);
+        const code = data.codes[0];
+        // Check if this code has multiple art variants
+        const variantCount = cardIndexRef.current.filter(
+          (c) => c.id.toUpperCase() === code.toUpperCase()
+        ).length;
+
+        if (variantCount <= 1) {
+          // Single variant — done!
+          stopScanning();
+          setConfidence(100);
+          setStatus(`Found: ${code}`);
+          await lookupCard(code);
+        } else {
+          // Multiple variants — need PASS 2 with full detection for artwork matching
+          setConfidence(70);
+          setStatus(`Found ${code} — identifying artwork...`);
+
+          const res2 = await fetch("/api/scan-card", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64, fast: false }),
+          });
+
+          if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
+
+          const fullData: ScanResult = await res2.json();
+          stopScanning();
+          setConfidence(100);
+          setStatus(`Found: ${code} (${variantCount} variants)`);
+
+          // Use web detection image URLs + labels to rank variants
+          await lookupCardWithVariants(code, fullData);
+        }
       } else if (localMatches.length > 0) {
         stopScanning();
         setConfidence(90);
         setStatus(`Matched: ${localMatches[0].n}`);
         await lookupCards(localMatches.map((m) => m.id));
       } else if (data.text && data.text.length > 10) {
-        setConfidence(Math.min(50, visionCallCount.current * 12));
-        setStatus("Reading... hold steady");
+        // Got text but no match — if this is the 3rd+ attempt, try full detection
+        if (visionCallCount.current >= 3 && visionCallCount.current % 3 === 0) {
+          setConfidence(40);
+          setStatus("Trying deeper detection...");
+          const res2 = await fetch("/api/scan-card", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64, fast: false }),
+          });
+          if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
+          const fullData: ScanResult = await res2.json();
+
+          const fullText = [fullData.text, fullData.bestGuess, fullData.cardName, ...(fullData.labels ?? [])].filter(Boolean).join(" ");
+          const fullMatches = matchLocalIndex(fullText, cardIndexRef.current);
+
+          if (fullData.codes && fullData.codes.length > 0) {
+            stopScanning();
+            setConfidence(100);
+            setStatus(`Found: ${fullData.codes[0]}`);
+            await lookupCard(fullData.codes[0]);
+          } else if (fullMatches.length > 0) {
+            stopScanning();
+            setConfidence(85);
+            setStatus(`Matched: ${fullMatches[0].n}`);
+            await lookupCards(fullMatches.map((m) => m.id));
+          } else {
+            setConfidence(Math.min(50, visionCallCount.current * 8));
+            setStatus("Hold steady...");
+          }
+        } else {
+          setConfidence(Math.min(50, visionCallCount.current * 12));
+          setStatus("Reading... hold steady");
+        }
       } else {
         setConfidence(Math.min(20, visionCallCount.current * 5));
         setStatus("Scanning...");
@@ -276,6 +338,67 @@ export function ScanModal({
       }
     };
     img.src = URL.createObjectURL(file);
+  }
+
+  async function lookupCardWithVariants(code: string, scanData: ScanResult) {
+    // Get all variants from the card index
+    const variants = cardIndexRef.current.filter(
+      (c) => c.id.toUpperCase() === code.toUpperCase()
+    );
+
+    if (variants.length <= 1) {
+      return lookupCard(code);
+    }
+
+    // Use web detection matching image URLs to identify which artwork
+    const matchUrls = (scanData.matchingImageUrls ?? []).join(" ").toLowerCase();
+    const labels = (scanData.labels ?? []).join(" ").toLowerCase();
+    const bestGuess = (scanData.bestGuess ?? "").toLowerCase();
+
+    // Score each variant by how well its image URL matches web detection results
+    const scored = variants.map((v) => {
+      let score = 0;
+      const imgLower = v.img.toLowerCase();
+
+      // Check if the variant's image URL (or parts of it) appear in web matches
+      const imgParts = imgLower.split("/").pop()?.split("_") ?? [];
+      for (const part of imgParts) {
+        if (part.length > 4 && matchUrls.includes(part)) score += 20;
+      }
+
+      // Check if variant name appears in labels/best guess
+      const nameLower = v.n.toLowerCase();
+      if (labels.includes(nameLower)) score += 10;
+      if (bestGuess.includes(nameLower)) score += 10;
+
+      // Check for "alt art" or artist name mentions
+      if ((labels.includes("alt") || labels.includes("alternate")) && v.img.includes("_")) {
+        score += 5; // Might be alt art
+      }
+
+      return { variant: v, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+
+    // Convert to CatalogCard format and show all variants
+    const catalogCards: CatalogCard[] = scored.map((s) => ({
+      cardSetId: s.variant.id,
+      cardName: s.variant.n,
+      setName: "",
+      setId: "",
+      rarity: s.variant.r,
+      cardColor: s.variant.c,
+      cardType: "",
+      cardCost: "",
+      cardPower: "",
+      imageUrl: s.variant.img,
+      marketPrice: null,
+      inventoryPrice: null,
+    }));
+
+    setMatchedCards(catalogCards);
+    setStatus(`${code} — ${variants.length} variants, pick yours`);
   }
 
   async function lookupCard(code: string) {

@@ -225,6 +225,28 @@ export async function POST(request: Request) {
     // Try to detect color from text/labels
     const color = extractColor(text, labels);
 
+    // Check how many variants exist for each code
+    const variantCounts: Record<string, number> = {};
+    for (const code of codes) {
+      const matches = getExtendedCards().filter(
+        (c) => c.cid.toUpperCase() === code.toUpperCase()
+      );
+      variantCounts[code] = matches.length;
+    }
+
+    // Collect matching image URLs from web detection for artwork comparison
+    const matchingImageUrls: string[] = [];
+    if (resp.webDetection?.fullMatchingImages) {
+      for (const img of resp.webDetection.fullMatchingImages) {
+        if (img.url) matchingImageUrls.push(String(img.url));
+      }
+    }
+    if (resp.webDetection?.partialMatchingImages) {
+      for (const img of resp.webDetection.partialMatchingImages) {
+        if (img.url) matchingImageUrls.push(String(img.url));
+      }
+    }
+
     return NextResponse.json({
       codes,
       text: text.slice(0, 300),
@@ -233,6 +255,8 @@ export async function POST(request: Request) {
       cardName,
       rarity,
       color,
+      variantCounts,
+      matchingImageUrls: matchingImageUrls.slice(0, 10),
     });
   } catch (err) {
     return NextResponse.json(

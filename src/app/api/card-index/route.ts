@@ -6,6 +6,7 @@ export async function GET() {
   const cards = getExtendedCards();
 
   // Only send what's needed for matching — keep payload small
+  // Include all variants (same code, different art)
   const index = cards
     .filter((c) => c.type !== "DON")
     .map((c) => ({
@@ -14,6 +15,7 @@ export async function GET() {
       r: c.rarity,
       c: c.color,
       img: c.imageUrl,
+      alt: c.altArt ?? undefined,
     }));
 
   return NextResponse.json(index, {
