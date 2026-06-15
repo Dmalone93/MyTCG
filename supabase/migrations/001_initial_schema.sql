@@ -59,6 +59,20 @@ CREATE TABLE IF NOT EXISTS intel_items (
   fetched_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS watchlist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  card_code TEXT NOT NULL,
+  card_name TEXT NOT NULL,
+  image_url TEXT,
+  target_price NUMERIC,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, card_code)
+);
+
+CREATE INDEX IF NOT EXISTS idx_watchlist_user ON watchlist(user_id);
+
 CREATE INDEX IF NOT EXISTS idx_collections_user ON collections(user_id);
 CREATE INDEX IF NOT EXISTS idx_collection_cards_user ON collection_cards(user_id);
 CREATE INDEX IF NOT EXISTS idx_collection_cards_collection ON collection_cards(collection_id);

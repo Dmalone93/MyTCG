@@ -13,44 +13,57 @@ type ScanResult = {
   color: string | null;
 };
 
-/** Accumulated evidence across multiple frames */
-type Evidence = {
-  codes: Map<string, number>;       // code → times seen
-  textFragments: string[];           // all OCR text collected
-  labels: Map<string, number>;       // label → times seen
-  cardNames: Map<string, number>;    // detected name → times seen
-  rarities: Map<string, number>;     // rarity → times seen
-  colors: Map<string, number>;       // color → times seen
-  bestGuesses: Map<string, number>;  // guess → times seen
-  frameCount: number;
-};
+type CardIndex = Array<{ id: string; n: string; r: string; c: string; img: string }>;
 
-function createEvidence(): Evidence {
-  return {
-    codes: new Map(),
-    textFragments: [],
-    labels: new Map(),
-    cardNames: new Map(),
-    rarities: new Map(),
-    colors: new Map(),
-    bestGuesses: new Map(),
-    frameCount: 0,
-  };
-}
-
-function increment(map: Map<string, number>, key: string) {
-  map.set(key, (map.get(key) ?? 0) + 1);
-}
-
-function topEntry(map: Map<string, number>): [string, number] | null {
-  let best: [string, number] | null = null;
-  for (const [k, v] of map) {
-    if (!best || v > best[1]) best = [k, v];
+/** Extract card codes from text using regex (runs instantly, no API) */
+function extractCodesLocal(text: string): string[] {
+  const codes: string[] = [];
+  const up = text.toUpperCase();
+  const re = /(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*(\d{2,3})/g;
+  let m;
+  while ((m = re.exec(up)) !== null) {
+    codes.push(m[1] + m[2].padStart(2, "0") + "-" + m[3].padStart(3, "0"));
   }
-  return best;
+  const pre = /P\s*[-\s.]\s*(\d{3})/g;
+  while ((m = pre.exec(up)) !== null) codes.push("P-" + m[1]);
+  return [...new Set(codes)];
 }
 
-const CONFIDENCE_THRESHOLD = 2; // Need code seen in 2+ frames to auto-match
+/** Match text against card index locally */
+function matchLocalIndex(text: string, index: CardIndex): CardIndex {
+  if (!text || text.length < 3) return [];
+  const textUp = text.toUpperCase();
+
+  // First try code match
+  const codes = extractCodesLocal(text);
+  if (codes.length > 0) {
+    const codeMatches = index.filter((c) =>
+      codes.some((code) => c.id.toUpperCase() === code)
+    );
+    if (codeMatches.length > 0) return codeMatches;
+  }
+
+  // Then try name match — score each card
+  const scored = index
+    .map((card) => {
+      let score = 0;
+      const nameUp = card.n.toUpperCase();
+      const words = nameUp.split(/\s+/).filter((w) => w.length > 2);
+
+      for (const word of words) {
+        if (textUp.includes(word)) score += word.length;
+      }
+
+      // Full name match is very strong
+      if (textUp.includes(nameUp)) score += 100;
+
+      return { card, score };
+    })
+    .filter((s) => s.score > 8)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, 5).map((s) => s.card);
+}
 
 export function ScanModal({
   onResult,
@@ -67,13 +80,22 @@ export function ScanModal({
   const scanGenRef = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingScanRef = useRef(false);
-  const evidenceRef = useRef<Evidence>(createEvidence());
+  const cardIndexRef = useRef<CardIndex>([]);
+  const visionCallCount = useRef(0);
 
   const [status, setStatus] = useState("Starting camera...");
   const [confidence, setConfidence] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [matchedCards, setMatchedCards] = useState<CatalogCard[]>([]);
+
+  // Load card index for local matching
+  useEffect(() => {
+    fetch("/api/card-index")
+      .then((r) => r.json())
+      .then((data: CardIndex) => { cardIndexRef.current = data; })
+      .catch(() => {});
+  }, []);
 
   // Start camera — portrait on mobile
   useEffect(() => {
@@ -116,11 +138,8 @@ export function ScanModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Start auto-scanning when camera is ready
   useEffect(() => {
-    if (cameraReady) {
-      startScanning();
-    }
+    if (cameraReady) startScanning();
     return () => stopScanning();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraReady]);
@@ -130,11 +149,12 @@ export function ScanModal({
     scanGenRef.current++;
     setScanning(true);
     pendingScanRef.current = false;
-    evidenceRef.current = createEvidence();
+    visionCallCount.current = 0;
     setConfidence(0);
 
     scanFrame();
-    scanTimerRef.current = setInterval(scanFrame, 600);
+    // Fast interval — most work is local, only occasional Vision API calls
+    scanTimerRef.current = setInterval(scanFrame, 400);
   }
 
   function stopScanning() {
@@ -150,12 +170,13 @@ export function ScanModal({
     if (!video || !video.videoWidth) return null;
 
     const canvas = document.createElement("canvas");
-    const w = Math.min(640, video.videoWidth);
+    // Smaller image = faster upload when we do need Vision API
+    const w = Math.min(480, video.videoWidth);
     const h = Math.round((w * video.videoHeight) / video.videoWidth);
     canvas.width = w;
     canvas.height = h;
     canvas.getContext("2d")!.drawImage(video, 0, 0, w, h);
-    return canvas.toDataURL("image/jpeg", 0.75).split(",")[1];
+    return canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
   }
 
   const scanFrame = useCallback(async () => {
@@ -163,73 +184,55 @@ export function ScanModal({
     pendingScanRef.current = true;
 
     const gen = scanGenRef.current;
-    const base64 = captureFrame();
-    if (!base64) {
-      pendingScanRef.current = false;
-      return;
-    }
 
     try {
-      const res = await fetch("/api/scan-card", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64 }),
-      });
+      // Strategy: call Vision API every 3rd frame, use results for local matching in between
+      const shouldCallVision = visionCallCount.current % 3 === 0;
+      visionCallCount.current++;
 
-      if (gen !== scanGenRef.current) {
-        pendingScanRef.current = false;
-        return;
-      }
+      if (shouldCallVision) {
+        const base64 = captureFrame();
+        if (!base64) { pendingScanRef.current = false; return; }
 
-      const data: ScanResult = await res.json();
-      const ev = evidenceRef.current;
-      ev.frameCount++;
+        const res = await fetch("/api/scan-card", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: base64 }),
+        });
 
-      // Accumulate evidence
-      for (const code of data.codes ?? []) increment(ev.codes, code);
-      if (data.text) ev.textFragments.push(data.text);
-      for (const label of data.labels ?? []) increment(ev.labels, label);
-      if (data.cardName) increment(ev.cardNames, data.cardName);
-      if (data.rarity) increment(ev.rarities, data.rarity);
-      if (data.color) increment(ev.colors, data.color);
-      if (data.bestGuess) increment(ev.bestGuesses, data.bestGuess);
+        if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
 
-      // Check for high-confidence code match
-      const topCode = topEntry(ev.codes);
+        const data: ScanResult = await res.json();
 
-      if (topCode && topCode[1] >= CONFIDENCE_THRESHOLD) {
-        // Strong match — seen same code in multiple frames
-        stopScanning();
-        setConfidence(100);
-        setStatus(`Confirmed: ${topCode[0]} (${topCode[1]} frames)`);
-        await lookupCard(topCode[0], buildAggregatedResult(ev));
-      } else if (topCode) {
-        // Seen a code once — building confidence
-        const pct = Math.min(90, Math.round((topCode[1] / CONFIDENCE_THRESHOLD) * 80));
-        setConfidence(pct);
-        setStatus(`Detecting: ${topCode[0]}...`);
-      } else if (ev.frameCount >= 5 && ev.cardNames.size > 0) {
-        // No code but have accumulated card names — try name-based
-        const topName = topEntry(ev.cardNames);
-        if (topName && topName[1] >= 2) {
+        // Try local index match with Vision results
+        const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
+        const localMatches = matchLocalIndex(allText, cardIndexRef.current);
+
+        if (data.codes && data.codes.length > 0) {
+          // Got a code — high confidence
           stopScanning();
-          setConfidence(70);
-          setStatus(`Detected: ${topName[0]}`);
-          await lookupByName(topName[0], buildAggregatedResult(ev));
+          setConfidence(100);
+          setStatus(`Found: ${data.codes[0]}`);
+          await lookupCard(data.codes[0]);
+        } else if (localMatches.length > 0) {
+          // Local match from Vision text
+          stopScanning();
+          setConfidence(90);
+          setStatus(`Matched: ${localMatches[0].n}`);
+          await lookupCards(localMatches.map((m) => m.id));
+        } else if (data.cardName) {
+          setConfidence(50);
+          setStatus(`Seeing: ${data.cardName}...`);
+        } else if (data.bestGuess) {
+          setConfidence(30);
+          setStatus(`Detecting: ${data.bestGuess}...`);
         } else {
-          setConfidence(Math.min(50, ev.frameCount * 8));
-          setStatus(`Reading card... (frame ${ev.frameCount})`);
+          setConfidence(Math.min(20, visionCallCount.current * 5));
+          setStatus("Scanning...");
         }
-      } else if (ev.frameCount > 0) {
-        // Still gathering data
-        const bestGuess = topEntry(ev.bestGuesses);
-        const pct = Math.min(40, ev.frameCount * 7);
-        setConfidence(pct);
-        if (bestGuess) {
-          setStatus(`Seeing: ${bestGuess[0]}...`);
-        } else {
-          setStatus(`Scanning... (frame ${ev.frameCount})`);
-        }
+      } else {
+        // Skip Vision API — just update confidence
+        setConfidence((prev) => Math.min(prev + 2, 40));
       }
     } catch {
       // Network error — keep scanning
@@ -237,26 +240,6 @@ export function ScanModal({
     pendingScanRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function buildAggregatedResult(ev: Evidence): ScanResult {
-    const allText = ev.textFragments.join("\n");
-    const allLabels = [...ev.labels.keys()];
-    const topCode = topEntry(ev.codes);
-    const topName = topEntry(ev.cardNames);
-    const topRarity = topEntry(ev.rarities);
-    const topColor = topEntry(ev.colors);
-    const topGuess = topEntry(ev.bestGuesses);
-
-    return {
-      codes: topCode ? [topCode[0]] : [],
-      text: allText.slice(0, 500),
-      bestGuess: topGuess?.[0] ?? null,
-      labels: allLabels,
-      cardName: topName?.[0] ?? null,
-      rarity: topRarity?.[0] ?? null,
-      color: topColor?.[0] ?? null,
-    };
-  }
 
   async function scanFile(file: File) {
     setStatus("Reading card...");
@@ -283,17 +266,22 @@ export function ScanModal({
         if (data.codes && data.codes.length > 0) {
           setConfidence(100);
           setStatus(`Found: ${data.codes[0]}`);
-          await lookupCard(data.codes[0], data);
-        } else if (data.cardName) {
-          setConfidence(70);
-          setStatus(`Detected: ${data.cardName}`);
-          await lookupByName(data.cardName, data);
+          await lookupCard(data.codes[0]);
         } else {
-          setStatus(
-            data.bestGuess
-              ? `Detected: ${data.bestGuess} — not a recognized card code`
-              : "Card not recognized — try a clearer photo"
-          );
+          // Try local matching
+          const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
+          const localMatches = matchLocalIndex(allText, cardIndexRef.current);
+          if (localMatches.length > 0) {
+            setConfidence(90);
+            setStatus(`Matched: ${localMatches[0].n}`);
+            await lookupCards(localMatches.map((m) => m.id));
+          } else {
+            setStatus(
+              data.bestGuess
+                ? `Detected: ${data.bestGuess} — try a clearer photo`
+                : "Card not recognized — try a clearer photo"
+            );
+          }
         }
       } catch {
         setStatus("API error — try again");
@@ -302,110 +290,55 @@ export function ScanModal({
     img.src = URL.createObjectURL(file);
   }
 
-  async function lookupCard(code: string, scanData: ScanResult) {
+  async function lookupCard(code: string) {
     try {
-      const res = await fetch(
-        `/api/search-cards?q=${encodeURIComponent(code)}`
-      );
+      const res = await fetch(`/api/search-cards?q=${encodeURIComponent(code)}`);
       const cards: CatalogCard[] = await res.json();
       if (cards.length > 0) {
-        const ranked = rankMatches(cards, scanData);
-        setMatchedCards(ranked.slice(0, 5));
-        setStatus(`Matched: ${ranked[0].cardName}`);
+        setMatchedCards(cards.slice(0, 5));
+        setStatus(`Matched: ${cards[0].cardName}`);
       } else {
-        setMatchedCards([]);
-        setStatus(`Found code ${code} but no catalog match`);
-      }
-    } catch {
-      setStatus(`Found code ${code} — catalog lookup failed`);
-    }
-  }
-
-  async function lookupByName(name: string, scanData: ScanResult) {
-    try {
-      const cleanName = name
-        .replace(/one piece (tcg|card game)/i, "")
-        .replace(/trading card/i, "")
-        .trim();
-      if (!cleanName) return;
-
-      const res = await fetch(
-        `/api/search-cards?q=${encodeURIComponent(cleanName)}`
-      );
-      const cards: CatalogCard[] = await res.json();
-      if (cards.length > 0) {
-        const ranked = rankMatches(cards, scanData);
-        setMatchedCards(ranked.slice(0, 5));
-        setStatus(`Matched: ${ranked[0].cardName}`);
-      }
-    } catch {
-      // Silent fail
-    }
-  }
-
-  function rankMatches(cards: CatalogCard[], scanData: ScanResult): CatalogCard[] {
-    const text = (scanData.text ?? "").toUpperCase();
-    const labels = (scanData.labels ?? []).map((l) => l.toUpperCase());
-    const allText = text + " " + labels.join(" ") + " " + (scanData.bestGuess ?? "").toUpperCase();
-
-    return [...cards].sort((a, b) => {
-      return matchScore(b, allText, scanData) - matchScore(a, allText, scanData);
-    });
-  }
-
-  function matchScore(card: CatalogCard, text: string, scanData: ScanResult): number {
-    let score = 0;
-
-    // Exact code match
-    if (text.includes(card.cardSetId.toUpperCase())) score += 100;
-
-    // Card name words
-    const nameParts = card.cardName.toUpperCase().split(/\s+/);
-    for (const part of nameParts) {
-      if (part.length > 2 && text.includes(part)) score += 10;
-    }
-
-    // Set name
-    if (text.includes(card.setName.toUpperCase())) score += 5;
-
-    // Rarity match from accumulated evidence
-    if (scanData.rarity && card.rarity.toUpperCase().includes(scanData.rarity.toUpperCase())) {
-      score += 15;
-    }
-
-    // Color match from accumulated evidence
-    if (scanData.color && card.cardColor.toUpperCase().includes(scanData.color.toUpperCase())) {
-      score += 10;
-    }
-
-    // Rarity text in OCR
-    const rarityMap: Record<string, string[]> = {
-      "SEC": ["SEC", "SECRET"],
-      "SR": ["SR", "SUPER RARE"],
-      "R": ["RARE"],
-      "UC": ["UC", "UNCOMMON"],
-      "C": ["COMMON"],
-      "L": ["LEADER"],
-      "SP": ["SP", "SPECIAL"],
-      "ALT": ["ALT", "ALTERNATE", "MANGA"],
-    };
-    for (const [key, aliases] of Object.entries(rarityMap)) {
-      if (card.rarity.toUpperCase().includes(key)) {
-        for (const alias of aliases) {
-          if (text.includes(alias)) score += 5;
+        // Fall back to local index
+        const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase());
+        if (local.length > 0) {
+          setMatchedCards(local.map((c) => ({
+            cardSetId: c.id, cardName: c.n, setName: "", setId: "",
+            rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
+            cardPower: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+          })));
+          setStatus(`Matched: ${local[0].n}`);
+        } else {
+          setMatchedCards([]);
+          setStatus(`Found code ${code} but no match`);
         }
       }
+    } catch {
+      setStatus(`Found code ${code} — lookup failed`);
     }
+  }
 
-    // Color in text
-    const colors = ["RED", "BLUE", "GREEN", "PURPLE", "BLACK", "YELLOW"];
-    for (const color of colors) {
-      if (card.cardColor.toUpperCase().includes(color) && text.includes(color)) {
-        score += 3;
+  async function lookupCards(codes: string[]) {
+    // Try API for the first code
+    try {
+      const res = await fetch(`/api/search-cards?q=${encodeURIComponent(codes[0])}`);
+      const cards: CatalogCard[] = await res.json();
+      if (cards.length > 0) {
+        setMatchedCards(cards.slice(0, 5));
+        return;
       }
-    }
+    } catch { /* fall through */ }
 
-    return score;
+    // Fall back to local index
+    const local = codes.flatMap((code) =>
+      cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase())
+    );
+    if (local.length > 0) {
+      setMatchedCards(local.slice(0, 5).map((c) => ({
+        cardSetId: c.id, cardName: c.n, setName: "", setId: "",
+        rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
+        cardPower: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+      })));
+    }
   }
 
   const confidenceColor =
@@ -421,11 +354,9 @@ export function ScanModal({
         className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
         </div>
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)]">
           <h2 className="font-semibold text-sm text-text">
             {quickMode ? "Quick Scan" : "Scan Card"}
@@ -438,7 +369,6 @@ export function ScanModal({
           </button>
         </div>
 
-        {/* Camera — portrait on mobile, landscape on desktop */}
         <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-black overflow-hidden">
           <video
             ref={videoRef}
@@ -449,45 +379,35 @@ export function ScanModal({
           />
           {scanning && (
             <div className="absolute inset-0 pointer-events-none">
-              {/* Scan frame corners */}
               <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
                 <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
                 <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
               </div>
-              {/* Confidence bar at bottom of camera */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.5)]">
                 <div
                   className="h-full transition-all duration-300 ease-out rounded-r-full"
-                  style={{
-                    width: `${confidence}%`,
-                    backgroundColor: confidenceColor,
-                  }}
+                  style={{ width: `${confidence}%`, backgroundColor: confidenceColor }}
                 />
               </div>
             </div>
           )}
         </div>
 
-        {/* Status */}
         <div className="px-4 py-3 flex items-center justify-between">
           <span className="text-sm text-text-muted">{status}</span>
           {scanning && confidence > 0 && (
-            <span
-              className="text-xs font-mono font-semibold"
-              style={{ color: confidenceColor }}
-            >
+            <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>
               {confidence}%
             </span>
           )}
         </div>
 
-        {/* Matched cards */}
         {matchedCards.length > 0 && (
           <div className="border-t border-[rgba(255,255,255,0.04)]">
             <div className="px-3 py-1.5 text-[10px] font-mono tracking-[.08em] uppercase text-text-dim">
-              Select a match
+              {quickMode ? "Tap to add" : "Select a match"}
             </div>
             {matchedCards.map((card, i) => (
               <button
@@ -495,22 +415,17 @@ export function ScanModal({
                 onClick={async () => {
                   await onResult(card);
                   if (quickMode) {
-                    // Reset and keep scanning
                     setMatchedCards([]);
                     setConfidence(0);
-                    evidenceRef.current = createEvidence();
+                    visionCallCount.current = 0;
                     setStatus("Scan next card...");
-                    setTimeout(() => startScanning(), 500);
+                    setTimeout(() => startScanning(), 300);
                   }
                 }}
                 className="flex items-center gap-2.5 w-full text-left px-3 py-3 sm:py-2 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(59,130,246,0.08)] active:opacity-80 transition-colors"
               >
                 <div className="relative w-8 h-[44px] flex-none rounded overflow-hidden bg-[#1C1C1F]">
-                  <img
-                    src={card.imageUrl}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
+                  <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                 </div>
                 <span className="flex-1 min-w-0">
                   <span className="text-[13px] font-semibold text-text block truncate">
@@ -530,7 +445,6 @@ export function ScanModal({
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2 px-4 py-3 border-t border-[rgba(255,255,255,0.04)]">
           <input
             ref={fileRef}

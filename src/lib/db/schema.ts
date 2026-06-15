@@ -7,6 +7,8 @@ import {
   numeric,
   jsonb,
   timestamp,
+  unique,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const profiles = pgTable("profiles", {
@@ -49,6 +51,24 @@ export const cardPrices = pgTable("card_prices", {
   currency: text("currency").default("EUR"),
   fetchedAt: timestamp("fetched_at").defaultNow(),
 });
+
+export const watchlist = pgTable(
+  "watchlist",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull(),
+    cardCode: text("card_code").notNull(),
+    cardName: text("card_name").notNull(),
+    imageUrl: text("image_url"),
+    targetPrice: numeric("target_price"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    unique("watchlist_user_card").on(table.userId, table.cardCode),
+    index("idx_watchlist_user").on(table.userId),
+  ]
+);
 
 export const intelItems = pgTable("intel_items", {
   id: uuid("id").primaryKey().defaultRandom(),
