@@ -82,8 +82,8 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
   const [refreshMsg, setRefreshMsg] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const actionItems = items.filter((i) => i.urgent || i.mentionsUserCard);
-  const feedItems = items.filter((i) => !i.urgent && !i.mentionsUserCard);
+  const myCardItems = items.filter((i) => i.mentionsUserCard);
+  const feedItems = items.filter((i) => !i.mentionsUserCard);
   const highlights = extractHighlights(items);
 
   async function handleRefresh() {
@@ -129,12 +129,12 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
         </div>
       )}
 
-      {/* Action needed */}
-      {actionItems.length > 0 && (
+      {/* Your cards in the news */}
+      {myCardItems.length > 0 && (
         <div className="mb-6">
-          <div className="text-sm font-semibold text-text mb-3">Action needed</div>
+          <div className="text-sm font-semibold text-text mb-3">Your cards in the news</div>
           <div className="space-y-1">
-            {actionItems.map((item) => (
+            {myCardItems.map((item) => (
               <FeedRow
                 key={item.id}
                 item={item}
@@ -149,9 +149,6 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
       {/* Feed */}
       {feedItems.length > 0 && (
         <div>
-          {actionItems.length > 0 && (
-            <div className="text-sm font-semibold text-text mb-3">Latest</div>
-          )}
           <div className="space-y-1">
             {feedItems.map((item) => (
               <FeedRow

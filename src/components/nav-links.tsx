@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
-  { href: "/", label: "Collections", icon: null },
-  { href: "/watch", label: "Watch", icon: (
+const links: Array<{ href: string; label: string; mobileLabel: string | null; icon: React.ReactNode }> = [
+  { href: "/", label: "Collections", mobileLabel: "Collections", icon: null },
+  { href: "/watch", label: "Screen Watch", mobileLabel: null, icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
     </svg>
   )},
-  { href: "/intel", label: "Intel", icon: (
+  { href: "/intel", label: "What's Happening", mobileLabel: null, icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
     </svg>
@@ -38,7 +38,14 @@ export function NavLinks() {
             }`}
             title={link.label}
           >
-            {link.icon ?? link.label}
+            {link.icon ? (
+              <span className="inline-flex items-center gap-1.5">
+                {link.icon}
+                <span className="hidden sm:inline text-sm">{link.label}</span>
+              </span>
+            ) : (
+              link.mobileLabel ?? link.label
+            )}
           </Link>
         );
       })}

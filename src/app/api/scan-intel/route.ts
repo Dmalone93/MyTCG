@@ -89,6 +89,8 @@ export async function POST(request: Request) {
 
 ${cat.prompt}
 
+IMPORTANT: Only include information from the last 6 weeks. Do NOT include anything older than 6 weeks. Today's date is ${new Date().toISOString().split("T")[0]}.
+
 Return ONLY a JSON array of news items (max 5). Each item must have these fields:
 - "title": string (unique, specific, actionable headline — not generic)
 - "summary": string (2-3 sentences with specific details: dates, prices, locations, card codes)

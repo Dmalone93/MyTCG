@@ -89,8 +89,9 @@ export default function WatchPage() {
       .catch(() => {});
   }, []);
 
-  // Cleanup on unmount
+  // Auto-start screen sharing on mount
   useEffect(() => {
+    startWatching();
     return () => {
       stopWatching();
       if (pipWindowRef.current) pipWindowRef.current.close();
