@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CardDataSheet } from "@/components/card-data-sheet";
 
 type CardIndex = Array<{ id: string; n: string; r: string; c: string; img: string }>;
 
@@ -76,7 +77,6 @@ export default function WatchPage() {
   const [scanCount, setScanCount] = useState(0);
   const [isPopped, setIsPopped] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<DetectedCard | null>(null);
-  const [detailExt, setDetailExt] = useState<{ card: Record<string, unknown>; synergies: Array<{ cid: string; name: string; imageUrl: string }> } | null>(null);
   const detectedRef = useRef<DetectedCard[]>([]);
 
   useEffect(() => { detectedRef.current = detected; }, [detected]);
@@ -298,13 +298,8 @@ export default function WatchPage() {
     pendingRef.current = false;
   }, []);
 
-  async function openDetail(card: DetectedCard) {
+  function openDetail(card: DetectedCard) {
     setSelectedDetail(card);
-    setDetailExt(null);
-    try {
-      const res = await fetch(`/api/card-info?code=${encodeURIComponent(card.code)}`);
-      if (res.ok) setDetailExt(await res.json());
-    } catch { /* */ }
   }
 
   async function getPrice(code: string): Promise<number | null> {
@@ -475,80 +470,15 @@ export default function WatchPage() {
         </div>
       )}
 
-      {/* Card detail modal */}
+      {/* Card detail sheet */}
       {selectedDetail && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setSelectedDetail(null)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div
-            className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sm:hidden flex justify-center pt-2 pb-1">
-              <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
-            </div>
-            <div className="flex items-start justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)]">
-              <div className="min-w-0">
-                <div className="font-mono text-xs text-text-dim">{selectedDetail.code}</div>
-                <h3 className="font-semibold text-base text-text">{selectedDetail.name}</h3>
-              </div>
-              <button onClick={() => setSelectedDetail(null)} className="text-text-dim hover:text-text text-xl p-1">×</button>
-            </div>
-            <div className="p-4 space-y-4">
-              <img src={selectedDetail.imageUrl} alt={selectedDetail.name} className="w-full max-w-[200px] mx-auto rounded-lg aspect-[2.5/3.5] object-cover" />
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-text-dim">Market Price</span>
-                {selectedDetail.marketPrice != null && selectedDetail.marketPrice > 0 ? (
-                  <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(selectedDetail.marketPrice)}</span>
-                ) : (
-                  <span className="text-sm text-text-dim">—</span>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-text-dim">{selectedDetail.rarity}</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-text-dim">{selectedDetail.color}</span>
-              </div>
-
-              {detailExt && (
-                <>
-                  {(detailExt.card as Record<string, unknown>).traits && (
-                    <div>
-                      <div className="text-[10px] font-mono text-text-dim uppercase mb-1">Traits</div>
-                      <div className="text-xs text-text-muted">{String((detailExt.card as Record<string, unknown>).traits)}</div>
-                    </div>
-                  )}
-                  {(detailExt.card as Record<string, unknown>).effect && (
-                    <div>
-                      <div className="text-[10px] font-mono text-text-dim uppercase mb-1">Effect</div>
-                      <p className="text-xs text-text-muted leading-relaxed whitespace-pre-line">{String((detailExt.card as Record<string, unknown>).effect)}</p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    {(detailExt.card as Record<string, unknown>).cost != null && (
-                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
-                        <div className="text-[9px] font-mono text-text-dim">Cost</div>
-                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).cost)}</div>
-                      </div>
-                    )}
-                    {(detailExt.card as Record<string, unknown>).power != null && (
-                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
-                        <div className="text-[9px] font-mono text-text-dim">Power</div>
-                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).power)}</div>
-                      </div>
-                    )}
-                    {(detailExt.card as Record<string, unknown>).life != null && (
-                      <div className="bg-[rgba(255,255,255,0.02)] rounded-lg py-2">
-                        <div className="text-[9px] font-mono text-text-dim">Life</div>
-                        <div className="text-sm font-semibold">{String((detailExt.card as Record<string, unknown>).life)}</div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <CardDataSheet
+          cardCode={selectedDetail.code}
+          cardName={selectedDetail.name}
+          imageUrl={selectedDetail.imageUrl}
+          marketPrice={selectedDetail.marketPrice}
+          onClose={() => setSelectedDetail(null)}
+        />
       )}
     </div>
   );

@@ -424,7 +424,7 @@ function CardTableRow({
       </td>
       <td
         ref={nameRef}
-        className="py-2.5 px-3 font-medium text-text relative"
+        className="py-2.5 px-3 font-medium text-text"
         onMouseEnter={handleNameEnter}
         onMouseLeave={handleNameLeave}
       >
@@ -436,14 +436,20 @@ function CardTableRow({
             </span>
           )}
         </span>
-        {/* Hover preview */}
-        {showPreview && card.imageUrl && (
-          <div className="absolute left-0 bottom-full mb-2 z-50 pointer-events-none">
-            <div className="w-[160px] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-[rgba(255,255,255,0.1)]">
-              <img src={card.imageUrl} alt={card.cardName} className="w-full aspect-[2.5/3.5] object-cover" />
+        {/* Hover preview — uses fixed positioning to avoid overflow clipping */}
+        {showPreview && card.imageUrl && nameRef.current && (() => {
+          const rect = nameRef.current!.getBoundingClientRect();
+          return (
+            <div
+              className="fixed z-[100] pointer-events-none"
+              style={{ left: rect.left, top: rect.top - 8, transform: "translateY(-100%)" }}
+            >
+              <div className="w-[160px] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-[rgba(255,255,255,0.1)]">
+                <img src={card.imageUrl} alt={card.cardName} className="w-full aspect-[2.5/3.5] object-cover" />
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </td>
       <td className="py-2.5 px-3 text-right font-mono">{card.quantity ?? 1}</td>
       <td className="py-2.5 px-3 text-text-muted">
