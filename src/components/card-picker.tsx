@@ -11,6 +11,8 @@ function fmt(n: number): string {
   }).format(n);
 }
 
+type CardSet = { name: string; count: number; date: string | null };
+
 export function CardPicker({
   onPick,
   onCancel,
@@ -18,6 +20,7 @@ export function CardPicker({
   onPick: (card: CatalogCard) => void;
   onCancel: () => void;
 }) {
+  const [mode, setMode] = useState<"search" | "browse">("search");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CatalogCard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,8 +30,15 @@ export function CardPicker({
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Browse state
+  const [sets, setSets] = useState<CardSet[]>([]);
+  const [selectedSet, setSelectedSet] = useState<string | null>(null);
+  const [setCards, setSetCards] = useState<CatalogCard[]>([]);
+  const [loadingSets, setLoadingSets] = useState(false);
+
   useEffect(() => {
-    inputRef.current?.focus();
+    const t = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(t);
   }, []);
 
   function doSearch(q: string) {
@@ -53,33 +63,19 @@ export function CardPicker({
           `/api/search-cards?q=${encodeURIComponent(q.trim())}`,
           { signal: controller.signal }
         );
-        if (res.ok) {
-          const data = await res.json();
-          setResults(data);
-        }
-      } catch {
-        // aborted or network error
-      } finally {
-        setLoading(false);
-      }
-    }, 150);
+        if (res.ok) setResults(await res.json());
+      } catch { /* */ }
+      setLoading(false);
+    }, 120);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((i) => {
-        const next = Math.min(i + 1, results.length - 1);
-        scrollToIndex(next);
-        return next;
-      });
+      setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((i) => {
-        const next = Math.max(i - 1, 0);
-        scrollToIndex(next);
-        return next;
-      });
+      setSelectedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && results[selectedIndex]) {
       e.preventDefault();
       onPick(results[selectedIndex]);
@@ -88,107 +84,199 @@ export function CardPicker({
     }
   }
 
-  function scrollToIndex(index: number) {
-    const el = listRef.current?.children[index] as HTMLElement | undefined;
-    el?.scrollIntoView({ block: "nearest" });
+  async function loadSets() {
+    if (sets.length > 0) return;
+    setLoadingSets(true);
+    try {
+      const res = await fetch("/api/card-sets");
+      setSets(await res.json());
+    } catch { /* */ }
+    setLoadingSets(false);
+  }
+
+  async function loadSetCards(setName: string) {
+    setSelectedSet(setName);
+    setLoadingSets(true);
+    try {
+      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(setName)}`);
+      setSetCards(await res.json());
+    } catch { /* */ }
+    setLoadingSets(false);
+  }
+
+  function switchToBrowse() {
+    setMode("browse");
+    loadSets();
   }
 
   return (
-    <div className="bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-xl mb-3 overflow-hidden shadow-[0_14px_40px_rgba(0,0,0,0.5)]">
-      {/* Search header */}
-      <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-[rgba(255,255,255,0.06)]">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-text-dim flex-none"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={(e) => doSearch(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search by card name or code..."
-          className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder:text-text-dim"
-        />
-        {loading && (
-          <span className="text-text-dim text-xs animate-pulse">...</span>
-        )}
-        <button
-          onClick={onCancel}
-          className="text-text-dim hover:text-text active:opacity-70 text-sm py-1 px-2 transition-colors flex-none"
-        >
-          Cancel
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 sm:relative sm:inset-auto" onClick={onCancel}>
+      <div className="absolute inset-0 bg-black/60 sm:hidden" />
 
-      {/* Results */}
-      <div ref={listRef} className="max-h-[50vh] sm:max-h-[320px] overflow-y-auto">
-        {results.length === 0 && query.length > 0 && !loading && (
-          <div className="py-8 text-center text-text-dim text-sm">
-            No cards found
+      <div
+        className="absolute inset-0 sm:relative flex flex-col bg-bg-elevated sm:border sm:border-[rgba(255,255,255,0.06)] sm:rounded-xl sm:mb-3 sm:max-h-[70vh] sm:overflow-hidden sm:shadow-[0_14px_40px_rgba(0,0,0,0.5)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header with mode toggle */}
+        <div className="flex-none border-b border-[rgba(255,255,255,0.06)] bg-bg-elevated">
+          {/* Mode tabs */}
+          <div className="flex items-center gap-0 px-4 pt-3">
+            <button
+              onClick={() => setMode("search")}
+              className={`px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors ${
+                mode === "search" ? "bg-bg-surface text-text" : "text-text-dim hover:text-text"
+              }`}
+            >
+              Search
+            </button>
+            <button
+              onClick={switchToBrowse}
+              className={`px-3 py-2 text-xs font-semibold rounded-t-lg transition-colors ${
+                mode === "browse" ? "bg-bg-surface text-text" : "text-text-dim hover:text-text"
+              }`}
+            >
+              Browse Sets
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={onCancel}
+              className="text-text-dim hover:text-text active:opacity-70 text-sm font-medium py-1 px-2 transition-colors"
+            >
+              Close
+            </button>
           </div>
-        )}
-        {results.length === 0 && query.length === 0 && (
-          <div className="py-8 text-center text-text-dim text-sm">
-            Type a card name or code to search
-          </div>
-        )}
-        {results.map((card, i) => (
-          <button
-            key={card.cardSetId + i}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              onPick(card);
-            }}
-            onMouseEnter={() => setSelectedIndex(i)}
-            className={`flex items-center gap-2.5 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-3 py-3 sm:py-2 cursor-pointer transition-colors active:opacity-80 ${
-              i === selectedIndex
-                ? "bg-[rgba(59,130,246,0.08)]"
-                : "bg-bg-surface hover:bg-[rgba(59,130,246,0.05)]"
-            }`}
-          >
-            <div className="relative w-6 h-[33px] flex-none rounded overflow-hidden bg-[#1C1C1F]">
-              <img
-                src={card.imageUrl}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
+
+          {/* Search input — only in search mode */}
+          {mode === "search" && (
+            <div className="flex items-center gap-2.5 px-4 py-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => doSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Card name or code..."
+                enterKeyHint="search"
+                className="flex-1 bg-transparent border-none outline-none text-base sm:text-sm text-text placeholder:text-text-dim"
               />
+              {loading && <span className="text-text-dim text-xs animate-pulse">...</span>}
+              {query && (
+                <button onClick={() => { setQuery(""); setResults([]); }} className="text-text-dim text-xs active:opacity-70">Clear</button>
+              )}
             </div>
-            <span className="font-mono text-[11px] text-text-dim flex-none w-[72px] hidden sm:block">
-              {card.cardSetId}
-            </span>
-            <span className="flex-1 min-w-0">
-              <span className="text-[13px] font-semibold text-text block truncate">
-                {card.cardName}
-              </span>
-              <span className="text-[10px] text-text-dim">
-                {card.setName} · {card.rarity}
-              </span>
-            </span>
-            {card.marketPrice != null && card.marketPrice > 0 && (
-              <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
-                {fmt(card.marketPrice)}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+          )}
 
-      {results.length >= 30 && (
-        <div className="py-1.5 bg-[#0D0D0F] border-t border-[rgba(255,255,255,0.04)] text-center font-mono text-[10px] text-text-dim">
-          Showing top 30 — refine your search
+          {/* Set breadcrumb — in browse mode */}
+          {mode === "browse" && selectedSet && (
+            <div className="flex items-center gap-2 px-4 py-3">
+              <button
+                onClick={() => { setSelectedSet(null); setSetCards([]); }}
+                className="text-accent text-xs font-medium active:opacity-70"
+              >
+                ← All Sets
+              </button>
+              <span className="text-xs text-text-muted truncate">{selectedSet}</span>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Content */}
+        <div ref={listRef} className="flex-1 overflow-y-auto overscroll-contain">
+          {/* Search mode */}
+          {mode === "search" && (
+            <>
+              {results.length === 0 && query.length > 0 && !loading && (
+                <div className="py-12 text-center text-text-dim text-sm">No cards found</div>
+              )}
+              {results.length === 0 && query.length === 0 && (
+                <div className="py-12 text-center text-text-dim text-sm px-8">
+                  Search for a card or <button onClick={switchToBrowse} className="text-accent underline">browse by set</button>
+                </div>
+              )}
+              {results.map((card, i) => (
+                <CardRow key={card.cardSetId + i} card={card} selected={i === selectedIndex} onPick={onPick} onHover={() => setSelectedIndex(i)} />
+              ))}
+            </>
+          )}
+
+          {/* Browse mode — set list */}
+          {mode === "browse" && !selectedSet && (
+            <>
+              {loadingSets && <div className="py-8 text-center text-text-dim text-sm">Loading sets...</div>}
+              {sets.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => loadSetCards(s.name)}
+                  className="flex items-center justify-between w-full text-left px-4 py-3.5 sm:py-2.5 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] active:opacity-80 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{s.name}</div>
+                    {s.date && <div className="text-[10px] text-text-dim">{s.date}</div>}
+                  </div>
+                  <span className="text-xs text-text-dim font-mono flex-none ml-3">{s.count} cards</span>
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* Browse mode — cards in selected set */}
+          {mode === "browse" && selectedSet && (
+            <>
+              {loadingSets && <div className="py-8 text-center text-text-dim text-sm">Loading cards...</div>}
+              {setCards.map((card, i) => (
+                <CardRow key={card.cardSetId + i} card={card} selected={false} onPick={onPick} onHover={() => {}} />
+              ))}
+            </>
+          )}
+        </div>
+
+        {results.length >= 30 && mode === "search" && (
+          <div className="flex-none py-1.5 bg-[#0D0D0F] border-t border-[rgba(255,255,255,0.04)] text-center font-mono text-[10px] text-text-dim">
+            Top 30 — refine your search
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function CardRow({
+  card,
+  selected,
+  onPick,
+  onHover,
+}: {
+  card: CatalogCard;
+  selected: boolean;
+  onPick: (card: CatalogCard) => void;
+  onHover: () => void;
+}) {
+  return (
+    <button
+      onMouseDown={(e) => { e.preventDefault(); onPick(card); }}
+      onTouchEnd={(e) => { e.preventDefault(); onPick(card); }}
+      onMouseEnter={onHover}
+      className={`flex items-center gap-3 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
+        selected ? "bg-[rgba(59,130,246,0.08)]" : "hover:bg-[rgba(59,130,246,0.05)]"
+      }`}
+    >
+      <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#1C1C1F]">
+        <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      </div>
+      <span className="flex-1 min-w-0">
+        <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+        <span className="text-[11px] text-text-dim">
+          {card.cardSetId} · {card.rarity} · {card.cardColor}
+        </span>
+      </span>
+      {card.marketPrice != null && card.marketPrice > 0 && (
+        <span className="font-mono text-xs font-semibold text-[#4ADE80] flex-none">
+          {fmt(card.marketPrice)}
+        </span>
+      )}
+    </button>
   );
 }

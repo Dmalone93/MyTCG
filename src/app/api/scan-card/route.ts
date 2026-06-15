@@ -145,6 +145,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const base64 = body.image as string;
+  const fast = body.fast === true; // Fast mode: text-only, no web detection
   if (!base64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
@@ -159,11 +160,13 @@ export async function POST(request: Request) {
           requests: [
             {
               image: { content: base64 },
-              features: [
-                { type: "DOCUMENT_TEXT_DETECTION", maxResults: 10 },
-                { type: "WEB_DETECTION", maxResults: 10 },
-                { type: "LABEL_DETECTION", maxResults: 10 },
-              ],
+              features: fast
+                ? [{ type: "TEXT_DETECTION", maxResults: 5 }]
+                : [
+                    { type: "TEXT_DETECTION", maxResults: 10 },
+                    { type: "WEB_DETECTION", maxResults: 10 },
+                    { type: "LABEL_DETECTION", maxResults: 10 },
+                  ],
               imageContext: { languageHints: ["en", "ja"] },
             },
           ],

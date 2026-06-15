@@ -186,53 +186,41 @@ export function ScanModal({
     const gen = scanGenRef.current;
 
     try {
-      // Strategy: call Vision API every 3rd frame, use results for local matching in between
-      const shouldCallVision = visionCallCount.current % 3 === 0;
+      // Every frame hits the API with fast mode (TEXT_DETECTION only, ~300ms vs 1.5s)
       visionCallCount.current++;
+      const base64 = captureFrame();
+      if (!base64) { pendingScanRef.current = false; return; }
 
-      if (shouldCallVision) {
-        const base64 = captureFrame();
-        if (!base64) { pendingScanRef.current = false; return; }
+      const res = await fetch("/api/scan-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64, fast: true }),
+      });
 
-        const res = await fetch("/api/scan-card", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64 }),
-        });
+      if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
 
-        if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
+      const data: ScanResult = await res.json();
 
-        const data: ScanResult = await res.json();
+      // Try local index match with Vision OCR text
+      const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
+      const localMatches = matchLocalIndex(allText, cardIndexRef.current);
 
-        // Try local index match with Vision results
-        const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
-        const localMatches = matchLocalIndex(allText, cardIndexRef.current);
-
-        if (data.codes && data.codes.length > 0) {
-          // Got a code — high confidence
-          stopScanning();
-          setConfidence(100);
-          setStatus(`Found: ${data.codes[0]}`);
-          await lookupCard(data.codes[0]);
-        } else if (localMatches.length > 0) {
-          // Local match from Vision text
-          stopScanning();
-          setConfidence(90);
-          setStatus(`Matched: ${localMatches[0].n}`);
-          await lookupCards(localMatches.map((m) => m.id));
-        } else if (data.cardName) {
-          setConfidence(50);
-          setStatus(`Seeing: ${data.cardName}...`);
-        } else if (data.bestGuess) {
-          setConfidence(30);
-          setStatus(`Detecting: ${data.bestGuess}...`);
-        } else {
-          setConfidence(Math.min(20, visionCallCount.current * 5));
-          setStatus("Scanning...");
-        }
+      if (data.codes && data.codes.length > 0) {
+        stopScanning();
+        setConfidence(100);
+        setStatus(`Found: ${data.codes[0]}`);
+        await lookupCard(data.codes[0]);
+      } else if (localMatches.length > 0) {
+        stopScanning();
+        setConfidence(90);
+        setStatus(`Matched: ${localMatches[0].n}`);
+        await lookupCards(localMatches.map((m) => m.id));
+      } else if (data.text && data.text.length > 10) {
+        setConfidence(Math.min(50, visionCallCount.current * 12));
+        setStatus("Reading... hold steady");
       } else {
-        // Skip Vision API — just update confidence
-        setConfidence((prev) => Math.min(prev + 2, 40));
+        setConfidence(Math.min(20, visionCallCount.current * 5));
+        setStatus("Scanning...");
       }
     } catch {
       // Network error — keep scanning
