@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { collections, intelItems } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { CollectionShell } from "@/components/collection-shell";
+import { IntelTicker } from "@/components/intel-ticker";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -15,11 +16,12 @@ export default async function DashboardPage() {
     .where(eq(collections.userId, user.id))
     .orderBy(collections.sortOrder, collections.createdAt);
 
+  // Fetch recent intel for ticker + cross-linking
   const recentIntel = await db
-    .select({ cardNames: intelItems.cardNames })
+    .select()
     .from(intelItems)
     .orderBy(desc(intelItems.fetchedAt))
-    .limit(200);
+    .limit(20);
 
   const intelCardNames = new Set<string>();
   recentIntel.forEach((item) => {
@@ -30,9 +32,12 @@ export default async function DashboardPage() {
   });
 
   return (
-    <CollectionShell
-      initialCollections={userCollections}
-      intelCardNames={[...intelCardNames]}
-    />
+    <>
+      <IntelTicker items={recentIntel} />
+      <CollectionShell
+        initialCollections={userCollections}
+        intelCardNames={[...intelCardNames]}
+      />
+    </>
   );
 }
