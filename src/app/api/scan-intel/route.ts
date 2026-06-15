@@ -6,24 +6,39 @@ import { intelItems } from "@/lib/db/schema";
 
 const CATEGORIES = [
   {
-    key: "tcg_japan",
-    query: "One Piece TCG Japan new card set release 2026 site:reddit.com OR site:twitter.com OR site:onepiece-cardgame.com",
+    key: "new_sets",
+    query: "One Piece TCG new set release date 2026 booster pack announcement OP-11 OP-12 OP-13 English release schedule",
+    prompt: "Find the latest news about upcoming One Piece TCG set releases — both Japanese and English. Include confirmed release dates, set names, and any revealed card lists or themes. Prioritize English release dates.",
   },
   {
-    key: "tcg_english",
-    query: "One Piece TCG English booster pack release date 2026 new set announcement",
+    key: "preorders_uk",
+    query: "One Piece TCG pre-order UK buy booster box 2026 site:totalcards.net OR site:chaoscards.co.uk OR site:magicmadhouse.co.uk OR site:cardmarket.com OR site:tcgplayer.com",
+    prompt: "Find where to pre-order or buy the latest One Piece TCG products in the UK. Include specific product names, prices in GBP/EUR, retailer names, and links. Focus on UK-based retailers like Total Cards, Chaos Cards, Magic Madhouse, or Card Market.",
   },
   {
-    key: "sec_alt_arts",
-    query: "One Piece TCG secret rare alt art reveal new card 2026 SEC manga art",
+    key: "top_cards",
+    query: "One Piece TCG most expensive cards 2026 price list top value secret rare alt art",
+    prompt: "Find the current most expensive One Piece TCG cards and any recent price spikes or drops. Include specific card codes (e.g. OP05-119), card names, current market prices, and why they're valuable. Focus on English market prices.",
   },
   {
-    key: "anime_manga",
-    query: "One Piece anime manga chapter episode 2026 new arc announcement",
+    key: "trending",
+    query: "One Piece TCG trending cards rising value 2026 popular deck meta tournament results",
+    prompt: "Find which One Piece TCG cards are gaining traction right now — rising in price, being played in winning decks, or getting social media buzz. Include specific card names/codes and why they're trending.",
   },
   {
-    key: "prices",
-    query: "One Piece TCG card price spike market value increase 2026 most expensive",
+    key: "promos",
+    query: "One Piece TCG promo card 2026 exclusive event promo tournament prize regional championship",
+    prompt: "Find information about upcoming or recently released One Piece TCG promo cards — event promos, tournament prizes, store exclusives, magazine promos, winner cards. Include how to obtain them and their estimated value.",
+  },
+  {
+    key: "tournaments",
+    query: "One Piece TCG tournament UK Europe 2026 regional championship local event store",
+    prompt: "Find upcoming One Piece TCG tournaments and events in the UK and Europe. Include dates, locations, registration links, format (constructed/sealed), and any exclusive promo cards available at the events. Also include online tournaments if relevant.",
+  },
+  {
+    key: "deals",
+    query: "One Piece TCG deal discount sale UK 2026 cheap booster box singles",
+    prompt: "Find any current deals, discounts, or sales on One Piece TCG products in the UK — discounted booster boxes, singles sales, bundle deals, or clearance items. Include prices and where to buy.",
   },
 ];
 
@@ -66,11 +81,28 @@ export async function POST(request: Request) {
     try {
       const response = await client.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1500,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+        max_tokens: 2000,
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
         messages: [{
           role: "user",
-          content: `Search the web for the latest news about: ${cat.query}\n\nReturn ONLY a JSON array of news items (max 5). Each item must have these fields:\n- "title": string (unique, descriptive headline)\n- "summary": string (2-3 sentences)\n- "source": string (site name e.g. "Reddit", "Twitter", "YouTube")\n- "source_url": string (full URL to the article/post/video)\n- "author": string (username or author name, or "" if unknown)\n- "image_url": string (URL to a relevant image/thumbnail, or "" if none)\n- "published": string (date like "2026-06-14" or "recent")\n- "urgent": boolean (true only for breaking news affecting card values)\n- "jp_only": boolean (true if Japan-only content)\n- "card_names": string[] (specific card codes like "OP13-001" or names mentioned)\n\nReturn ONLY the JSON array, no other text.`,
+          content: `Search the web for: ${cat.query}
+
+${cat.prompt}
+
+Return ONLY a JSON array of news items (max 5). Each item must have these fields:
+- "title": string (unique, specific, actionable headline — not generic)
+- "summary": string (2-3 sentences with specific details: dates, prices, locations, card codes)
+- "source": string (site name e.g. "Total Cards", "Reddit", "Bandai")
+- "source_url": string (full URL to the article/post/listing)
+- "author": string (username or author name, or "" if unknown)
+- "image_url": string (URL to a relevant image, or "" if none)
+- "published": string (date like "2026-06-14" or "recent")
+- "urgent": boolean (true only for time-sensitive deals, pre-orders closing, or breaking news)
+- "jp_only": boolean (true if Japan-only content)
+- "card_names": string[] (specific card codes like "OP13-001" or card names mentioned)
+
+Be specific. Include actual prices, dates, and links. Don't be vague.
+Return ONLY the JSON array, no other text.`,
         }],
       });
 

@@ -25,28 +25,38 @@ function formatDate(d: string): string {
   return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  tcg_japan: "Japan",
-  tcg_english: "English",
-  sec_alt_arts: "SEC / Alt Arts",
-  anime_manga: "Anime & Manga",
-  prices: "Prices",
-};
-
-type FilterKey = "all" | "tcg_japan" | "tcg_english" | "sec_alt_arts" | "anime_manga" | "prices" | "my_cards";
+const CATEGORIES: Array<{ key: string; label: string; icon: string }> = [
+  { key: "new_sets", label: "New Sets", icon: "📦" },
+  { key: "preorders_uk", label: "Pre-orders UK", icon: "🇬🇧" },
+  { key: "top_cards", label: "Top Cards", icon: "💎" },
+  { key: "trending", label: "Trending", icon: "📈" },
+  { key: "promos", label: "Promos", icon: "⭐" },
+  { key: "tournaments", label: "Tournaments", icon: "🏆" },
+  { key: "deals", label: "Deals", icon: "🏷" },
+  // Legacy categories
+  { key: "tcg_japan", label: "Japan", icon: "🇯🇵" },
+  { key: "tcg_english", label: "English", icon: "🌍" },
+  { key: "sec_alt_arts", label: "SEC / Alt Arts", icon: "🎨" },
+  { key: "prices", label: "Prices", icon: "💰" },
+];
 
 export function IntelFeed({ items }: { items: IntelItem[] }) {
-  const [filter, setFilter] = useState<FilterKey>("all");
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
-  const filtered = items.filter((item) => {
-    if (filter === "all") return true;
-    if (filter === "my_cards") return item.mentionsUserCard;
-    return item.category === filter;
-  });
+  // Group items by category
+  const grouped = new Map<string, IntelItem[]>();
+  const myCardItems: IntelItem[] = [];
 
-  const myCardCount = items.filter((i) => i.mentionsUserCard).length;
+  for (const item of items) {
+    if (item.mentionsUserCard) myCardItems.push(item);
+    const cat = item.category ?? "other";
+    if (!grouped.has(cat)) grouped.set(cat, []);
+    grouped.get(cat)!.push(item);
+  }
+
+  // Only show categories that have items
+  const activeCategories = CATEGORIES.filter((c) => grouped.has(c.key));
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -67,6 +77,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-5">
         <h2 className="font-bold text-base sm:text-lg text-text">Intel Feed</h2>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -76,53 +87,79 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text active:opacity-70 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2.5 sm:py-1.5 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-text active:opacity-70 border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2.5 sm:py-1.5 disabled:opacity-50 transition-colors"
           >
             {refreshing ? "Scanning..." : "Refresh"}
           </button>
-          <span className="text-xs text-text-dim font-mono hidden sm:inline">
-            {items.length} items
-          </span>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
-        {(
-          [
-            ["all", "All"],
-            ["my_cards", `My Cards${myCardCount > 0 ? ` (${myCardCount})` : ""}`],
-            ["tcg_japan", "Japan"],
-            ["tcg_english", "English"],
-            ["sec_alt_arts", "SEC / Alt Arts"],
-            ["anime_manga", "Anime & Manga"],
-            ["prices", "Prices"],
-          ] as [FilterKey, string][]
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setFilter(key)}
-            className={`px-3 py-2 sm:py-1.5 rounded-lg border text-xs font-medium whitespace-nowrap transition-colors active:opacity-70 ${
-              filter === key
-                ? "bg-bg-surface border-accent text-text"
-                : "border-[rgba(255,255,255,0.06)] text-text-muted hover:text-text"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {/* My Cards alert */}
+      {myCardItems.length > 0 && (
+        <CategorySection
+          label="Your Cards in the News"
+          icon="🔔"
+          items={myCardItems}
+          highlight
+        />
+      )}
+
+      {/* Category sections */}
+      {activeCategories.map((cat) => (
+        <CategorySection
+          key={cat.key}
+          label={cat.label}
+          icon={cat.icon}
+          items={grouped.get(cat.key) ?? []}
+        />
+      ))}
+
+      {/* Empty state */}
+      {items.length === 0 && (
+        <div className="py-16 text-center text-text-dim text-sm">
+          No intel yet. Hit Refresh to scan for the latest.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CategorySection({
+  label,
+  icon,
+  items,
+  highlight = false,
+}: {
+  label: string;
+  icon: string;
+  items: IntelItem[];
+  highlight?: boolean;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className={`mb-4 border rounded-xl overflow-hidden ${
+      highlight
+        ? "border-[rgba(52,211,153,0.2)] bg-[rgba(52,211,153,0.02)]"
+        : "border-[rgba(255,255,255,0.06)] bg-bg-elevated"
+    }`}>
+      {/* Section header */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-[rgba(255,255,255,0.02)] active:opacity-80 transition-colors"
+      >
+        <span className="text-sm">{icon}</span>
+        <span className="text-sm font-semibold text-text flex-1">{label}</span>
+        <span className="text-[10px] font-mono text-text-dim">{items.length}</span>
+        <span className="text-text-dim text-xs ml-1">{collapsed ? "▸" : "▾"}</span>
+      </button>
 
       {/* Items */}
-      {filtered.length === 0 ? (
-        <div className="py-16 text-center text-text-dim text-sm">
-          {filter === "my_cards"
-            ? "No intel items mention your cards yet."
-            : "No intel items found."}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((item) => (
+      {!collapsed && (
+        <div>
+          {items.map((item) => (
             <IntelCard key={item.id} item={item} />
           ))}
         </div>
@@ -144,16 +181,11 @@ function IntelCard({ item }: { item: IntelItem }) {
 
   return (
     <Wrapper
-      className={`block bg-bg-elevated border rounded-xl overflow-hidden transition-colors hover:border-[rgba(255,255,255,0.12)] ${
-        item.mentionsUserCard
-          ? "border-accent/30 bg-accent/[0.03]"
-          : "border-[rgba(255,255,255,0.05)]"
-      }`}
+      className="block border-t border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
     >
       <div className="flex">
-        {/* Thumbnail */}
         {item.imageUrl && (
-          <div className="flex-none w-[120px] min-h-[100px] relative bg-[#1C1C1F] hidden sm:block">
+          <div className="flex-none w-[80px] min-h-[80px] relative bg-[#1C1C1F] hidden sm:block">
             <img
               src={item.imageUrl}
               alt=""
@@ -163,51 +195,43 @@ function IntelCard({ item }: { item: IntelItem }) {
           </div>
         )}
 
-        <div className="flex-1 min-w-0 p-4">
+        <div className="flex-1 min-w-0 p-3 sm:p-4">
           {/* Badges */}
-          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-            {item.category && (
-              <span className="text-[10px] font-mono tracking-[.08em] uppercase text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded">
-                {CATEGORY_LABELS[item.category] ?? item.category}
-              </span>
-            )}
+          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
             {item.urgent === true && (
-              <span className="text-[10px] font-mono tracking-[.08em] uppercase text-red-400 bg-red-400/10 px-2 py-0.5 rounded font-semibold">
+              <span className="text-[9px] font-mono uppercase text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded font-semibold">
                 Urgent
               </span>
             )}
             {item.jpOnly === true && (
-              <span className="text-[10px] font-mono tracking-[.08em] uppercase text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded">
+              <span className="text-[9px] font-mono uppercase text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded">
                 JP only
               </span>
             )}
             {item.mentionsUserCard && (
-              <span className="text-[10px] font-mono tracking-[.08em] uppercase text-accent bg-accent/10 px-2 py-0.5 rounded font-semibold">
-                In your collection
+              <span className="text-[9px] font-mono uppercase text-[#34D399] bg-[#34D399]/10 px-1.5 py-0.5 rounded font-semibold">
+                Your card
               </span>
             )}
           </div>
 
           {/* Title */}
-          <h3 className="font-semibold text-sm text-text leading-snug mb-1">
+          <h3 className="font-medium text-sm text-text leading-snug mb-1">
             {item.title}
           </h3>
 
           {/* Summary */}
           {item.summary && (
-            <p className="text-sm text-text-muted leading-relaxed">
+            <p className="text-xs text-text-muted leading-relaxed mb-2">
               {item.summary}
             </p>
           )}
 
           {/* Card names */}
           {item.cardNames && item.cardNames.length > 0 && (
-            <div className="flex gap-1.5 mt-2 flex-wrap">
+            <div className="flex gap-1 mt-1.5 flex-wrap">
               {item.cardNames.map((name, i) => (
-                <span
-                  key={i}
-                  className="text-[11px] font-mono text-text-muted bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded"
-                >
+                <span key={i} className="text-[10px] font-mono text-text-muted bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 rounded">
                   {name}
                 </span>
               ))}
@@ -215,17 +239,10 @@ function IntelCard({ item }: { item: IntelItem }) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center gap-2 sm:gap-3 mt-3 text-xs text-text-dim flex-wrap">
-            {item.source && (
-              <span className="font-medium text-text-muted">{item.source}</span>
-            )}
-            {item.author && (
-              <span>by {item.author}</span>
-            )}
+          <div className="flex items-center gap-2 mt-2 text-[11px] text-text-dim flex-wrap">
+            {item.source && <span className="font-medium text-text-muted">{item.source}</span>}
             {item.published && <span>{formatDate(item.published)}</span>}
-            {item.sourceUrl && (
-              <span className="text-text-muted ml-auto">Read →</span>
-            )}
+            {item.sourceUrl && <span className="text-text-muted ml-auto">Read →</span>}
           </div>
         </div>
       </div>
