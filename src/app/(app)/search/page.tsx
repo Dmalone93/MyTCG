@@ -34,6 +34,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<CatalogCard | null>(null);
   const [ext, setExt] = useState<ExtInfo | null>(null);
+  const [view, setView] = useState<"list" | "grid">("list");
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -162,7 +163,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Results list */}
+      {/* Results */}
       {!selected && (
         <div>
           {loading && <div className="py-8 text-center text-text-dim text-sm animate-pulse">Searching...</div>}
@@ -174,7 +175,33 @@ export default function SearchPage() {
               Look up any card to see its market price and stats
             </div>
           )}
-          {results.map((card, i) => (
+
+          {/* View toggle */}
+          {results.length > 0 && (
+            <div className="flex justify-end mb-2">
+              <div className="flex border border-[rgba(255,255,255,0.06)] bg-bg-surface rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setView("list")}
+                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    view === "list" ? "bg-[#27272A] text-text" : "text-text-muted"
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setView("grid")}
+                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    view === "grid" ? "bg-[#27272A] text-text" : "text-text-muted"
+                  }`}
+                >
+                  Grid
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* List view */}
+          {view === "list" && results.map((card, i) => (
             <button
               key={card.cardSetId + i}
               onClick={() => selectCard(card)}
@@ -194,6 +221,32 @@ export default function SearchPage() {
               )}
             </button>
           ))}
+
+          {/* Grid view */}
+          {view === "grid" && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+              {results.map((card, i) => (
+                <button
+                  key={card.cardSetId + i}
+                  onClick={() => selectCard(card)}
+                  className="bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden active:opacity-80 transition-colors text-left"
+                >
+                  <div className="aspect-[2.5/3.5] bg-[#1C1C1F]">
+                    <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div className="p-2">
+                    <div className="text-[11px] font-semibold text-text truncate">{card.cardName}</div>
+                    <div className="text-[9px] font-mono text-text-dim">{card.cardSetId}</div>
+                    {card.marketPrice != null && card.marketPrice > 0 ? (
+                      <div className="font-mono text-[11px] font-semibold text-[#4ADE80] mt-0.5">{fmt(card.marketPrice)}</div>
+                    ) : (
+                      <div className="text-[9px] text-text-dim mt-0.5">—</div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

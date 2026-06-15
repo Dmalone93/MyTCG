@@ -22,10 +22,10 @@ function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
 }
 
-export function Recommendations() {
+export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(!defaultOpen);
   const [fetched, setFetched] = useState(false);
 
   function loadRecs() {

@@ -13,10 +13,10 @@ type WatchlistItem = {
   currentPrice?: number | null;
 };
 
-export function Watchlist() {
+export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(!defaultOpen);
   const [fetched, setFetched] = useState(false);
   const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
