@@ -72,15 +72,36 @@ export function CardGrid({
 }) {
   const [showPicker, setShowPicker] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [showQuickScan, setShowQuickScan] = useState(false);
   const [pickedCard, setPickedCard] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CollectionCard | null>(null);
+  const [quickAddMsg, setQuickAddMsg] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     card: CollectionCard;
     x: number;
     y: number;
   } | null>(null);
+
+  async function quickAdd(card: CatalogCard) {
+    setQuickAddMsg(`Adding ${card.cardName}...`);
+    await onAddCard({
+      cardCode: card.cardSetId,
+      cardName: card.cardName,
+      quantity: 1,
+      condition: "NM",
+      isGraded: false,
+      grade: null,
+      gradedCompany: null,
+      acquiredPrice: null,
+      notes: null,
+      imageUrl: card.imageUrl ?? null,
+      marketPrice: card.marketPrice ?? null,
+    });
+    setQuickAddMsg(`✓ Added ${card.cardName}`);
+    setTimeout(() => setQuickAddMsg(null), 2000);
+  }
 
   function openContextMenu(card: CollectionCard, x: number, y: number) {
     setContextMenu({ card, x, y });
@@ -105,9 +126,9 @@ export function CardGrid({
           <span className="text-base leading-none -mt-px">+</span> Add card
         </button>
         <button
-          onClick={() => setShowScan(true)}
+          onClick={() => setShowQuickScan(true)}
           className="inline-flex items-center gap-[7px] flex-none bg-bg-surface text-text-muted border border-[rgba(255,255,255,0.06)] rounded-[10px] py-3 px-4 text-sm font-semibold hover:bg-[#27272A] hover:text-text active:opacity-80 transition-colors"
-          title="Scan a card"
+          title="Quick scan — auto-add to collection"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
           <span className="hidden sm:inline">Scan</span>
@@ -291,7 +312,7 @@ export function CardGrid({
         />
       )}
 
-      {/* Scan modal */}
+      {/* Scan modal — regular (from Add card → Scan) */}
       {showScan && (
         <ScanModal
           onResult={(card) => {
@@ -301,6 +322,25 @@ export function CardGrid({
           }}
           onClose={() => setShowScan(false)}
         />
+      )}
+
+      {/* Quick scan modal — auto-adds to collection */}
+      {showQuickScan && (
+        <ScanModal
+          onResult={async (card) => {
+            await quickAdd(card);
+            // Don't close — let user keep scanning more cards
+          }}
+          onClose={() => setShowQuickScan(false)}
+          quickMode
+        />
+      )}
+
+      {/* Quick add toast */}
+      {quickAddMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
+          {quickAddMsg}
+        </div>
       )}
     </div>
   );

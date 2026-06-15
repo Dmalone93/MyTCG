@@ -55,9 +55,11 @@ const CONFIDENCE_THRESHOLD = 2; // Need code seen in 2+ frames to auto-match
 export function ScanModal({
   onResult,
   onClose,
+  quickMode = false,
 }: {
   onResult: (card: CatalogCard) => void;
   onClose: () => void;
+  quickMode?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -425,7 +427,9 @@ export function ScanModal({
         </div>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)]">
-          <h2 className="font-semibold text-sm text-text">Scan Card</h2>
+          <h2 className="font-semibold text-sm text-text">
+            {quickMode ? "Quick Scan" : "Scan Card"}
+          </h2>
           <button
             onClick={onClose}
             className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors"
@@ -488,7 +492,17 @@ export function ScanModal({
             {matchedCards.map((card, i) => (
               <button
                 key={card.cardSetId + i}
-                onClick={() => onResult(card)}
+                onClick={async () => {
+                  await onResult(card);
+                  if (quickMode) {
+                    // Reset and keep scanning
+                    setMatchedCards([]);
+                    setConfidence(0);
+                    evidenceRef.current = createEvidence();
+                    setStatus("Scan next card...");
+                    setTimeout(() => startScanning(), 500);
+                  }
+                }}
                 className="flex items-center gap-2.5 w-full text-left px-3 py-3 sm:py-2 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(59,130,246,0.08)] active:opacity-80 transition-colors"
               >
                 <div className="relative w-8 h-[44px] flex-none rounded overflow-hidden bg-[#1C1C1F]">

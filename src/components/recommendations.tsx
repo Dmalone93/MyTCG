@@ -19,10 +19,14 @@ type Recommendation = {
 
 export function Recommendations() {
   const [recs, setRecs] = useState<Recommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
+  const [fetched, setFetched] = useState(false);
 
-  useEffect(() => {
+  function loadRecs() {
+    if (fetched) return;
+    setLoading(true);
+    setFetched(true);
     fetch("/api/recommendations")
       .then((r) => r.json())
       .then((data) => {
@@ -30,27 +34,36 @@ export function Recommendations() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return null;
-  if (recs.length === 0) return null;
+  }
 
   return (
     <div className="mb-4">
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => {
+          const next = !collapsed;
+          setCollapsed(next);
+          if (!next) loadRecs();
+        }}
         className="flex items-center gap-2 mb-2 group"
       >
         <h2 className="font-bold text-sm sm:text-base text-text">Recommended for you</h2>
         <span className="text-text-dim text-xs group-hover:text-text transition-colors">
           {collapsed ? "▸" : "▾"}
         </span>
-        <span className="text-[10px] font-mono text-text-dim">
-          {recs.length} cards
-        </span>
+        {recs.length > 0 && (
+          <span className="text-[10px] font-mono text-text-dim">
+            {recs.length} cards
+          </span>
+        )}
       </button>
 
-      {!collapsed && (
+      {!collapsed && loading && (
+        <div className="py-6 text-center text-text-dim text-sm">Loading recommendations...</div>
+      )}
+      {!collapsed && !loading && recs.length === 0 && fetched && (
+        <div className="py-4 text-center text-text-dim text-xs">Add more cards to get recommendations</div>
+      )}
+      {!collapsed && recs.length > 0 && (
         <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
           {recs.map((rec) => (
             <div
