@@ -38,6 +38,7 @@ export async function GET() {
     if (rarity) raritySet.add(rarity);
     if (cardType) typeSet.add(cardType);
 
+    // Slim payload — only fields needed for browse/filter/display
     return {
       cardSetId: c.cardSetId,
       cardName: c.cardName,
@@ -46,11 +47,8 @@ export async function GET() {
       rarity,
       cardColor,
       cardType,
-      cardCost: ext?.cost != null ? String(ext.cost) : c.cardCost,
-      cardPower: ext?.power != null ? String(ext.power) : c.cardPower,
       imageUrl: ext?.imageUrl ?? c.imageUrl,
       marketPrice: priceMap.get(c.cardSetId.toUpperCase()) ?? c.marketPrice ?? null,
-      inventoryPrice: c.inventoryPrice ?? null,
     };
   });
 

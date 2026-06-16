@@ -286,7 +286,7 @@ export default function SearchPage() {
       <div className="sticky top-0 z-10 bg-bg pb-3 pt-3">
         {/* Search bar */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-accent/30 transition-shadow">
+          <div className="flex-1 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 shadow-sm transition-shadow">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -375,7 +375,7 @@ export default function SearchPage() {
 
         {/* Inline picker dropdown */}
         {openPicker && filterMeta && (
-          <div className="mt-2 bg-white rounded-2xl shadow-lg border border-[rgba(0,0,0,0.08)] max-h-[280px] overflow-y-auto">
+          <div className="mt-2 bg-white rounded-2xl shadow-lg border border-[rgba(0,0,0,0.08)] max-h-[60vh] overflow-y-auto">
             {/* Clear option */}
             <button
               onClick={() => setFilter(openPicker, null)}
