@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { CollectionCard, CardPrice } from "./collection-shell";
 import { PriceChart } from "@/lib/charts/price-chart";
+import { LivePriceBadge } from "@/components/live-price-badge";
 import { GradingROI } from "@/components/grading-roi";
 
 function fmt(n: number): string {
@@ -169,6 +170,11 @@ export function CardDetailModal({
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Live market price */}
+            <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+              <LivePriceBadge cardCode={card.cardCode} cardName={card.cardName} />
             </div>
 
             {/* Price chart */}

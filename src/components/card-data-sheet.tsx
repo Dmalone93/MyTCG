@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PriceChart } from "@/lib/charts/price-chart";
+import { LivePriceBadge } from "@/components/live-price-badge";
 
 type ExtData = {
   card: {
@@ -135,6 +136,11 @@ export function CardDataSheet({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Live market price */}
+        <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+          <LivePriceBadge cardCode={cardCode} cardName={cardName} />
         </div>
 
         {/* Price chart */}
