@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { intelItems } from "@/lib/db/schema";
+import { getExtendedCards } from "@/lib/catalog/extended-cards";
 
 const CATEGORIES = [
   {
@@ -136,6 +137,33 @@ Return ONLY the JSON array, no other text.`,
       }
     } catch (err) {
       errors.push(`${cat.key}: ${err instanceof Error ? err.message : "unknown error"}`);
+    }
+  }
+
+  // Enrich with card images from extended DB when image_url is empty
+  const extCards = getExtendedCards();
+  for (const item of allResults) {
+    if (!item.image_url && item.card_names.length > 0) {
+      // Find a card image for the first mentioned card
+      for (const name of item.card_names) {
+        const match = extCards.find(
+          (c) => c.cid.toUpperCase() === name.toUpperCase() ||
+                 c.name.toLowerCase() === name.toLowerCase()
+        );
+        if (match?.imageUrl) {
+          item.image_url = match.imageUrl;
+          break;
+        }
+      }
+    }
+    // If still no image, try to find any card mentioned in the title/summary
+    if (!item.image_url) {
+      const text = `${item.title} ${item.summary}`.toUpperCase();
+      const codeMatch = text.match(/(OP|ST|EB)\d{2}-\d{3}/);
+      if (codeMatch) {
+        const card = extCards.find((c) => c.cid.toUpperCase() === codeMatch[0]);
+        if (card?.imageUrl) item.image_url = card.imageUrl;
+      }
     }
   }
 

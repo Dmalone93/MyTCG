@@ -45,17 +45,34 @@ const CAT_LABEL: Record<string, string> = {
   sec_alt_arts: "Alt Art", prices: "Market", anime_manga: "Anime",
 };
 
+function ArticleLink({ item, children, className }: { item: IntelItem; children: React.ReactNode; className?: string }) {
+  if (item.sourceUrl) {
+    return <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>;
+  }
+  return <div className={className}>{children}</div>;
+}
+
 export function IntelFeed({ items }: { items: IntelItem[] }) {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
   const myCardItems = items.filter((i) => i.mentionsUserCard);
 
-  // Lead story = most recent urgent, or most recent overall
+  // Lead = most recent urgent or first item
   const lead = items.find((i) => i.urgent) ?? items[0] ?? null;
-  const rest = items.filter((i) => i !== lead);
+  // Secondary stories = next 2 after lead
+  const secondary = items.filter((i) => i !== lead).slice(0, 2);
+  // Rest
+  const rest = items.filter((i) => i !== lead && !secondary.includes(i));
 
-  // Get latest fetch time
+  // Group rest by category for columns
+  const columns = new Map<string, IntelItem[]>();
+  for (const item of rest) {
+    const cat = item.category ?? "other";
+    if (!columns.has(cat)) columns.set(cat, []);
+    columns.get(cat)!.push(item);
+  }
+
   const latestFetch = items[0]?.fetchedAt
     ? new Date(items[0].fetchedAt).toLocaleDateString("en-GB", {
         day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
@@ -68,17 +85,17 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
     try {
       const res = await fetch("/api/scan-intel", { method: "POST" });
       const data = await res.json();
-      if (res.ok) setRefreshMsg(`${data.inserted ?? 0} new items`);
-      else setRefreshMsg("Failed to scan");
-    } catch { setRefreshMsg("Network error"); }
+      if (res.ok) setRefreshMsg(`${data.inserted ?? 0} new`);
+      else setRefreshMsg("Failed");
+    } catch { setRefreshMsg("Error"); }
     setRefreshing(false);
   }
 
   return (
     <div>
       {/* Masthead */}
-      <div className="mb-6">
-        <div className="flex items-baseline justify-between gap-3 mb-1">
+      <div className="mb-5">
+        <div className="flex items-baseline justify-between gap-3">
           <h1 className="text-2xl font-bold text-text tracking-tight">What&apos;s Happening</h1>
           <button
             onClick={handleRefresh}
@@ -88,74 +105,116 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
             {refreshing ? "Scanning..." : "Refresh"}
           </button>
         </div>
-        <div className="flex items-center gap-3 text-sm text-text-dim">
+        <div className="text-sm text-text-dim mt-1">
           {latestFetch && <span>Updated {latestFetch}</span>}
-          {refreshMsg && <span>· {refreshMsg}</span>}
+          {refreshMsg && <span> · {refreshMsg}</span>}
         </div>
-        <div className="h-px bg-[rgba(255,255,255,0.08)] mt-4" />
+        <div className="h-[2px] bg-text mt-3 mb-1" />
+        <div className="h-px bg-[rgba(255,255,255,0.15)]" />
       </div>
 
-      {/* Your cards alert */}
+      {/* Your cards banner */}
       {myCardItems.length > 0 && (
-        <div className="mb-6 border-l-2 border-[#34D399] pl-4">
-          <div className="text-sm font-semibold text-[#34D399] mb-2">Your cards in the news</div>
+        <div className="mb-5 border-l-2 border-[#34D399] pl-4 py-1">
+          <div className="text-sm font-semibold text-[#34D399] mb-1.5">Your cards in the news</div>
           {myCardItems.slice(0, 3).map((item) => (
-            <div key={item.id} className="mb-2 last:mb-0">
-              <ArticleLink item={item}>
-                <span className="text-sm text-text hover:underline">{item.title}</span>
-              </ArticleLink>
-            </div>
+            <ArticleLink key={item.id} item={item}>
+              <span className="text-sm text-text hover:underline block mb-1">{item.title}</span>
+            </ArticleLink>
           ))}
         </div>
       )}
 
-      {/* Lead story */}
+      {/* Above the fold: Lead + Secondary */}
       {lead && (
-        <div className="mb-6">
-          <ArticleLink item={lead}>
-            <article className="group">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-5 mb-5">
+          {/* Lead — takes 3 columns */}
+          <div className="sm:col-span-3 sm:border-r sm:border-[rgba(255,255,255,0.06)] sm:pr-5">
+            <ArticleLink item={lead} className="group block">
               {lead.imageUrl && (
-                <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-[#1C1C1F] mb-4">
-                  <img
-                    src={lead.imageUrl}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                  />
+                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#1C1C1F] mb-3">
+                  <img src={lead.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
                 </div>
               )}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm text-text-dim">{CAT_LABEL[lead.category ?? ""] ?? lead.category}</span>
-                {lead.urgent && <span className="text-sm text-red-400 font-medium">Urgent</span>}
-                <span className="text-sm text-text-dim">·</span>
-                <span className="text-sm text-text-dim">{lead.published ? timeAgo(lead.published) : ""}</span>
+              <div className="text-sm text-text-dim mb-1.5">
+                {CAT_LABEL[lead.category ?? ""] ?? lead.category}
+                {lead.urgent && <span className="text-red-400 font-medium ml-2">Urgent</span>}
+                <span className="ml-2">{lead.published ? timeAgo(lead.published) : ""}</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-text leading-tight mb-3 group-hover:underline decoration-1 underline-offset-4">
+              <h2 className="text-xl font-bold text-text leading-tight mb-2 group-hover:underline decoration-1 underline-offset-4">
                 {lead.title}
               </h2>
               {lead.summary && (
-                <p className="text-base text-text-muted leading-relaxed mb-3">{lead.summary}</p>
-              )}
-              {lead.cardNames && lead.cardNames.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mb-2">
-                  {lead.cardNames.map((name, i) => (
-                    <span key={i} className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded">{name}</span>
-                  ))}
-                </div>
+                <p className="text-base text-text-muted leading-relaxed">{lead.summary}</p>
               )}
               {lead.source && (
-                <div className="text-sm text-text-dim">{lead.source}</div>
+                <div className="text-sm text-text-dim mt-2">{lead.source}</div>
               )}
-            </article>
-          </ArticleLink>
-          <div className="h-px bg-[rgba(255,255,255,0.06)] mt-6" />
+            </ArticleLink>
+          </div>
+
+          {/* Secondary — takes 2 columns */}
+          <div className="sm:col-span-2 space-y-4">
+            {secondary.map((item, i) => (
+              <div key={item.id}>
+                <ArticleLink item={item} className="group block">
+                  {item.imageUrl && (
+                    <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#1C1C1F] mb-2">
+                      <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
+                    </div>
+                  )}
+                  <div className="text-sm text-text-dim mb-1">
+                    {CAT_LABEL[item.category ?? ""] ?? item.category}
+                    {item.urgent && <span className="text-red-400 font-medium ml-2">Urgent</span>}
+                  </div>
+                  <h3 className="text-base font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-4">
+                    {item.title}
+                  </h3>
+                  {item.summary && (
+                    <p className="text-sm text-text-muted leading-relaxed line-clamp-2">{item.summary}</p>
+                  )}
+                </ArticleLink>
+                {i < secondary.length - 1 && (
+                  <div className="h-px bg-[rgba(255,255,255,0.06)] mt-4" />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Rest of the feed */}
+      {/* Divider */}
       {rest.length > 0 && (
-        <div className="space-y-0">
-          {rest.map((item) => (
-            <ArticleRow key={item.id} item={item} />
+        <div className="h-px bg-[rgba(255,255,255,0.08)] mb-5" />
+      )}
+
+      {/* Category columns */}
+      {columns.size > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-6">
+          {[...columns.entries()].map(([cat, catItems]) => (
+            <div key={cat}>
+              {/* Column header */}
+              <div className="text-sm font-bold text-text uppercase tracking-wide mb-2 pb-1.5 border-b border-text">
+                {CAT_LABEL[cat] ?? cat}
+              </div>
+              {/* Column items */}
+              <div className="space-y-3">
+                {catItems.slice(0, 4).map((item) => (
+                  <ArticleLink key={item.id} item={item} className="group block">
+                    <h4 className="text-sm font-semibold text-text leading-snug mb-0.5 group-hover:underline decoration-1 underline-offset-2">
+                      {item.title}
+                    </h4>
+                    {item.summary && (
+                      <p className="text-sm text-text-dim leading-relaxed line-clamp-2">{item.summary}</p>
+                    )}
+                    <div className="text-sm text-text-dim mt-1">
+                      {item.source && <span>{item.source}</span>}
+                      {item.published && <span> · {timeAgo(item.published)}</span>}
+                    </div>
+                  </ArticleLink>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -163,79 +222,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
       {items.length === 0 && (
         <div className="py-16 text-center">
           <div className="text-text-muted text-base mb-2">No stories yet</div>
-          <div className="text-text-dim text-sm">Hit Refresh to scan for the latest news</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ArticleLink({ item, children }: { item: IntelItem; children: React.ReactNode }) {
-  if (item.sourceUrl) {
-    return (
-      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="block">
-        {children}
-      </a>
-    );
-  }
-  return <div>{children}</div>;
-}
-
-function ArticleRow({ item }: { item: IntelItem }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="border-b border-[rgba(255,255,255,0.04)]">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-start gap-4 w-full text-left py-4 hover:bg-[rgba(255,255,255,0.01)] active:opacity-80 transition-colors"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm text-text-dim">{CAT_LABEL[item.category ?? ""] ?? item.category}</span>
-            {item.urgent && <span className="text-sm text-red-400 font-medium">Urgent</span>}
-            <span className="text-sm text-text-dim ml-auto">{item.published ? timeAgo(item.published) : ""}</span>
-          </div>
-          <h3 className="text-base font-semibold text-text leading-snug">{item.title}</h3>
-        </div>
-        {item.imageUrl && !open && (
-          <div className="w-[80px] h-[56px] rounded-lg overflow-hidden bg-[#1C1C1F] flex-none hidden sm:block">
-            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-          </div>
-        )}
-      </button>
-
-      {open && (
-        <div className="pb-4 pr-4">
-          {item.imageUrl && (
-            <div className="w-full sm:w-[280px] aspect-[16/10] rounded-lg overflow-hidden bg-[#1C1C1F] mb-3 sm:float-right sm:ml-4">
-              <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-            </div>
-          )}
-          {item.summary && (
-            <p className="text-base text-text leading-relaxed mb-3">{item.summary}</p>
-          )}
-          {item.cardNames && item.cardNames.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-3">
-              {item.cardNames.map((name, i) => (
-                <span key={i} className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded">{name}</span>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center gap-3 text-sm text-text-dim clear-both">
-            {item.source && <span>{item.source}</span>}
-            {item.published && <span>{formatDate(item.published)}</span>}
-            {item.sourceUrl && (
-              <a
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-text-muted hover:text-text transition-colors ml-auto"
-              >
-                Read full article →
-              </a>
-            )}
-          </div>
+          <div className="text-text-dim text-sm">Hit Refresh to scan for the latest</div>
         </div>
       )}
     </div>
