@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { collectionCards, cardPriceHistory, cardPrices } from "@/lib/db/schema";
-import { eq, and, gte, sql } from "drizzle-orm";
+import { eq, and, gte, sql, inArray } from "drizzle-orm";
 
 export async function GET(request: Request) {
+  try {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
   const history = await db
     .select({ cardCode: cardPriceHistory.cardCode, price: cardPriceHistory.price, date: cardPriceHistory.recordedAt })
     .from(cardPriceHistory)
-    .where(and(sql`${cardPriceHistory.cardCode} = ANY(${codes})`, gte(cardPriceHistory.recordedAt, since)))
+    .where(and(inArray(cardPriceHistory.cardCode, codes), gte(cardPriceHistory.recordedAt, since)))
     .orderBy(cardPriceHistory.recordedAt);
 
   const dateMap = new Map<string, number>();
@@ -49,11 +50,11 @@ export async function GET(request: Request) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const currentPrices = await db.select().from(cardPrices).where(sql`${cardPrices.cardCode} = ANY(${codes})`);
+  const currentPrices = await db.select().from(cardPrices).where(inArray(cardPrices.cardCode, codes));
   const oldPrices = await db
     .select({ cardCode: cardPriceHistory.cardCode, price: cardPriceHistory.price })
     .from(cardPriceHistory)
-    .where(and(sql`${cardPriceHistory.cardCode} = ANY(${codes})`, sql`${cardPriceHistory.recordedAt}::date = ${sevenDaysAgo.toISOString().split("T")[0]}::date`));
+    .where(and(inArray(cardPriceHistory.cardCode, codes), sql`${cardPriceHistory.recordedAt}::date = ${sevenDaysAgo.toISOString().split("T")[0]}::date`));
 
   const oldMap = new Map(oldPrices.map((p) => [p.cardCode, Number(p.price)]));
 
@@ -88,4 +89,8 @@ export async function GET(request: Request) {
   return NextResponse.json({ points, winners, losers, gradingOpps }, {
     headers: { "Cache-Control": "private, s-maxage=300" },
   });
+  } catch (err) {
+    console.error("Portfolio error:", err);
+    return NextResponse.json({ points: [], winners: [], losers: [], gradingOpps: [] });
+  }
 }
