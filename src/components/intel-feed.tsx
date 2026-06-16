@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { DealAlerts } from "./deal-alerts";
+import { PreorderTracker } from "./preorder-tracker";
 
 type IntelItem = {
   id: string;
@@ -111,6 +113,9 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
         </div>
         <div className="h-px bg-[rgba(0,0,0,0.1)] mt-3" />
       </div>
+
+      <DealAlerts />
+      <PreorderTracker />
 
       {/* Your cards banner */}
       {myCardItems.length > 0 && (
