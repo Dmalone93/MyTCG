@@ -207,30 +207,30 @@ export function CollectionShell({
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        {active && (
-          <h2 className="text-xl font-bold text-text truncate">{active.name}</h2>
-        )}
-        <div className="flex-1" />
-
-        {/* Collection management */}
-        {collections.length > 1 && (
-          <select
-            value={activeId ?? ""}
-            onChange={(e) => setActiveId(e.target.value)}
-            className="text-sm text-text-muted bg-transparent border-none outline-none cursor-pointer"
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-0.5">
+        {collections.map((col) => (
+          <button
+            key={col.id}
+            onClick={() => setActiveId(col.id)}
+            onDoubleClick={() => {
+              const name = prompt("Rename collection", col.name);
+              if (name?.trim()) handleRenameCollection(col.id, name.trim());
+            }}
+            className={`px-3 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors active:opacity-70 ${
+              col.id === activeId
+                ? "bg-text text-bg"
+                : "text-text-muted hover:text-text"
+            }`}
           >
-            {collections.map((col) => (
-              <option key={col.id} value={col.id}>{col.name}</option>
-            ))}
-          </select>
-        )}
+            {col.name}
+          </button>
+        ))}
         <button
           onClick={handleCreateCollection}
-          className="text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
+          className="px-2.5 py-2 text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none whitespace-nowrap"
           title="New collection"
         >
-          + New
+          +
         </button>
       </div>
 

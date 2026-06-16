@@ -162,26 +162,32 @@ export function CardGrid({
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "animate-spin" : ""}><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
           </button>
         )}
-        <div className="flex rounded-lg overflow-hidden flex-none ml-auto">
+        <div className="flex gap-0.5 flex-none ml-auto">
           <button
             onClick={() => setView("table")}
-            className={`px-2.5 py-2 text-xs transition-colors ${
+            className={`p-2 rounded-lg transition-colors ${
               view === "table"
-                ? "text-text"
+                ? "text-text bg-bg-surface"
                 : "text-text-dim hover:text-text-muted"
             }`}
+            title="List view"
           >
-            List
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
           <button
             onClick={() => setView("grid")}
-            className={`px-2.5 py-2 text-xs transition-colors ${
+            className={`p-2 rounded-lg transition-colors ${
               view === "grid"
-                ? "text-text"
+                ? "text-text bg-bg-surface"
                 : "text-text-dim hover:text-text-muted"
             }`}
+            title="Grid view"
           >
-            Grid
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+            </svg>
           </button>
         </div>
       </div>
