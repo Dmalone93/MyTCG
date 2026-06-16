@@ -37,34 +37,34 @@ export function MetricStrip({
   const plColor = pl >= 0 ? "#059669" : "#DC2626";
   const plBg = pl >= 0 ? "rgba(5,150,105,0.08)" : "rgba(220,38,38,0.08)";
 
-  // Don't show if no data
   if (totalSpent === 0 && totalRaw === 0) return null;
 
   return (
-    <div className="flex items-stretch bg-bg-elevated rounded-2xl shadow-sm overflow-hidden stagger-children">
-      {totalSpent > 0 && (
-        <div className="flex-1 px-4 sm:px-5 py-3.5 sm:py-4 border-r border-[rgba(0,0,0,0.04)]">
-          <div className="text-sm text-text-dim mb-1">Spent</div>
-          <div className="font-mono font-semibold text-lg sm:text-xl tracking-tight">
-            {fmt(totalSpent)}
-          </div>
+    <div className="flex justify-center gap-3 stagger-children">
+      {/* Spent + Raw Value card */}
+      <div className="bg-white rounded-2xl shadow-sm px-5 py-4 text-center">
+        <div className="flex items-center gap-6">
+          {totalSpent > 0 && (
+            <div>
+              <div className="text-sm text-text-dim mb-1">Spent</div>
+              <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalSpent)}</div>
+            </div>
+          )}
+          {totalRaw > 0 && (
+            <div>
+              <div className="text-sm text-text-dim mb-1">Raw Value</div>
+              <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalRaw)}</div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {totalRaw > 0 && (
-        <div className="flex-1 px-4 sm:px-5 py-3.5 sm:py-4 border-r border-[rgba(0,0,0,0.04)]">
-          <div className="text-sm text-text-dim mb-1">Raw Value</div>
-          <div className="font-mono font-semibold text-lg sm:text-xl tracking-tight">
-            {fmt(totalRaw)}
-          </div>
-        </div>
-      )}
-
+      {/* P/L card */}
       {totalSpent > 0 && totalRaw > 0 && (
-        <div className="flex-1 px-4 sm:px-5 py-3.5 sm:py-4">
+        <div className="bg-white rounded-2xl shadow-sm px-5 py-4 text-center">
           <div className="text-sm text-text-dim mb-1">P/L</div>
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-mono font-semibold text-lg sm:text-xl tracking-tight" style={{ color: plColor }}>
+          <div className="flex items-baseline justify-center gap-2">
+            <span className="font-mono font-semibold text-lg tracking-tight" style={{ color: plColor }}>
               {fmt(pl)}
             </span>
             <span className="font-mono font-semibold text-xs px-2 py-0.5 rounded-full" style={{ color: plColor, background: plBg }}>
