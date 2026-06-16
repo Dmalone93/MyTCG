@@ -124,7 +124,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
               <ArticleLink key={item.id} item={item} className="group block bg-bg-elevated rounded-2xl overflow-hidden hover:shadow-sm transition-shadow">
                 {item.imageUrl && (
                   <div className="w-full aspect-[16/9] bg-[#E4E4E7]">
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   </div>
                 )}
                 <div className="p-3">
@@ -150,7 +150,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
             <ArticleLink item={lead} className="group block">
               {lead.imageUrl && (
                 <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#E4E4E7] mb-3">
-                  <img src={lead.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                  <img src={lead.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm mb-1.5">
@@ -177,7 +177,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                 <ArticleLink item={item} className="group block">
                   {item.imageUrl && (
                     <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#E4E4E7] mb-2">
-                      <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
+                      <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-sm mb-1">
@@ -227,7 +227,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                   <div className={`flex gap-3 py-3 ${i > 0 ? "border-t border-[rgba(0,0,0,0.06)]" : ""}`}>
                     {item.imageUrl && (
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#E4E4E7] flex-none">
-                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
