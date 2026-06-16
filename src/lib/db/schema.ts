@@ -85,3 +85,39 @@ export const intelItems = pgTable("intel_items", {
   cardNames: text("card_names").array().default([]),
   fetchedAt: timestamp("fetched_at").defaultNow(),
 });
+
+export const cardPriceHistory = pgTable("card_price_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardCode: text("card_code").notNull(),
+  price: numeric("price").notNull(),
+  recordedAt: timestamp("recorded_at", { mode: "date" }).defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.cardCode, table.recordedAt),
+  index("idx_price_history_code_date").on(table.cardCode, table.recordedAt),
+]);
+
+export const dealAlerts = pgTable("deal_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardCode: text("card_code").notNull().unique(),
+  cardName: text("card_name").notNull(),
+  currentPrice: numeric("current_price").notNull(),
+  avgPrice: numeric("avg_price").notNull(),
+  discountPct: numeric("discount_pct").notNull(),
+  imageUrl: text("image_url"),
+  detectedAt: timestamp("detected_at", { mode: "date" }).defaultNow(),
+});
+
+export const preorderItems = pgTable("preorder_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productName: text("product_name").notNull(),
+  setCode: text("set_code"),
+  releaseDate: timestamp("release_date", { mode: "date" }),
+  retailer: text("retailer").notNull(),
+  price: numeric("price").notNull(),
+  currency: text("currency").default("GBP"),
+  url: text("url").notNull(),
+  inStock: boolean("in_stock").default(true),
+  fetchedAt: timestamp("fetched_at", { mode: "date" }).defaultNow(),
+}, (table) => [
+  unique().on(table.productName, table.retailer),
+]);

@@ -71,6 +71,41 @@ CREATE TABLE IF NOT EXISTS watchlist (
   UNIQUE(user_id, card_code)
 );
 
+CREATE TABLE IF NOT EXISTS card_price_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  card_code TEXT NOT NULL,
+  price NUMERIC NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(card_code, recorded_at)
+);
+
+CREATE TABLE IF NOT EXISTS deal_alerts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  card_code TEXT NOT NULL UNIQUE,
+  card_name TEXT NOT NULL,
+  current_price NUMERIC NOT NULL,
+  avg_price NUMERIC NOT NULL,
+  discount_pct NUMERIC NOT NULL,
+  image_url TEXT,
+  detected_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS preorder_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_name TEXT NOT NULL,
+  set_code TEXT,
+  release_date TIMESTAMPTZ,
+  retailer TEXT NOT NULL,
+  price NUMERIC NOT NULL,
+  currency TEXT DEFAULT 'GBP',
+  url TEXT NOT NULL,
+  in_stock BOOLEAN DEFAULT TRUE,
+  fetched_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(product_name, retailer)
+);
+
+CREATE INDEX IF NOT EXISTS idx_price_history_code_date ON card_price_history(card_code, recorded_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_watchlist_user ON watchlist(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_collections_user ON collections(user_id);
