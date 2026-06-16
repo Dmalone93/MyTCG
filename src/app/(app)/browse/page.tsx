@@ -12,16 +12,18 @@ function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
 }
 
-/** Categorise sets into groups */
+/** Categorise sets into groups — handles both "[OP-01]" and "OP-01 | Name" formats */
 function categoriseSet(name: string): string {
-  if (/\bOP-\d/.test(name) || /\[OP-\d/.test(name)) return "Booster Packs";
-  if (/\bST-\d/.test(name) || /\[ST-\d/.test(name)) return "Starter Decks";
-  if (/\bEB-\d/.test(name) || /\[EB-\d/.test(name)) return "Extra Boosters";
+  if (/\bOP-?\d/i.test(name) || /\[OP-\d/.test(name)) return "Booster Packs";
+  if (/\bST-?\d/i.test(name) || /\[ST-\d/.test(name)) return "Starter Decks";
+  if (/\bEB-?\d/i.test(name) || /\[EB-\d/.test(name) || /Extra Booster/i.test(name)) return "Extra Boosters";
+  if (/\bPRB-?\d/i.test(name) || /Premium Booster/i.test(name)) return "Premium Boosters";
   if (/Promo/i.test(name) || /\[P\]/.test(name)) return "Promos";
   return "Other";
 }
 
-const GROUP_ORDER = ["Booster Packs", "Starter Decks", "Extra Boosters", "Promos", "Other"];
+const GROUP_ORDER = ["Booster Packs", "Starter Decks", "Extra Boosters", "Premium Boosters", "Promos", "Other"];
+
 
 export default function BrowsePage() {
   const [sets, setSets] = useState<CardSet[]>([]);
@@ -93,9 +95,9 @@ export default function BrowsePage() {
     return GROUP_ORDER.filter((g) => groups.has(g)).map((g) => ({
       group: g,
       sets: groups.get(g)!.sort((a, b) => {
-        // Extract number from set code e.g. "[OP-01]" → 1, "[ST-14]" → 14
-        const numA = parseInt((a.name.match(/\[(?:OP|ST|EB)-?(\d+)\]/)?.[1]) ?? "999");
-        const numB = parseInt((b.name.match(/\[(?:OP|ST|EB)-?(\d+)\]/)?.[1]) ?? "999");
+        // Extract number from set code e.g. "[OP-01]" → 1, "OP-09" → 9
+        const numA = parseInt((a.name.match(/(?:OP|ST|EB|PRB)-?(\d+)/)?.[1]) ?? "999");
+        const numB = parseInt((b.name.match(/(?:OP|ST|EB|PRB)-?(\d+)/)?.[1]) ?? "999");
         return numA - numB;
       }),
     }));

@@ -143,7 +143,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
               <div className="flex items-center gap-2 text-sm mb-1.5">
                 <span className="text-text-dim">{CAT_LABEL[lead.category ?? ""] ?? lead.category}</span>
                 {lead.urgent && <span className="text-red-500 font-semibold">Urgent</span>}
-                {lead.published && <span className="font-semibold text-text">{timeAgo(lead.published)}</span>}
+                {lead.published && <><span className="text-text-dim">|</span><span className="font-semibold text-text">{timeAgo(lead.published)}</span></>}
               </div>
               <h2 className="text-xl font-bold text-text leading-tight mb-2 group-hover:underline decoration-1 underline-offset-4">
                 {lead.title}
@@ -170,7 +170,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                   <div className="flex items-center gap-2 text-sm mb-1">
                     <span className="text-text-dim">{CAT_LABEL[item.category ?? ""] ?? item.category}</span>
                     {item.urgent && <span className="text-red-500 font-semibold">Urgent</span>}
-                    {item.published && <span className="font-semibold text-text">{timeAgo(item.published)}</span>}
+                    {item.published && <><span className="text-text-dim">|</span><span className="font-semibold text-text">{timeAgo(item.published)}</span></>}
                   </div>
                   <h3 className="text-base font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-4">
                     {item.title}
@@ -213,7 +213,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                       <p className="text-sm text-text-muted leading-relaxed line-clamp-2">{item.summary}</p>
                     )}
                     <div className="flex items-center gap-2 text-sm mt-1">
-                      {item.published && <span className="font-semibold text-text">{timeAgo(item.published)}</span>}
+                      {item.published && <><span className="text-text-dim">|</span><span className="font-semibold text-text">{timeAgo(item.published)}</span></>}
                       {item.source && <span className="text-text-dim">{item.source}</span>}
                     </div>
                   </ArticleLink>
