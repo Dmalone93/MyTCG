@@ -38,7 +38,6 @@ export function MobileNav() {
         </svg>
       ),
     },
-    null, // Scan button placeholder
     {
       href: "/settings",
       label: "Profile",
