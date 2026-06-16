@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { collectionCards, cardPrices } from "@/lib/db/schema";
+import { collectionCards, cardPrices, cardPriceHistory, dealAlerts } from "@/lib/db/schema";
 import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
+import { sql } from "drizzle-orm";
 
 /**
  * POST /api/refresh-prices
@@ -61,9 +62,69 @@ export async function POST(request: Request) {
     updated++;
   }
 
+  // Record price history
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (const code of codes) {
+    const card = catalogMap.get(code);
+    if (!card || card.marketPrice == null) continue;
+
+    await db
+      .insert(cardPriceHistory)
+      .values({
+        cardCode: code,
+        price: String(card.marketPrice),
+        recordedAt: today,
+      })
+      .onConflictDoNothing();
+  }
+
+  // Detect deals — cards 20%+ below 30-day average
+  const allCardsWithHistory = await db
+    .select({
+      cardCode: cardPriceHistory.cardCode,
+      avgPrice: sql<number>`AVG(${cardPriceHistory.price}::numeric)`,
+    })
+    .from(cardPriceHistory)
+    .where(sql`${cardPriceHistory.recordedAt} > NOW() - INTERVAL '30 days'`)
+    .groupBy(cardPriceHistory.cardCode)
+    .having(sql`COUNT(*) >= 7`);
+
+  // Clear old deals
+  await db.delete(dealAlerts);
+
+  let dealsInserted = 0;
+  for (const row of allCardsWithHistory) {
+    const card = catalog.find((c) => c.cardSetId === row.cardCode);
+    if (!card || card.marketPrice == null) continue;
+
+    const avg = Number(row.avgPrice);
+    const current = card.marketPrice;
+    if (avg <= 0) continue;
+
+    const discountPct = ((avg - current) / avg) * 100;
+    if (discountPct >= 20) {
+      await db
+        .insert(dealAlerts)
+        .values({
+          cardCode: row.cardCode,
+          cardName: card.cardName,
+          currentPrice: String(current),
+          avgPrice: String(avg),
+          discountPct: String(Math.round(discountPct)),
+          imageUrl: card.imageUrl ?? null,
+        })
+        .onConflictDoNothing();
+      dealsInserted++;
+      if (dealsInserted >= 50) break;
+    }
+  }
+
   return NextResponse.json({
     message: `Refreshed ${updated}/${codes.length} prices from optcgapi.com`,
     updated,
     total: codes.length,
+    dealsInserted,
   });
 }
