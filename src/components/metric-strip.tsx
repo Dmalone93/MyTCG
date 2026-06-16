@@ -38,31 +38,48 @@ export function MetricStrip({
 
   if (totalSpent === 0 && totalRaw === 0) return null;
 
+  const items: React.ReactNode[] = [];
+
+  if (totalSpent > 0) {
+    items.push(
+      <div key="spent" className="flex-1 min-w-0">
+        <span className="text-[11px] uppercase tracking-wider text-text-dim">Spent</span>
+        <div className="font-mono text-sm font-medium text-text">{fmt(totalSpent)}</div>
+      </div>
+    );
+  }
+
+  if (totalRaw > 0) {
+    items.push(
+      <div key="value" className="flex-1 min-w-0">
+        <span className="text-[11px] uppercase tracking-wider text-text-dim">Value</span>
+        <div className="font-mono text-sm font-medium text-text">{fmt(totalRaw)}</div>
+      </div>
+    );
+  }
+
+  if (totalSpent > 0 && totalRaw > 0) {
+    items.push(
+      <div key="pl" className="flex-1 min-w-0">
+        <span className="text-[11px] uppercase tracking-wider text-text-dim">P/L</span>
+        <div className="font-mono text-sm font-medium" style={{ color: plColor }}>
+          {fmt(pl)}
+        </div>
+        <div className="font-mono text-xs" style={{ color: plColor }}>
+          {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-baseline gap-5 py-2">
-      {totalSpent > 0 && (
-        <div>
-          <span className="text-[11px] uppercase tracking-wider text-text-dim">Spent</span>
-          <div className="font-mono text-sm font-medium text-text">{fmt(totalSpent)}</div>
+    <div className="flex items-start py-3">
+      {items.map((item, i) => (
+        <div key={i} className="contents">
+          {i > 0 && <div className="w-px self-stretch bg-[rgba(0,0,0,0.08)] mx-4 sm:mx-6" />}
+          {item}
         </div>
-      )}
-      {totalRaw > 0 && (
-        <div>
-          <span className="text-[11px] uppercase tracking-wider text-text-dim">Value</span>
-          <div className="font-mono text-sm font-medium text-text">{fmt(totalRaw)}</div>
-        </div>
-      )}
-      {totalSpent > 0 && totalRaw > 0 && (
-        <div>
-          <span className="text-[11px] uppercase tracking-wider text-text-dim">P/L</span>
-          <div className="font-mono text-sm font-medium" style={{ color: plColor }}>
-            {fmt(pl)}
-          </div>
-          <div className="font-mono text-xs" style={{ color: plColor }}>
-            {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
-          </div>
-        </div>
-      )}
+      ))}
     </div>
   );
 }

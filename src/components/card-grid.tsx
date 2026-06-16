@@ -526,13 +526,16 @@ function CardMobileRow({
           )}
         </div>
         <div className="font-mono text-xs text-text-dim">
-          {card.cardCode} {card.quantity && card.quantity > 1 ? `× ${card.quantity}` : ""}
+          {card.cardCode}{card.quantity && card.quantity > 1 ? ` × ${card.quantity}` : ""}{card.condition ? ` · ${card.condition}` : ""}
         </div>
       </div>
       <div className="text-right flex-none">
         <div className="font-mono text-sm text-text">
           {market > 0 ? fmt(market) : "—"}
         </div>
+        {card.acquiredPrice != null && num(card.acquiredPrice) > 0 && (
+          <div className="font-mono text-[11px] text-text-dim">Paid {fmt(num(card.acquiredPrice))}</div>
+        )}
         {gp > 0 && (
           <div className="font-mono text-xs text-[#059669]">{fmt(gp)}</div>
         )}
@@ -581,7 +584,7 @@ function CardGridTile({
         />
       )}
       <div className="font-mono text-xs text-text-dim mb-1">
-        {card.cardCode}
+        {card.cardCode}{card.quantity && card.quantity > 1 ? ` × ${card.quantity}` : ""}{card.condition ? ` · ${card.condition}` : ""}
       </div>
       <div className="font-medium text-sm text-text mb-2 truncate">
         {card.cardName}
@@ -601,6 +604,9 @@ function CardGridTile({
           <span className="text-[#059669] font-mono">{fmt(gp)}</span>
         )}
       </div>
+      {card.acquiredPrice != null && num(card.acquiredPrice) > 0 && (
+        <div className="font-mono text-[10px] text-text-dim mt-0.5">Paid {fmt(num(card.acquiredPrice))}</div>
+      )}
     </div>
   );
 }
