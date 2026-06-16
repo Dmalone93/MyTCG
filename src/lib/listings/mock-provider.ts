@@ -7,15 +7,17 @@ export class MockListingProvider implements ListingProvider {
     const basePrice = this.hashPrice(cardCode);
     const isGraded = grade && grade !== "Raw";
     const multiplier = isGraded ? 1.8 + Math.random() * 1.2 : 1;
+    const search = `${cardCode}${cardName ? ` ${cardName}` : ""}`;
 
-    return [
+    // Active listings
+    const active: Listing[] = [
       {
         source: "ebay",
         price: +(basePrice * multiplier * (0.85 + Math.random() * 0.3)).toFixed(2),
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Near Mint",
         shipping: +(1.5 + Math.random() * 2.5).toFixed(2),
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}${cardName ? ` ${cardName}` : ""}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(search)}`,
         soldDate: null,
       },
       {
@@ -24,7 +26,7 @@ export class MockListingProvider implements ListingProvider {
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Lightly Played",
         shipping: 0,
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}${cardName ? ` ${cardName}` : ""}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(search)}`,
         soldDate: null,
       },
       {
@@ -45,6 +47,38 @@ export class MockListingProvider implements ListingProvider {
         soldDate: null,
       },
     ];
+
+    // Recent sold listings
+    const sold: Listing[] = [
+      {
+        source: "ebay",
+        price: +(basePrice * multiplier * (0.82 + Math.random() * 0.2)).toFixed(2),
+        currency: "GBP",
+        condition: isGraded ? `${grade}` : "Near Mint",
+        shipping: +(1.0 + Math.random() * 2).toFixed(2),
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(search)}&LH_Complete=1&LH_Sold=1`,
+        soldDate: new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0],
+      },
+      {
+        source: "ebay",
+        price: +(basePrice * multiplier * (0.78 + Math.random() * 0.25)).toFixed(2),
+        currency: "GBP",
+        condition: isGraded ? `${grade}` : "Lightly Played",
+        shipping: 0,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(search)}&LH_Complete=1&LH_Sold=1`,
+        soldDate: new Date(Date.now() - 5 * 86400000).toISOString().split("T")[0],
+      },
+      {
+        source: "cardmarket",
+        price: +(basePrice * multiplier * (0.84 + Math.random() * 0.18) * 1.17).toFixed(2),
+        currency: "EUR",
+        condition: isGraded ? `${grade}` : "Near Mint",
+        url: `https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(cardCode)}`,
+        soldDate: new Date(Date.now() - 3 * 86400000).toISOString().split("T")[0],
+      },
+    ];
+
+    return [...active, ...sold];
   }
 
   private hashPrice(code: string): number {

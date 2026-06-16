@@ -10,10 +10,10 @@ import type { Listing } from "@/lib/listings/types";
 
 const listingProvider = new MockListingProvider();
 
-const SOURCE_LABELS: Record<string, { label: string; available: boolean }> = {
-  ebay: { label: "eBay", available: true },
-  cardmarket: { label: "Cardmarket", available: false },
-  tcgplayer: { label: "TCGPlayer", available: false },
+const SOURCE_BADGE: Record<string, { label: string; color: string }> = {
+  ebay: { label: "eBay", color: "#E53238" },
+  cardmarket: { label: "CM", color: "#1A1A6C" },
+  tcgplayer: { label: "TCP", color: "#3B82F6" },
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "£", EUR: "€", USD: "$" };
@@ -36,17 +36,16 @@ export function ScanResultScreen({
   card,
   onRescan,
   onManualEntry,
+  onAddToCollection,
   onClose,
 }: {
   card: CatalogCard;
   onRescan: () => void;
   onManualEntry: () => void;
+  onAddToCollection?: () => void;
   onClose: () => void;
 }) {
   const { formatPrice, config } = useRegion();
-
-  const [askingRaw, setAskingRaw] = useState("");
-  const asking = parseFloat(askingRaw) || 0;
 
   const [grade, setGrade] = useState("Raw");
 
@@ -66,7 +65,7 @@ export function ScanResultScreen({
     listingProvider.getListings(card.cardSetId, card.cardName, grade !== "Raw" ? grade : undefined)
       .then(setListings)
       .catch(() => {});
-  }, [card.cardSetId, grade]);
+  }, [card.cardSetId, card.cardName, grade]);
 
   async function refreshPrice() {
     setRefreshing(true);
@@ -96,12 +95,6 @@ export function ScanResultScreen({
     return gp[company]?.[num] ?? priceData.market;
   }, [grade, priceData]);
 
-  const marketConverted = displayPrice ? displayPrice * config.rate : null;
-  const delta = marketConverted && asking > 0 ? asking - marketConverted : null;
-  const deltaPercent = marketConverted && delta ? (delta / marketConverted) * 100 : null;
-  const isGoodDeal = delta != null && delta < 0;
-  const isBadDeal = delta != null && delta > 0;
-
   const stalenessLabel = useMemo(() => {
     if (!priceData.fetchedAt) return "cached";
     const mins = Math.round((Date.now() - new Date(priceData.fetchedAt).getTime()) / 60000);
@@ -110,9 +103,46 @@ export function ScanResultScreen({
     return `${Math.round(mins / 60)}h ago`;
   }, [priceData.fetchedAt]);
 
+  // Split listings into active and sold
+  const activeListings = listings.filter((l) => !l.soldDate);
+  const soldListings = listings.filter((l) => l.soldDate);
+
+  function renderListing(listing: Listing, i: number) {
+    const badge = SOURCE_BADGE[listing.source];
+    const sym = CURRENCY_SYMBOLS[listing.currency] ?? listing.currency;
+    return (
+      <a
+        key={i}
+        href={listing.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2.5 bg-bg-surface rounded-xl px-3 py-2.5 active:opacity-80 transition-colors"
+      >
+        <span
+          className="text-xs font-bold text-white px-1.5 py-0.5 rounded flex-none"
+          style={{ backgroundColor: badge.color }}
+        >
+          {badge.label}
+        </span>
+        <span className="text-sm text-text-dim flex-1 truncate">{listing.condition}</span>
+        <div className="text-right flex-none">
+          <span className="font-mono text-sm font-semibold text-text">
+            {sym}{listing.price.toFixed(2)}
+          </span>
+          {listing.shipping != null && listing.shipping > 0 && (
+            <span className="text-xs text-text-dim ml-1">+{sym}{listing.shipping.toFixed(2)}</span>
+          )}
+        </div>
+        {listing.soldDate && (
+          <span className="text-xs text-text-dim flex-none">{listing.soldDate}</span>
+        )}
+      </a>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      {/* 1. Verification header */}
+      {/* 1. Card verification */}
       <div className="flex gap-4 items-start">
         {card.imageUrl && (
           <img src={card.imageUrl} alt={card.cardName} className="w-[72px] rounded-lg aspect-[2.5/3.5] object-cover flex-none" />
@@ -124,113 +154,75 @@ export function ScanResultScreen({
         </div>
       </div>
 
-      {/* Wrong card? — prominent, always visible */}
+      {/* Actions: rescan, enter code, add to collection */}
       <div className="flex gap-2">
         <button
           onClick={onRescan}
-          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
+          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-3 rounded-xl active:opacity-70 transition-colors"
         >
-          Not this card? Rescan
+          Rescan
         </button>
         <button
           onClick={onManualEntry}
-          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
+          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-3 rounded-xl active:opacity-70 transition-colors"
         >
           Enter code
         </button>
+        {onAddToCollection && (
+          <button
+            onClick={onAddToCollection}
+            className="flex-1 bg-text text-bg font-medium text-sm py-2.5 px-3 rounded-xl active:opacity-80 transition-colors"
+          >
+            Add to collection
+          </button>
+        )}
       </div>
 
-      {/* 2. Asking vs market — the hero */}
+      {/* 2. Market price — the hero number */}
       <div className="bg-bg-surface rounded-2xl p-4">
-        <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Asking price</div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-text-dim text-lg">{config.symbol}</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value={askingRaw}
-            onChange={(e) => setAskingRaw(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none font-mono text-2xl font-bold text-text placeholder:text-text-dim/30"
-          />
-        </div>
-
-        <div className="flex items-center justify-between py-2 border-t border-[rgba(0,0,0,0.06)]">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs text-text-dim uppercase tracking-wider">Market price</span>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-text-dim">Market</span>
             <span className="text-xs text-text-dim/60">{stalenessLabel}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm font-medium text-text">
-              {marketConverted != null ? formatPrice(displayPrice!) : "—"}
-            </span>
             <button
               onClick={refreshPrice}
               disabled={refreshing}
-              className="text-xs text-text-dim hover:text-text active:opacity-70 disabled:opacity-40"
+              className="text-sm text-text-dim hover:text-text active:opacity-70 disabled:opacity-40"
             >
               {refreshing ? "..." : "↻"}
             </button>
           </div>
         </div>
-
-        {delta != null && (
-          <div className={`flex items-center justify-between py-3 border-t border-[rgba(0,0,0,0.06)] ${isGoodDeal ? "bg-[rgba(5,150,105,0.04)]" : isBadDeal ? "bg-[rgba(220,38,38,0.04)]" : ""} -mx-4 px-4 rounded-b-2xl`}>
-            <span className="text-sm font-medium text-text">
-              {isGoodDeal ? "Below market" : isBadDeal ? "Above market" : "At market"}
-            </span>
-            <div className="text-right">
-              <span className={`font-mono text-lg font-bold ${isGoodDeal ? "text-[#059669]" : isBadDeal ? "text-[#DC2626]" : "text-text"}`}>
-                {delta >= 0 ? "+" : ""}{formatPrice(delta / config.rate)}
-              </span>
-              {deltaPercent != null && (
-                <span className={`font-mono text-sm ml-2 ${isGoodDeal ? "text-[#059669]" : isBadDeal ? "text-[#DC2626]" : "text-text-dim"}`}>
-                  ({deltaPercent >= 0 ? "+" : ""}{deltaPercent.toFixed(1)}%)
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Live listings */}
-      <div>
-        <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Cheapest listings</div>
-        <div className="space-y-1.5">
-          {listings
-            .sort((a, b) => a.price - b.price)
-            .map((listing, i) => {
-              const info = SOURCE_LABELS[listing.source];
-              const sym = CURRENCY_SYMBOLS[listing.currency] ?? listing.currency;
-              return (
-                <div key={i} className="flex items-center gap-3 bg-bg-surface rounded-xl px-3 py-2.5">
-                  <span className="text-sm font-medium text-text w-[80px] flex-none">{info.label}</span>
-                  <span className="text-sm text-text-dim flex-1">{listing.condition}</span>
-                  <div className="text-right flex-none">
-                    <span className="font-mono text-sm font-semibold text-text">
-                      {sym}{listing.price.toFixed(2)}
-                    </span>
-                    {listing.shipping != null && listing.shipping > 0 && (
-                      <span className="text-xs text-text-dim ml-1">+{sym}{listing.shipping.toFixed(2)}</span>
-                    )}
-                  </div>
-                  {info.available ? (
-                    <a href={listing.url} target="_blank" rel="noopener noreferrer"
-                      className="text-xs font-medium text-text-muted hover:text-text flex-none">
-                      View →
-                    </a>
-                  ) : (
-                    <span className="text-xs text-text-dim/50 flex-none">Soon</span>
-                  )}
-                </div>
-              );
-            })}
+        <div className="font-mono text-2xl font-bold text-text">
+          {displayPrice != null ? formatPrice(displayPrice) : "—"}
         </div>
       </div>
 
-      {/* 4. Recent market price chart */}
+      {/* 3. Active listings */}
+      {activeListings.length > 0 && (
+        <div>
+          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Active listings</div>
+          <div className="space-y-1.5">
+            {activeListings
+              .sort((a, b) => a.price - b.price)
+              .map((l, i) => renderListing(l, i))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Sold listings */}
+      {soldListings.length > 0 && (
+        <div>
+          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Recently sold</div>
+          <div className="space-y-1.5">
+            {soldListings
+              .sort((a, b) => (b.soldDate ?? "").localeCompare(a.soldDate ?? ""))
+              .map((l, i) => renderListing(l, i + 100))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Recent market price chart */}
       {history && history.points.length >= 2 && (
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -252,7 +244,7 @@ export function ScanResultScreen({
         </div>
       )}
 
-      {/* 5. Graded vs Raw */}
+      {/* 6. Graded vs Raw */}
       <div>
         <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Graded vs Raw</div>
         <GradeSelector value={grade} onChange={setGrade} />
@@ -263,7 +255,6 @@ export function ScanResultScreen({
           </div>
         )}
       </div>
-
     </div>
   );
 }

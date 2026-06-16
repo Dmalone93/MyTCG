@@ -543,6 +543,7 @@ export function ScanModal({
                 startScanning();
               }}
               onManualEntry={() => setShowManualEntry(true)}
+              onAddToCollection={() => onResult(resultCard)}
               onClose={onClose}
             />
           </div>

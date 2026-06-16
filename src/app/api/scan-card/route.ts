@@ -188,15 +188,15 @@ export async function POST(request: Request) {
     const text =
       resp.textAnnotations?.[0]?.description ?? "";
 
-    // Try text-based codes first
-    let codes = extractAllCodes(text);
+    // Priority: web detection (artwork matching) first, then text-based codes
+    let codes = extractCodesFromWeb(resp.webDetection);
 
-    // Fall back to web detection
+    // Fall back to text-based extraction
     if (codes.length === 0) {
-      codes = extractCodesFromWeb(resp.webDetection);
+      codes = extractAllCodes(text);
     }
 
-    // Single code extraction as fallback
+    // Single code extraction as last resort
     if (codes.length === 0) {
       const single = extractCode(text);
       if (single) codes = [single];
