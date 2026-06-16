@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { useRegion } from "@/components/region-selector";
 
@@ -150,9 +150,14 @@ export function CardPicker({
     }
   }
 
-  const handleSort = useCallback((key: SortKey) => {
-    setSortKey((p) => { if (p === key) { setSortDir((d) => d === "asc" ? "desc" : "asc"); return key; } setSortDir(key === "price" ? "desc" : "asc"); return key; });
-  }, []);
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir(key === "price" ? "desc" : "asc");
+    }
+  }
 
   // Selection
   function toggleCard(cardId: string) {
@@ -353,33 +358,24 @@ export function CardPicker({
                 className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors select-none ${
                   isSelected ? "bg-accent/10" : "active:bg-[rgba(0,0,0,0.02)]"
                 }`}
-                onClick={() => {
-                  if (selected.size > 0) {
-                    toggleCard(card.cardSetId);
-                  } else {
-                    onPick(card);
-                  }
-                }}
+                onClick={() => toggleCard(card.cardSetId)}
                 onPointerDown={(e) => {
-                  // Long press / drag to start multi-select
                   if (e.pointerType === "touch") {
                     handlePointerDown(card.cardSetId, e.clientY);
                   }
                 }}
                 onPointerEnter={() => handlePointerEnter(card.cardSetId)}
               >
-                {/* Checkbox — show when any card is selected */}
-                {selected.size > 0 && (
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
-                    isSelected ? "bg-accent border-accent" : "border-[rgba(0,0,0,0.15)]"
-                  }`}>
-                    {isSelected && (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </div>
-                )}
+                {/* Checkbox — always visible */}
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
+                  isSelected ? "bg-accent border-accent" : "border-[rgba(0,0,0,0.15)]"
+                }`}>
+                  {isSelected && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
 
                 <div className="w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                   <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
