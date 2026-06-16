@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
@@ -11,6 +11,17 @@ type SortDir = "asc" | "desc";
 function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
 }
+
+/** Categorise sets into groups */
+function categoriseSet(name: string): string {
+  if (/\bOP-\d/.test(name) || /\[OP-\d/.test(name)) return "Booster Packs";
+  if (/\bST-\d/.test(name) || /\[ST-\d/.test(name)) return "Starter Decks";
+  if (/\bEB-\d/.test(name) || /\[EB-\d/.test(name)) return "Extra Boosters";
+  if (/Promo/i.test(name) || /\[P\]/.test(name)) return "Promos";
+  return "Other";
+}
+
+const GROUP_ORDER = ["Booster Packs", "Starter Decks", "Extra Boosters", "Promos", "Other"];
 
 export default function BrowsePage() {
   const [sets, setSets] = useState<CardSet[]>([]);
@@ -34,6 +45,8 @@ export default function BrowsePage() {
   async function loadSet(setName: string) {
     setSelectedSet(setName);
     setLoadingCards(true);
+    setSortKey("code");
+    setSortDir("asc");
     try {
       const res = await fetch(`/api/card-sets?set=${encodeURIComponent(setName)}`);
       setCards(await res.json());
@@ -41,7 +54,7 @@ export default function BrowsePage() {
     setLoadingCards(false);
   }
 
-  function sortedCards() {
+  const sorted = useMemo(() => {
     return [...cards].sort((a, b) => {
       let cmp = 0;
       if (sortKey === "code") cmp = a.cardSetId.localeCompare(b.cardSetId);
@@ -49,65 +62,70 @@ export default function BrowsePage() {
       else if (sortKey === "price") cmp = (a.marketPrice ?? 0) - (b.marketPrice ?? 0);
       return sortDir === "desc" ? -cmp : cmp;
     });
-  }
+  }, [cards, sortKey, sortDir]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
+      setSortDir((d) => d === "asc" ? "desc" : "asc");
     } else {
       setSortKey(key);
       setSortDir(key === "price" ? "desc" : "asc");
     }
   }
 
-  function SortButton({ k, label }: { k: SortKey; label: string }) {
-    const active = sortKey === k;
-    return (
-      <button
-        onClick={() => toggleSort(k)}
-        className={`text-sm px-2.5 py-1.5 rounded transition-colors ${
-          active ? "text-text font-semibold" : "text-text-dim hover:text-text"
-        }`}
-      >
-        {label} {active && (sortDir === "asc" ? "↑" : "↓")}
-      </button>
-    );
-  }
+  // Group sets by category
+  const groupedSets = useMemo(() => {
+    const groups = new Map<string, CardSet[]>();
+    for (const s of sets) {
+      const group = categoriseSet(s.name);
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group)!.push(s);
+    }
+    return GROUP_ORDER.filter((g) => groups.has(g)).map((g) => ({
+      group: g,
+      sets: groups.get(g)!,
+    }));
+  }, [sets]);
 
   // Set list
   if (!selectedSet) {
     return (
       <div>
-        <h1 className="text-lg font-bold text-text mb-4">Browse All Cards</h1>
+        <h1 className="text-lg font-bold text-text mb-5">Browse All Cards</h1>
         {loading && (
           <div className="space-y-2">
-            {[1,2,3,4,5].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-14 bg-bg-surface rounded-xl animate-pulse" />
             ))}
           </div>
         )}
-        <div className="space-y-1">
-          {sets.map((s) => (
-            <button
-              key={s.name}
-              onClick={() => loadSet(s.name)}
-              className="flex items-center justify-between w-full text-left px-4 py-3.5 rounded-xl hover:bg-bg-surface active:opacity-80 transition-colors"
-            >
-              <div>
-                <div className="text-sm font-medium text-text">{s.name}</div>
-                {s.date && <div className="text-xs text-text-dim mt-0.5">{s.date}</div>}
-              </div>
-              <span className="text-sm text-text-dim font-mono">{s.count}</span>
-            </button>
-          ))}
-        </div>
+        {groupedSets.map(({ group, sets: groupSets }) => (
+          <div key={group} className="mb-6">
+            <div className="text-sm font-bold text-text uppercase tracking-wide mb-2 pb-1.5 border-b border-[rgba(0,0,0,0.08)]">
+              {group}
+            </div>
+            <div className="space-y-0.5">
+              {groupSets.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => loadSet(s.name)}
+                  className="flex items-center justify-between w-full text-left px-4 py-3 rounded-xl hover:bg-bg-surface active:opacity-80 transition-colors"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-text">{s.name}</div>
+                    {s.date && <div className="text-xs text-text-dim mt-0.5">{s.date}</div>}
+                  </div>
+                  <span className="text-sm text-text-dim font-mono">{s.count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   // Cards in set
-  const sorted = sortedCards();
-
   return (
     <div>
       {/* Header */}
@@ -121,9 +139,21 @@ export default function BrowsePage() {
 
       {/* Sort + view controls */}
       <div className="flex items-center gap-1 mb-3 flex-wrap">
-        <SortButton k="code" label="Code" />
-        <SortButton k="name" label="Name" />
-        <SortButton k="price" label="Price" />
+        {(["code", "name", "price"] as SortKey[]).map((k) => {
+          const active = sortKey === k;
+          const label = k === "code" ? "Code" : k === "name" ? "Name" : "Price";
+          return (
+            <button
+              key={k}
+              onClick={() => toggleSort(k)}
+              className={`text-sm px-2.5 py-1.5 rounded transition-colors ${
+                active ? "text-text font-semibold bg-bg-surface" : "text-text-dim hover:text-text"
+              }`}
+            >
+              {label} {active && (sortDir === "asc" ? "↑" : "↓")}
+            </button>
+          );
+        })}
         <div className="flex-1" />
         <div className="flex rounded-lg overflow-hidden">
           <button onClick={() => setView("list")} className={`px-2.5 py-1.5 text-xs transition-colors ${view === "list" ? "text-text font-semibold" : "text-text-dim"}`}>List</button>
@@ -133,7 +163,7 @@ export default function BrowsePage() {
 
       {loadingCards && (
         <div className="space-y-2">
-          {[1,2,3,4].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-16 bg-bg-surface rounded-xl animate-pulse" />
           ))}
         </div>
