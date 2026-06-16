@@ -198,11 +198,12 @@ export function ScanModal({
       const base64 = captureFrame();
       if (!base64) { pendingScanRef.current = false; return; }
 
-      // PASS 1: Fast text-only detection (~300ms)
+      // First frame uses full detection (artwork + text), subsequent use fast text-only
+      const useFullDetection = visionCallCount.current <= 1 || visionCallCount.current % 3 === 0;
       const res = await fetch("/api/scan-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, fast: true }),
+        body: JSON.stringify({ image: base64, fast: !useFullDetection }),
       });
 
       if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
@@ -493,43 +494,49 @@ export function ScanModal({
           </button>
         </div>
 
-        <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-white overflow-hidden">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
-          {scanning && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.5)]">
-                <div
-                  className="h-full transition-all duration-300 ease-out rounded-r-full"
-                  style={{ width: `${confidence}%`, backgroundColor: confidenceColor }}
-                />
-              </div>
+        {/* Camera — hidden once a result is locked in */}
+        {!resultCard && (
+          <>
+            <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-white overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              {scanning && (
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.5)]">
+                    <div
+                      className="h-full transition-all duration-300 ease-out rounded-r-full"
+                      style={{ width: `${confidence}%`, backgroundColor: confidenceColor }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="px-4 py-3 flex items-center justify-between">
-          <span className="text-sm text-text-muted">{status}</span>
-          {scanning && confidence > 0 && (
-            <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>
-              {confidence}%
-            </span>
-          )}
-        </div>
+            <div className="px-4 py-3 flex items-center justify-between">
+              <span className="text-sm text-text-muted">{status}</span>
+              {scanning && confidence > 0 && (
+                <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>
+                  {confidence}%
+                </span>
+              )}
+            </div>
+          </>
+        )}
 
+        {/* Result screen — takes over full modal when a card is locked in */}
         {resultCard && !showManualEntry && (
-          <div className="px-4 py-4 border-t border-[rgba(0,0,0,0.06)] max-h-[60vh] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             <ScanResultScreen
               card={resultCard}
               onRescan={() => {
@@ -589,41 +596,44 @@ export function ScanModal({
           />
         )}
 
-        <div className="flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) scanFile(f);
-            }}
-          />
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#E4E4E7] active:opacity-80 transition-colors"
-          >
-            Upload photo
-          </button>
-          {!scanning && cameraReady && matchedCards.length === 0 && (
+        {/* Bottom actions — hidden when result screen is showing */}
+        {!resultCard && (
+          <div className="flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) scanFile(f);
+              }}
+            />
             <button
-              onClick={startScanning}
-              className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
+              onClick={() => fileRef.current?.click()}
+              className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#E4E4E7] active:opacity-80 transition-colors"
             >
-              Scan again
+              Upload photo
             </button>
-          )}
-          {!scanning && matchedCards.length === 0 && !resultCard && (
-            <button
-              onClick={() => setShowManualEntry(true)}
-              className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
-            >
-              Enter code
-            </button>
-          )}
-        </div>
+            {!scanning && cameraReady && matchedCards.length === 0 && (
+              <button
+                onClick={startScanning}
+                className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
+              >
+                Scan again
+              </button>
+            )}
+            {!scanning && matchedCards.length === 0 && (
+              <button
+                onClick={() => setShowManualEntry(true)}
+                className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
+              >
+                Enter code
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
