@@ -162,9 +162,9 @@ export function CardPicker({
     }
   }
 
-  // Unique key per card (alt arts share cardSetId but have different images)
+  // Unique key per card — use cardSetId + cardName since alt arts have different names
   function cardKey(card: CatalogCard) {
-    return card.cardSetId + "|" + (card.imageUrl || "");
+    return card.cardSetId + "|" + card.cardName;
   }
 
   // Selection
