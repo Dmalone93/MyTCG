@@ -39,30 +39,28 @@ export function MetricStrip({
   if (totalSpent === 0 && totalRaw === 0) return null;
 
   return (
-    <div className="flex items-baseline gap-4 sm:gap-6 py-2 flex-wrap">
+    <div className="flex items-center gap-5 py-2 text-sm">
       {totalSpent > 0 && (
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[.15em] text-text-dim mb-0.5">Spent</div>
-          <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalSpent)}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-dim tracking-wide">Spent</span>
+          <span className="font-mono font-medium text-text">{fmt(totalSpent)}</span>
         </div>
       )}
       {totalRaw > 0 && (
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[.15em] text-text-dim mb-0.5">Value</div>
-          <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalRaw)}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-dim tracking-wide">Value</span>
+          <span className="font-mono font-medium text-text">{fmt(totalRaw)}</span>
         </div>
       )}
       {totalSpent > 0 && totalRaw > 0 && (
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[.15em] text-text-dim mb-0.5">P/L</div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-mono font-semibold text-lg tracking-tight" style={{ color: plColor }}>
-              {fmt(pl)}
-            </span>
-            <span className="font-mono font-semibold text-xs" style={{ color: plColor }}>
-              {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
-            </span>
-          </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-dim tracking-wide">P/L</span>
+          <span className="font-mono font-medium" style={{ color: plColor }}>
+            {fmt(pl)}
+          </span>
+          <span className="font-mono text-xs" style={{ color: plColor }}>
+            {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
+          </span>
         </div>
       )}
     </div>

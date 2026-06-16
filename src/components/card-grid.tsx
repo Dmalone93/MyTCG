@@ -127,13 +127,14 @@ export function CardGrid({
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-text text-text text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-text hover:text-bg active:opacity-80 transition-colors"
+          className="text-sm text-text-muted hover:text-text active:opacity-70 transition-colors"
         >
-          <span className="text-sm leading-none">+</span> Add
+          + Add card
         </button>
+        <div className="flex-1" />
         {onRefreshPrices && (
           <button
             onClick={async () => {
@@ -142,13 +143,13 @@ export function CardGrid({
               setRefreshing(false);
             }}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 flex-none text-text-dim text-[13px] font-medium py-2.5 px-3 rounded-lg hover:text-text-muted disabled:opacity-40 active:opacity-70 transition-colors"
+            className="text-text-dim text-sm hover:text-text-muted disabled:opacity-40 active:opacity-70 transition-colors"
             title="Update prices"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? "animate-spin" : ""}><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            {refreshing ? "Updating..." : "Update prices"}
           </button>
         )}
-        <div className="flex gap-0.5 flex-none ml-auto">
+        <div className="flex gap-0.5 flex-none">
           <button
             onClick={() => setView("table")}
             className={`p-2 rounded-lg transition-colors ${
@@ -240,15 +241,15 @@ export function CardGrid({
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(0,0,0,0.06)]">
-                  <th className="w-[44px] py-2 px-2"></th>
-                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Code</th>
-                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Name</th>
-                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Qty</th>
-                  <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Condition</th>
-                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Paid</th>
-                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Market</th>
-                  <th className="text-right font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Graded</th>
+                <tr className="border-b border-[rgba(0,0,0,0.1)]">
+                  <th className="w-[40px] py-2 px-2"></th>
+                  <th className="text-left text-xs text-text-dim py-2 px-3 tracking-wide">Code</th>
+                  <th className="text-left text-xs text-text-dim py-2 px-3 tracking-wide">Name</th>
+                  <th className="text-right text-xs text-text-dim py-2 px-3 tracking-wide">Qty</th>
+                  <th className="text-left text-xs text-text-dim py-2 px-3 tracking-wide">Cond</th>
+                  <th className="text-right text-xs text-text-dim py-2 px-3 tracking-wide">Paid</th>
+                  <th className="text-right text-xs text-text-dim py-2 px-3 tracking-wide">Market</th>
+                  <th className="text-right text-xs text-text-dim py-2 px-3 tracking-wide">Graded</th>
                 </tr>
               </thead>
               <tbody>
@@ -411,7 +412,7 @@ function CardTableRow({
 
   return (
     <tr
-      className="border-b border-[rgba(0,0,0,0.03)] hover:bg-[rgba(0,0,0,0.02)] transition-colors cursor-pointer select-none"
+      className="border-b border-[rgba(0,0,0,0.05)] hover:bg-[rgba(0,0,0,0.015)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
@@ -500,7 +501,7 @@ function CardMobileRow({
 
   return (
     <div
-      className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3 active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
+      className="flex items-center gap-3 py-3 border-b border-[rgba(0,0,0,0.05)] active:opacity-80 transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
