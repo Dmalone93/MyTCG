@@ -56,7 +56,7 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <main className="flex-1 px-4 sm:px-6 pb-16 max-w-[1280px] mx-auto w-full">
+      <main className="flex-1 px-4 sm:px-6 pb-16 max-w-[1280px] mx-auto w-full page-enter">
         {children}
       </main>
     </div>
