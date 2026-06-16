@@ -57,9 +57,6 @@ export function CardPicker({
   const [sortKey, setSortKey] = useState<SortKey>("code");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  // Selection
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-
   // Drag-to-select (mobile)
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
@@ -123,10 +120,11 @@ export function CardPicker({
   const MAX_DISPLAY = 150;
   const displayed = sorted.slice(0, MAX_DISPLAY);
 
-  // Filter helpers
+  // Filter helpers — clear selection when filters change (indices become stale)
   function setFilter(key: FilterKey, value: string | null) {
     setFilters((p) => ({ ...p, [key]: value }));
     setOpenPicker(null);
+    setSelected(new Set());
   }
 
   function togglePicker(key: FilterKey) {
@@ -162,23 +160,20 @@ export function CardPicker({
     }
   }
 
-  // Unique key per card — use cardSetId + cardName since alt arts have different names
-  function cardKey(card: CatalogCard) {
-    return card.cardSetId + "|" + card.cardName;
-  }
+  // Selection by index in displayed array (only truly unique identifier)
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
-  // Selection
-  function toggleCard(key: string) {
+  function toggleCard(idx: number) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
       return next;
     });
   }
 
   function addSelected() {
     if (!onPickMultiple || selected.size === 0) return;
-    const cards = displayed.filter((c) => selected.has(cardKey(c)));
+    const cards = [...selected].sort().map((i) => displayed[i]).filter(Boolean);
     onPickMultiple(cards);
     setSelected(new Set());
   }
@@ -187,15 +182,14 @@ export function CardPicker({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragCardId = useRef<string | null>(null);
 
-  function handlePointerDown(key: string) {
-    dragCardId.current = key;
-    // Start long press timer — 300ms to enter drag mode
+  function handlePointerDown(idx: number) {
+    dragCardId.current = String(idx);
     longPressTimer.current = setTimeout(() => {
       isDragging.current = true;
-      lastToggled.current = key;
+      lastToggled.current = String(idx);
       setSelected((prev) => {
         const next = new Set(prev);
-        next.add(key);
+        next.add(idx);
         return next;
       });
     }, 300);
@@ -209,13 +203,13 @@ export function CardPicker({
     }
   }
 
-  function handlePointerEnterCard(key: string) {
+  function handlePointerEnterCard(idx: number) {
     if (!isDragging.current) return;
-    if (lastToggled.current === key) return;
-    lastToggled.current = key;
+    if (lastToggled.current === String(idx)) return;
+    lastToggled.current = String(idx);
     setSelected((prev) => {
       const next = new Set(prev);
-      next.add(key);
+      next.add(idx);
       return next;
     });
   }
@@ -374,12 +368,11 @@ export function CardPicker({
             <div className="py-12 text-center text-text-dim text-sm">No cards match</div>
           )}
 
-          {displayed.map((card) => {
-            const key = cardKey(card);
-            const isSelected = selected.has(key);
+          {displayed.map((card, idx) => {
+            const isSelected = selected.has(idx);
             return (
               <div
-                key={key}
+                key={idx}
                 className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors select-none ${
                   isSelected ? "bg-accent/10" : "active:bg-[rgba(0,0,0,0.02)]"
                 }`}
@@ -388,14 +381,14 @@ export function CardPicker({
                     clearTimeout(longPressTimer.current);
                     longPressTimer.current = null;
                   }
-                  if (!isDragging.current) toggleCard(key);
+                  if (!isDragging.current) toggleCard(idx);
                   isDragging.current = false;
                 }}
                 onPointerDown={(e) => {
-                  if (e.pointerType === "touch") handlePointerDown(key);
+                  if (e.pointerType === "touch") handlePointerDown(idx);
                 }}
                 onPointerMove={handlePointerMove}
-                onPointerEnter={() => handlePointerEnterCard(key)}
+                onPointerEnter={() => handlePointerEnterCard(idx)}
               >
                 {/* Checkbox — always visible */}
                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
