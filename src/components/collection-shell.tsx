@@ -207,31 +207,30 @@ export function CollectionShell({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        {/* Collection selector */}
-        {collections.length > 1 ? (
+      <div className="flex items-center gap-3 mb-4">
+        {active && (
+          <h2 className="text-xl font-bold text-text truncate">{active.name}</h2>
+        )}
+        <div className="flex-1" />
+
+        {/* Collection management */}
+        {collections.length > 1 && (
           <select
             value={activeId ?? ""}
             onChange={(e) => setActiveId(e.target.value)}
-            className="bg-bg-surface border border-[rgba(0,0,0,0.08)] rounded-lg px-3 py-1.5 text-lg font-bold text-text cursor-pointer truncate max-w-[70%] outline-none"
+            className="text-sm text-text-muted bg-transparent border-none outline-none cursor-pointer"
           >
             {collections.map((col) => (
               <option key={col.id} value={col.id}>{col.name}</option>
             ))}
           </select>
-        ) : active ? (
-          <h2 className="text-lg font-bold text-text truncate">{active.name}</h2>
-        ) : null}
-
-        <div className="flex-1" />
-
-        {/* Add collection */}
+        )}
         <button
           onClick={handleCreateCollection}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors text-lg flex-none"
+          className="text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
           title="New collection"
         >
-          +
+          + New
         </button>
       </div>
 
