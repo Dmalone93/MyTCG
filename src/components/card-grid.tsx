@@ -526,7 +526,7 @@ function CardMobileRow({
           )}
         </div>
         <div className="font-mono text-xs text-text-dim">
-          {card.cardCode}{card.quantity && card.quantity > 1 ? ` × ${card.quantity}` : ""}{card.condition ? ` · ${card.condition}` : ""}
+          {card.cardCode}{` × ${card.quantity ?? 1}`}{card.condition ? ` · ${card.condition}` : ""}
         </div>
       </div>
       <div className="text-right flex-none">
@@ -584,7 +584,7 @@ function CardGridTile({
         />
       )}
       <div className="font-mono text-xs text-text-dim mb-1">
-        {card.cardCode}{card.quantity && card.quantity > 1 ? ` × ${card.quantity}` : ""}{card.condition ? ` · ${card.condition}` : ""}
+        {card.cardCode}{` × ${card.quantity ?? 1}`}{card.condition ? ` · ${card.condition}` : ""}
       </div>
       <div className="font-medium text-sm text-text mb-2 truncate">
         {card.cardName}
