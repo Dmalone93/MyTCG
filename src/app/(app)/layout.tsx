@@ -12,24 +12,26 @@ export default function AppLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/" className="flex-none mr-1 hidden sm:block">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex-none">
             <img src="/logo.svg" alt="MyTCG" className="h-5" />
           </Link>
           <span className="hidden sm:contents"><NavLinks /></span>
           <div className="hidden sm:block flex-1" />
-          {/* Mobile search bar */}
+
+          {/* Mobile search — full width with personality */}
           <Link
             href="/search"
-            className="sm:hidden flex-1 flex items-center gap-2 bg-white rounded-full px-3.5 py-2 text-text-dim text-sm shadow-sm"
+            className="sm:hidden flex-1 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 text-text-dim text-sm shadow-sm active:shadow-none active:scale-[0.98] transition-all"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-40">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            Search cards
+            What are you looking for?
           </Link>
-          <div className="hidden sm:block flex-1" />
+
+          {/* Desktop search */}
           <Link
             href="/search"
             className="hidden sm:flex items-center gap-2 bg-white rounded-full px-4 py-2 text-text-dim text-sm hover:shadow-md hover:text-text-muted transition-all min-w-[180px] shadow-sm"
@@ -40,6 +42,7 @@ export default function AppLayout({
             </svg>
             Search cards
           </Link>
+
           <span className="hidden sm:block"><RegionPicker /></span>
           <Link
             href="/settings"

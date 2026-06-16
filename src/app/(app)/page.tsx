@@ -27,13 +27,8 @@ export default async function DashboardPage() {
     });
   });
 
-  const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "there";
-
   return (
     <>
-      <div className="mb-4 sm:hidden">
-        <h1 className="text-xl font-bold text-text">Hey, {firstName}</h1>
-      </div>
       <PortfolioDashboard />
       <CollectionShell
         initialCollections={userCollections}
