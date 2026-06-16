@@ -424,11 +424,11 @@ export function CardPicker({
           )}
         </div>
 
-        {/* Confirm bar — sticky at bottom when cards are selected */}
-        {selected.size > 0 && onPickMultiple && (
-          <div className="flex-none flex items-center gap-3 px-4 py-3 bg-bg-elevated border-t border-[rgba(0,0,0,0.08)] safe-area-pb">
-            <span className="text-sm text-text-muted">
-              {selected.size} card{selected.size !== 1 ? "s" : ""}
+        {/* Confirm bar — always visible at bottom when cards are selected */}
+        {selected.size > 0 && (
+          <div className="flex-none flex items-center gap-3 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-bg-elevated border-t border-[rgba(0,0,0,0.08)]">
+            <span className="text-sm font-medium text-text">
+              {selected.size} card{selected.size !== 1 ? "s" : ""} selected
             </span>
             <div className="flex-1" />
             <button
@@ -437,12 +437,14 @@ export function CardPicker({
             >
               Clear
             </button>
-            <button
-              onClick={addSelected}
-              className="bg-text text-bg font-medium text-sm py-2.5 px-5 rounded-xl active:opacity-80 transition-colors"
-            >
-              Add {selected.size} card{selected.size !== 1 ? "s" : ""}
-            </button>
+            {onPickMultiple && (
+              <button
+                onClick={addSelected}
+                className="bg-text text-bg font-medium text-sm py-2.5 px-5 rounded-xl active:opacity-80 transition-colors"
+              >
+                Add {selected.size}
+              </button>
+            )}
           </div>
         )}
       </div>
