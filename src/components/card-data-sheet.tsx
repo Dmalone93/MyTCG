@@ -150,7 +150,7 @@ export function CardDataSheet({
               className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
               Cardmarket
             </a>
-            <a href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`One Piece TCG ${cardCode} ${cardName}`)}`} target="_blank" rel="noopener noreferrer"
+            <a href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode} ${cardName}`)}`} target="_blank" rel="noopener noreferrer"
               className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
               eBay UK
             </a>

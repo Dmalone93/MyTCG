@@ -189,7 +189,7 @@ export function CardDetailModal({
                   {[
                     { label: "TCGPlayer", url: `https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(card.cardName)}` },
                     { label: "Cardmarket", url: `https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(card.cardName)}` },
-                    { label: "eBay UK", url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`One Piece TCG ${card.cardCode} ${card.cardName}`)}` },
+                    { label: "eBay UK", url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${card.cardCode} ${card.cardName}`)}` },
                   ].map((link) => (
                     <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
                       className="text-sm font-medium px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">

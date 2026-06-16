@@ -15,7 +15,7 @@ export class MockListingProvider implements ListingProvider {
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Near Mint",
         shipping: +(1.5 + Math.random() * 2.5).toFixed(2),
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`One Piece TCG ${cardCode}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}`)}`,
         soldDate: null,
       },
       {
@@ -24,7 +24,7 @@ export class MockListingProvider implements ListingProvider {
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Lightly Played",
         shipping: 0,
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`One Piece TCG ${cardCode}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}`)}`,
         soldDate: null,
       },
       {
