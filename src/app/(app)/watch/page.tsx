@@ -454,6 +454,21 @@ export default function WatchPage() {
                         </div>
                       )}
                     </div>
+                    {/* Remove button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetected((prev) => prev.filter((d) => d.code !== card.code));
+                      }}
+                      style={isPopped ? {
+                        background: "none", border: "none", color: "#4E4E52", cursor: "pointer",
+                        fontSize: "16px", padding: "4px", flexShrink: 0, lineHeight: 1,
+                      } : undefined}
+                      className={isPopped ? "" : "text-text-dim hover:text-text-muted active:opacity-70 text-base p-1 flex-none transition-colors"}
+                      title="Remove"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
@@ -471,9 +486,10 @@ export default function WatchPage() {
         </div>
       )}
 
-      {/* Card detail sheet */}
+      {/* Card detail sheet — key forces remount on card change */}
       {selectedDetail && (
         <CardDataSheet
+          key={selectedDetail.code}
           cardCode={selectedDetail.code}
           cardName={selectedDetail.name}
           imageUrl={selectedDetail.imageUrl}

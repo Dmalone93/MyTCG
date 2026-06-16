@@ -74,6 +74,7 @@ export default function SearchPage() {
       {/* Card data sheet */}
       {selected && (
         <CardDataSheet
+          key={selected.cardSetId}
           cardCode={selected.cardSetId}
           cardName={selected.cardName}
           imageUrl={selected.imageUrl}

@@ -300,6 +300,7 @@ export function CardGrid({
       {/* Detail modal */}
       {selectedCard && (
         <CardDetailModal
+          key={selectedCard.id}
           card={selectedCard}
           price={prices[selectedCard.cardCode] ?? null}
           onClose={() => setSelectedCard(null)}
