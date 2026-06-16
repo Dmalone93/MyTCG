@@ -4,14 +4,12 @@ import { db } from "@/lib/db";
 import { collections, intelItems } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { CollectionShell } from "@/components/collection-shell";
-import { IntelTicker } from "@/components/intel-ticker";
 import { PortfolioDashboard } from "@/components/portfolio-dashboard";
 
 export default async function DashboardPage() {
   const user = await currentUser();
   if (!user) redirect("/login");
 
-  // Run both queries in parallel
   const [userCollections, recentIntel] = await Promise.all([
     db.select().from(collections)
       .where(eq(collections.userId, user.id))
@@ -29,9 +27,13 @@ export default async function DashboardPage() {
     });
   });
 
+  const firstName = user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0] ?? "there";
+
   return (
     <>
-      <IntelTicker items={recentIntel} />
+      <div className="mb-4 sm:hidden">
+        <h1 className="text-xl font-bold text-text">Hey, {firstName}</h1>
+      </div>
       <PortfolioDashboard />
       <CollectionShell
         initialCollections={userCollections}

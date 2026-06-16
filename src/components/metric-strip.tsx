@@ -40,39 +40,38 @@ export function MetricStrip({
   if (totalSpent === 0 && totalRaw === 0) return null;
 
   return (
-    <div className="flex justify-center gap-3 stagger-children">
-      {/* Spent + Raw Value card */}
-      <div className="bg-white rounded-2xl shadow-sm px-5 py-4 text-center">
-        <div className="flex items-center gap-6">
-          {totalSpent > 0 && (
-            <div>
-              <div className="text-sm text-text-dim mb-1">Spent</div>
-              <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalSpent)}</div>
-            </div>
-          )}
-          {totalRaw > 0 && (
-            <div>
-              <div className="text-sm text-text-dim mb-1">Raw Value</div>
-              <div className="font-mono font-semibold text-lg tracking-tight">{fmt(totalRaw)}</div>
-            </div>
-          )}
+    <div className="grid grid-cols-3 gap-2 sm:gap-3 stagger-children">
+      <div className="bg-white rounded-2xl shadow-sm px-4 py-3.5 text-center">
+        <div className="text-sm text-text-dim mb-1">Spent</div>
+        <div className="font-mono font-semibold text-base sm:text-lg tracking-tight">
+          {totalSpent > 0 ? fmt(totalSpent) : "—"}
         </div>
       </div>
 
-      {/* P/L card */}
-      {totalSpent > 0 && totalRaw > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm px-5 py-4 text-center">
-          <div className="text-sm text-text-dim mb-1">P/L</div>
-          <div className="flex items-baseline justify-center gap-2">
-            <span className="font-mono font-semibold text-lg tracking-tight" style={{ color: plColor }}>
+      <div className="bg-white rounded-2xl shadow-sm px-4 py-3.5 text-center">
+        <div className="text-sm text-text-dim mb-1">Raw Value</div>
+        <div className="font-mono font-semibold text-base sm:text-lg tracking-tight">
+          {totalRaw > 0 ? fmt(totalRaw) : "—"}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm px-4 py-3.5 text-center">
+        <div className="text-sm text-text-dim mb-1">P/L</div>
+        {totalSpent > 0 && totalRaw > 0 ? (
+          <div>
+            <span className="font-mono font-semibold text-base sm:text-lg tracking-tight" style={{ color: plColor }}>
               {fmt(pl)}
             </span>
-            <span className="font-mono font-semibold text-xs px-2 py-0.5 rounded-full" style={{ color: plColor, background: plBg }}>
-              {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
-            </span>
+            <div>
+              <span className="font-mono font-semibold text-xs px-2 py-0.5 rounded-full" style={{ color: plColor, background: plBg }}>
+                {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="font-mono font-semibold text-base sm:text-lg tracking-tight text-text-dim">—</div>
+        )}
+      </div>
     </div>
   );
 }
