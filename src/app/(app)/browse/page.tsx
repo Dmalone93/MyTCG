@@ -83,7 +83,12 @@ export default function BrowsePage() {
     }
     return GROUP_ORDER.filter((g) => groups.has(g)).map((g) => ({
       group: g,
-      sets: groups.get(g)!,
+      sets: groups.get(g)!.sort((a, b) => {
+        // Extract number from set code e.g. "[OP-01]" → 1, "[ST-14]" → 14
+        const numA = parseInt((a.name.match(/\[(?:OP|ST|EB)-?(\d+)\]/)?.[1]) ?? "999");
+        const numB = parseInt((b.name.match(/\[(?:OP|ST|EB)-?(\d+)\]/)?.[1]) ?? "999");
+        return numA - numB;
+      }),
     }));
   }, [sets]);
 
