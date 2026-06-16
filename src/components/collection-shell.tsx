@@ -207,33 +207,47 @@ export function CollectionShell({
 
   return (
     <div>
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-0.5">
-        {collections.map((col) => (
-          <button
-            key={col.id}
-            onClick={() => setActiveId(col.id)}
-            onDoubleClick={() => {
-              const name = prompt("Rename collection", col.name);
-              if (name?.trim()) handleRenameCollection(col.id, name.trim());
-            }}
-            className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors active:opacity-70 ${
-              col.id === activeId
-                ? "bg-accent text-white"
-                : col.name === "New Collection"
-                  ? "text-text-dim hover:text-text border border-[rgba(0,0,0,0.08)]"
-                  : "text-text-muted hover:text-text border border-[rgba(0,0,0,0.08)]"
-            }`}
-          >
-            {col.name}
-          </button>
-        ))}
-        <button
-          onClick={handleCreateCollection}
-          className="px-2.5 py-2 text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none whitespace-nowrap"
-          title="New collection"
-        >
-          +
-        </button>
+      <div className="mb-5">
+        {/* Title + details */}
+        {active && (
+          <div className="mb-3">
+            <h1 className="text-xl font-bold text-text">{active.name}</h1>
+            <div className="flex items-center gap-3 mt-1 text-sm text-text-dim">
+              <span>{cards.length} cards</span>
+              {active.createdAt && (
+                <span>Created {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Collection switcher — only when multiple */}
+        {collections.length > 1 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            {collections.map((col) => (
+              <button
+                key={col.id}
+                onClick={() => setActiveId(col.id)}
+                className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors active:opacity-70 ${
+                  col.id === activeId
+                    ? "font-semibold text-text bg-bg-surface"
+                    : col.name === "New Collection"
+                      ? "text-text-dim hover:text-text"
+                      : "text-text-muted hover:text-text"
+                }`}
+              >
+                {col.name}
+              </button>
+            ))}
+            <button
+              onClick={handleCreateCollection}
+              className="px-2.5 py-1.5 text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none whitespace-nowrap"
+              title="New collection"
+            >
+              +
+            </button>
+          </div>
+        )}
       </div>
 
       {active ? (
