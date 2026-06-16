@@ -11,7 +11,7 @@ function fmt(n: number): string {
   }).format(n);
 }
 
-type CardSet = { name: string; count: number; date: string | null };
+type CardSet = { name: string; id?: string; count: number; date: string | null };
 
 export function CardPicker({
   onPick,
@@ -118,11 +118,11 @@ export function CardPicker({
     setLoadingSets(false);
   }
 
-  async function loadSetCards(setName: string) {
+  async function loadSetCards(setId: string, setName: string) {
     setSelectedSet(setName);
     setLoadingSets(true);
     try {
-      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(setName)}`);
+      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(setId)}`);
       setSetCards(await res.json());
     } catch { /* */ }
     setLoadingSets(false);
@@ -233,7 +233,7 @@ export function CardPicker({
               {sets.map((s) => (
                 <button
                   key={s.name}
-                  onClick={() => loadSetCards(s.name)}
+                  onClick={() => loadSetCards(s.id ?? s.name, s.name)}
                   className="flex items-center justify-between w-full text-left px-4 py-3.5 sm:py-2.5 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
                 >
                   <div className="min-w-0">

@@ -4,84 +4,96 @@ import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const setName = searchParams.get("set");
+  const setId = searchParams.get("set"); // Now uses set ID like "OP-01"
 
   const extCards = getExtendedCards();
   const catalog = await fetchCatalog();
 
-  if (setName) {
-    // Merge: extended cards + catalog cards for this set
+  if (setId) {
+    // Build price map
     const priceMap = new Map(
       catalog.filter((c) => c.marketPrice != null).map((c) => [c.cardSetId.toUpperCase(), c.marketPrice])
     );
 
-    // Start with extended cards for this set
-    const extSetCards = extCards
-      .filter((c) => c.setName === setName && c.type !== "DON")
-      .map((c) => ({
-        cardSetId: c.cid,
-        cardName: c.name,
-        setName: c.setName,
-        setId: "",
-        rarity: c.rarity,
-        cardColor: c.color,
-        cardType: c.type,
-        cardCost: c.cost != null ? String(c.cost) : "",
-        cardPower: c.power != null ? String(c.power) : "",
-        imageUrl: c.imageUrl,
-        marketPrice: priceMap.get(c.cid.toUpperCase()) ?? null,
-        inventoryPrice: null,
-      }));
-
-    // Add catalog cards not in extended DB
-    const extCodes = new Set(extSetCards.map((c) => c.cardSetId.toUpperCase()));
+    // Get catalog cards for this set (by setId)
     const catalogSetCards = catalog
-      .filter((c) => c.setName === setName && !extCodes.has(c.cardSetId.toUpperCase()))
-      .map((c) => ({
-        ...c,
-        marketPrice: c.marketPrice ?? null,
-        inventoryPrice: c.inventoryPrice ?? null,
-      }));
+      .filter((c) => c.setId === setId)
+      .map((c) => {
+        // Try to enrich with extended data
+        const ext = extCards.find((e) => e.cid.toUpperCase() === c.cardSetId.toUpperCase());
+        return {
+          cardSetId: c.cardSetId,
+          cardName: c.cardName,
+          setName: c.setName,
+          setId: c.setId,
+          rarity: ext?.rarity ?? c.rarity,
+          cardColor: ext?.color ?? c.cardColor,
+          cardType: ext?.type ?? c.cardType,
+          cardCost: ext?.cost != null ? String(ext.cost) : c.cardCost,
+          cardPower: ext?.power != null ? String(ext.power) : c.cardPower,
+          imageUrl: ext?.imageUrl ?? c.imageUrl,
+          marketPrice: priceMap.get(c.cardSetId.toUpperCase()) ?? c.marketPrice ?? null,
+          inventoryPrice: c.inventoryPrice ?? null,
+        };
+      })
+      .sort((a, b) => a.cardSetId.localeCompare(b.cardSetId));
 
-    const allCards = [...extSetCards, ...catalogSetCards].sort((a, b) => a.cardSetId.localeCompare(b.cardSetId));
+    // If no catalog results, fall back to extended cards by set name
+    if (catalogSetCards.length === 0) {
+      const extSetCards = extCards
+        .filter((c) => c.setName === setId && c.type !== "DON")
+        .sort((a, b) => a.cid.localeCompare(b.cid))
+        .map((c) => ({
+          cardSetId: c.cid,
+          cardName: c.name,
+          setName: c.setName,
+          setId: "",
+          rarity: c.rarity,
+          cardColor: c.color,
+          cardType: c.type,
+          cardCost: c.cost != null ? String(c.cost) : "",
+          cardPower: c.power != null ? String(c.power) : "",
+          imageUrl: c.imageUrl,
+          marketPrice: priceMap.get(c.cid.toUpperCase()) ?? null,
+          inventoryPrice: null,
+        }));
+      return NextResponse.json(extSetCards, {
+        headers: { "Cache-Control": "public, s-maxage=3600" },
+      });
+    }
 
-    return NextResponse.json(allCards, {
+    return NextResponse.json(catalogSetCards, {
       headers: { "Cache-Control": "public, s-maxage=3600" },
     });
   }
 
-  // Build set list from BOTH sources
-  const setMap = new Map<string, { name: string; count: number; date: string | null }>();
+  // Build set list from catalog (primary source — has all sets)
+  const setMap = new Map<string, { name: string; id: string; count: number }>();
 
-  // Extended cards
-  for (const c of extCards) {
-    if (!c.setName || c.type === "DON") continue;
-    const existing = setMap.get(c.setName);
-    if (existing) existing.count++;
-    else setMap.set(c.setName, { name: c.setName, count: 1, date: c.setDate });
-  }
-
-  // Catalog cards — add sets not already listed
   for (const c of catalog) {
-    if (!c.setName) continue;
-    const existing = setMap.get(c.setName);
-    if (existing) {
-      // Only increment if this card isn't already counted from extended
-      const extMatch = extCards.find((e) => e.cid.toUpperCase() === c.cardSetId.toUpperCase());
-      if (!extMatch) existing.count++;
-    } else {
-      setMap.set(c.setName, { name: c.setName, count: 1, date: null });
-    }
+    if (!c.setId || !c.setName) continue;
+    const existing = setMap.get(c.setId);
+    if (existing) existing.count++;
+    else setMap.set(c.setId, { name: `${c.setName}`, id: c.setId, count: 1 });
   }
 
   const sets = [...setMap.values()]
-    .filter((s) => s.count > 0)
     .sort((a, b) => {
-      if (a.date && b.date) return b.date.localeCompare(a.date);
-      if (a.date && !b.date) return -1;
-      if (!a.date && b.date) return 1;
-      return a.name.localeCompare(b.name);
-    });
+      // Extract numeric part for ordering
+      const numA = parseInt((a.id.match(/\d+/)?.[0]) ?? "999");
+      const numB = parseInt((b.id.match(/\d+/)?.[0]) ?? "999");
+      // Group by prefix first
+      const prefA = a.id.replace(/[\d-]/g, "");
+      const prefB = b.id.replace(/[\d-]/g, "");
+      if (prefA !== prefB) return prefA.localeCompare(prefB);
+      return numA - numB;
+    })
+    .map((s) => ({
+      name: s.name,
+      id: s.id,
+      count: s.count,
+      date: null as string | null,
+    }));
 
   return NextResponse.json(sets, {
     headers: { "Cache-Control": "public, s-maxage=3600" },

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
-type CardSet = { name: string; count: number; date: string | null };
+type CardSet = { name: string; id?: string; count: number; date: string | null };
 type SortKey = "code" | "name" | "price";
 type SortDir = "asc" | "desc";
 
@@ -12,17 +12,20 @@ function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
 }
 
-/** Categorise sets into groups — handles both "[OP-01]" and "OP-01 | Name" formats */
-function categoriseSet(name: string): string {
-  if (/\bOP-?\d/i.test(name) || /\[OP-\d/.test(name)) return "Booster Packs";
-  if (/\bST-?\d/i.test(name) || /\[ST-\d/.test(name)) return "Starter Decks";
-  if (/\bEB-?\d/i.test(name) || /\[EB-\d/.test(name) || /Extra Booster/i.test(name)) return "Extra Boosters";
-  if (/\bPRB-?\d/i.test(name) || /Premium Booster/i.test(name)) return "Premium Boosters";
-  if (/Promo/i.test(name) || /\[P\]/.test(name)) return "Promos";
+function categoriseSet(s: CardSet): string {
+  const id = s.id ?? "";
+  const name = s.name;
+  if (/^OP-?\d/i.test(id) || /^OP\d/i.test(id)) return "Booster Packs";
+  if (/^ST-?\d/i.test(id)) return "Starter Decks";
+  if (/^EB-?\d/i.test(id) || /Extra Booster/i.test(name)) return "Extra Boosters";
+  if (/^PRB/i.test(id) || /Premium Booster/i.test(name)) return "Premium Boosters";
+  if (/Promo/i.test(name) || id === "P") return "Promos";
+  // Combined sets like OP14-EB04
+  if (/^OP\d+-EB/i.test(id)) return "Booster Packs";
   return "Other";
 }
 
-const GROUP_ORDER = ["Booster Packs", "Starter Decks", "Extra Boosters", "Premium Boosters", "Promos", "Other"];
+const GROUP_ORDER = ["Booster Packs", "Extra Boosters", "Premium Boosters", "Starter Decks", "Promos", "Other"];
 
 
 export default function BrowsePage() {
@@ -44,13 +47,13 @@ export default function BrowsePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function loadSet(setName: string) {
-    setSelectedSet(setName);
+  async function loadSet(s: CardSet) {
+    setSelectedSet(s.name);
     setLoadingCards(true);
     setSortKey("code");
     setSortDir("asc");
     try {
-      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(setName)}`);
+      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(s.id ?? s.name)}`);
       setCards(await res.json());
     } catch { /* */ }
     setLoadingCards(false);
@@ -88,16 +91,15 @@ export default function BrowsePage() {
   const groupedSets = useMemo(() => {
     const groups = new Map<string, CardSet[]>();
     for (const s of sets) {
-      const group = categoriseSet(s.name);
+      const group = categoriseSet(s);
       if (!groups.has(group)) groups.set(group, []);
       groups.get(group)!.push(s);
     }
     return GROUP_ORDER.filter((g) => groups.has(g)).map((g) => ({
       group: g,
       sets: groups.get(g)!.sort((a, b) => {
-        // Extract number from set code e.g. "[OP-01]" → 1, "OP-09" → 9
-        const numA = parseInt((a.name.match(/(?:OP|ST|EB|PRB)-?(\d+)/)?.[1]) ?? "999");
-        const numB = parseInt((b.name.match(/(?:OP|ST|EB|PRB)-?(\d+)/)?.[1]) ?? "999");
+        const numA = parseInt(((a.id ?? a.name).match(/(\d+)/)?.[1]) ?? "999");
+        const numB = parseInt(((b.id ?? b.name).match(/(\d+)/)?.[1]) ?? "999");
         return numA - numB;
       }),
     }));
@@ -123,13 +125,13 @@ export default function BrowsePage() {
             <div className="space-y-0.5">
               {groupSets.map((s) => (
                 <button
-                  key={s.name}
-                  onClick={() => loadSet(s.name)}
+                  key={s.id ?? s.name}
+                  onClick={() => loadSet(s)}
                   className="flex items-center justify-between w-full text-left px-4 py-3 rounded-xl hover:bg-bg-surface active:opacity-80 transition-colors"
                 >
                   <div>
                     <div className="text-sm font-medium text-text">{s.name}</div>
-                    {s.date && <div className="text-xs text-text-dim mt-0.5">{s.date}</div>}
+                    {s.id && <div className="text-xs text-text-dim mt-0.5">{s.id}</div>}
                   </div>
                   <span className="text-sm text-text-dim font-mono">{s.count}</span>
                 </button>
