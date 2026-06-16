@@ -349,7 +349,7 @@ export function CardPicker({
             {selected.size > 0 && (
               <>
                 <div className="flex-1" />
-                <button onClick={() => setSelected(new Set())} className="text-xs text-text-dim hover:text-text px-1">Clear</button>
+                <button onClick={() => setSelected(new Set())} className="text-sm font-medium text-text-dim hover:text-text px-1">Clear</button>
               </>
             )}
           </div>
@@ -430,7 +430,7 @@ export function CardPicker({
             <div className="flex-1" />
             <button
               onClick={() => setSelected(new Set())}
-              className="text-sm text-text-dim hover:text-text active:opacity-70 px-3 py-2"
+              className="text-sm font-medium text-text-dim hover:text-text active:opacity-70 px-3 py-2"
             >
               Clear
             </button>
