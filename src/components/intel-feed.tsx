@@ -191,25 +191,35 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
         <div className="h-px bg-[rgba(0,0,0,0.08)] mb-5" />
       )}
 
-      {/* Category sections */}
+      {/* Category columns — newspaper layout */}
       {columns.size > 0 && (
-        <div className="space-y-8">
-          {[...columns.entries()].map(([cat, catItems]) => (
-            <div key={cat}>
-              <h2 className="text-lg font-bold text-text mb-3">{CAT_LABEL[cat] ?? cat}</h2>
-              <div className="space-y-2">
-                {catItems.slice(0, 3).map((item) => (
-                  <ArticleLink key={item.id} item={item} className="group block bg-bg-elevated rounded-2xl p-4 hover:shadow-sm transition-shadow">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0">
+          {[...columns.entries()].map(([cat, catItems], colIdx) => (
+            <div
+              key={cat}
+              className={`py-4 px-0 sm:px-5 ${
+                colIdx > 0 ? "border-t sm:border-t-0 sm:border-l border-[rgba(0,0,0,0.08)]" : ""
+              }`}
+            >
+              {/* Column header */}
+              <div className="text-xs font-bold uppercase tracking-[.15em] text-accent mb-3 pb-2 border-b-2 border-text">
+                {CAT_LABEL[cat] ?? cat}
+              </div>
+
+              {/* Column items */}
+              {catItems.slice(0, 3).map((item, i) => (
+                <ArticleLink key={item.id} item={item} className="group block">
+                  <div className={`py-3 ${i > 0 ? "border-t border-[rgba(0,0,0,0.06)]" : ""}`}>
                     <h4 className="text-sm font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-2">
                       {item.title}
                     </h4>
-                    <div className="flex items-center gap-2 text-sm text-text-dim">
-                      {item.published && <span className="font-medium text-text-muted">{timeAgo(item.published)}</span>}
-                      {item.source && <span>{item.source}</span>}
+                    <div className="text-xs text-text-dim">
+                      {item.published && <span className="font-medium">{timeAgo(item.published)}</span>}
+                      {item.source && <span> · {item.source}</span>}
                     </div>
-                  </ArticleLink>
-                ))}
-              </div>
+                  </div>
+                </ArticleLink>
+              ))}
             </div>
           ))}
         </div>
