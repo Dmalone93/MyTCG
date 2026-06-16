@@ -13,11 +13,23 @@ export default function AppLayout({
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/" className="flex-none mr-1">
+          <Link href="/" className="flex-none mr-1 hidden sm:block">
             <img src="/logo.svg" alt="MyTCG" className="h-5" />
           </Link>
           <span className="hidden sm:contents"><NavLinks /></span>
-          <div className="flex-1" />
+          <div className="hidden sm:block flex-1" />
+          {/* Mobile search bar */}
+          <Link
+            href="/search"
+            className="sm:hidden flex-1 flex items-center gap-2 bg-white rounded-full px-3.5 py-2 text-text-dim text-sm shadow-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Search cards
+          </Link>
+          <div className="hidden sm:block flex-1" />
           <Link
             href="/search"
             className="hidden sm:flex items-center gap-2 bg-white rounded-full px-4 py-2 text-text-dim text-sm hover:shadow-md hover:text-text-muted transition-all min-w-[180px] shadow-sm"
