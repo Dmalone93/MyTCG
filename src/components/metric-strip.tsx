@@ -39,28 +39,28 @@ export function MetricStrip({
   if (totalSpent === 0 && totalRaw === 0) return null;
 
   return (
-    <div className="flex items-center gap-5 py-2 text-sm">
+    <div className="flex items-baseline gap-5 py-2">
       {totalSpent > 0 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-text-dim tracking-wide">Spent</span>
-          <span className="font-mono font-medium text-text">{fmt(totalSpent)}</span>
+        <div>
+          <span className="text-[11px] uppercase tracking-wider text-text-dim">Spent</span>
+          <div className="font-mono text-sm font-medium text-text">{fmt(totalSpent)}</div>
         </div>
       )}
       {totalRaw > 0 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-text-dim tracking-wide">Value</span>
-          <span className="font-mono font-medium text-text">{fmt(totalRaw)}</span>
+        <div>
+          <span className="text-[11px] uppercase tracking-wider text-text-dim">Value</span>
+          <div className="font-mono text-sm font-medium text-text">{fmt(totalRaw)}</div>
         </div>
       )}
       {totalSpent > 0 && totalRaw > 0 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-text-dim tracking-wide">P/L</span>
-          <span className="font-mono font-medium" style={{ color: plColor }}>
+        <div>
+          <span className="text-[11px] uppercase tracking-wider text-text-dim">P/L</span>
+          <div className="font-mono text-sm font-medium" style={{ color: plColor }}>
             {fmt(pl)}
-          </span>
-          <span className="font-mono text-xs" style={{ color: plColor }}>
+          </div>
+          <div className="font-mono text-xs" style={{ color: plColor }}>
             {plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%
-          </span>
+          </div>
         </div>
       )}
     </div>
