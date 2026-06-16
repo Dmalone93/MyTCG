@@ -109,8 +109,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
           {latestFetch && <span>Updated {latestFetch}</span>}
           {refreshMsg && <span> · {refreshMsg}</span>}
         </div>
-        <div className="h-[2px] bg-text mt-3 mb-1" />
-        <div className="h-px bg-[rgba(0,0,0,0.12)]" />
+        <div className="h-px bg-[rgba(0,0,0,0.1)] mt-3" />
       </div>
 
       {/* Your cards banner */}
@@ -136,10 +135,10 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                   <img src={lead.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
                 </div>
               )}
-              <div className="text-sm text-text-dim mb-1.5">
-                {CAT_LABEL[lead.category ?? ""] ?? lead.category}
-                {lead.urgent && <span className="text-red-400 font-medium ml-2">Urgent</span>}
-                <span className="ml-2">{lead.published ? timeAgo(lead.published) : ""}</span>
+              <div className="flex items-center gap-2 text-sm mb-1.5">
+                <span className="text-text-dim">{CAT_LABEL[lead.category ?? ""] ?? lead.category}</span>
+                {lead.urgent && <span className="text-red-500 font-semibold">Urgent</span>}
+                {lead.published && <span className="font-semibold text-text">{timeAgo(lead.published)}</span>}
               </div>
               <h2 className="text-xl font-bold text-text leading-tight mb-2 group-hover:underline decoration-1 underline-offset-4">
                 {lead.title}
@@ -163,9 +162,10 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                       <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
                     </div>
                   )}
-                  <div className="text-sm text-text-dim mb-1">
-                    {CAT_LABEL[item.category ?? ""] ?? item.category}
-                    {item.urgent && <span className="text-red-400 font-medium ml-2">Urgent</span>}
+                  <div className="flex items-center gap-2 text-sm mb-1">
+                    <span className="text-text-dim">{CAT_LABEL[item.category ?? ""] ?? item.category}</span>
+                    {item.urgent && <span className="text-red-500 font-semibold">Urgent</span>}
+                    {item.published && <span className="font-semibold text-text">{timeAgo(item.published)}</span>}
                   </div>
                   <h3 className="text-base font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-4">
                     {item.title}
@@ -205,11 +205,11 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                       {item.title}
                     </h4>
                     {item.summary && (
-                      <p className="text-sm text-text-dim leading-relaxed line-clamp-2">{item.summary}</p>
+                      <p className="text-sm text-text-muted leading-relaxed line-clamp-2">{item.summary}</p>
                     )}
-                    <div className="text-sm text-text-dim mt-1">
-                      {item.source && <span>{item.source}</span>}
-                      {item.published && <span> · {timeAgo(item.published)}</span>}
+                    <div className="flex items-center gap-2 text-sm mt-1">
+                      {item.published && <span className="font-semibold text-text">{timeAgo(item.published)}</span>}
+                      {item.source && <span className="text-text-dim">{item.source}</span>}
                     </div>
                   </ArticleLink>
                 ))}

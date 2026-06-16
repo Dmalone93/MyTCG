@@ -16,14 +16,10 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="flex items-center justify-between gap-3 px-4 py-3 sm:px-[clamp(12px,3.5vw,20px)] sm:py-[clamp(14px,3.5vw,22px)]">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <h1 className="font-bold text-lg sm:text-[22px] leading-none tracking-tight text-text">
-            MyTCG
-          </h1>
+      <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
+        <div className="flex items-center gap-3">
           <NavLinks />
-        </div>
-        <div className="flex gap-2 sm:gap-3 items-center">
+          <div className="flex-1" />
           <Link
             href="/search"
             className="hidden sm:flex items-center gap-2 border border-[rgba(0,0,0,0.08)] rounded-lg px-3 py-1.5 text-text-dim text-sm hover:border-[rgba(0,0,0,0.12)] hover:text-text-muted transition-colors min-w-[160px]"
@@ -51,7 +47,14 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <main className="flex-1 px-4 sm:px-[clamp(12px,3.5vw,20px)] pb-16 max-w-[1280px] mx-auto w-full">
+      {/* Centered logo */}
+      <div className="text-center py-2 sm:py-3">
+        <Link href="/" className="inline-block">
+          <h1 className="font-bold text-2xl sm:text-3xl tracking-tight text-text">MyTCG</h1>
+        </Link>
+      </div>
+
+      <main className="flex-1 px-4 sm:px-6 pb-16 max-w-[1280px] mx-auto w-full">
         {children}
       </main>
     </div>
