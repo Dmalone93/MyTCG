@@ -208,15 +208,22 @@ export function CollectionShell({
   return (
     <div>
       <div className="mb-5">
-        {/* Title + details */}
+        {/* Title + inline metrics on desktop */}
         {active && (
           <div className="mb-3">
-            <h1 className="text-xl font-bold text-text">{active.name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-text-dim">
-              <span>{cards.length} cards</span>
-              {active.createdAt && (
-                <span>Created {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-              )}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
+              <div className="mb-2 sm:mb-0">
+                <h1 className="text-xl font-bold text-text">{active.name}</h1>
+                <div className="flex items-center gap-3 mt-0.5 text-sm text-text-dim">
+                  <span>{cards.length} cards</span>
+                  {active.createdAt && (
+                    <span>Created {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  )}
+                </div>
+              </div>
+              <div className="sm:ml-auto">
+                <MetricStrip cards={cards} prices={prices} />
+              </div>
             </div>
           </div>
         )}
@@ -252,7 +259,6 @@ export function CollectionShell({
 
       {active ? (
         <>
-          <MetricStrip cards={cards} prices={prices} />
           <CardGrid
             cards={cards}
             prices={prices}

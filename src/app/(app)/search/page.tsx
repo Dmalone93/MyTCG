@@ -72,7 +72,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div>
+    <div className="page-slide-up">
       {/* Search bar */}
       <div className="sticky top-0 z-10 bg-bg pb-3 pt-1">
         <div className="flex items-center gap-3">

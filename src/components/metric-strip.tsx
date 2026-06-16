@@ -41,7 +41,7 @@ export function MetricStrip({
   if (totalSpent === 0 && totalRaw === 0) return null;
 
   return (
-    <div className="flex items-stretch bg-bg-elevated rounded-2xl shadow-sm overflow-hidden mb-4 stagger-children">
+    <div className="flex items-stretch bg-bg-elevated rounded-2xl shadow-sm overflow-hidden stagger-children">
       {totalSpent > 0 && (
         <div className="flex-1 px-4 sm:px-5 py-3.5 sm:py-4 border-r border-[rgba(0,0,0,0.04)]">
           <div className="text-sm text-text-dim mb-1">Spent</div>

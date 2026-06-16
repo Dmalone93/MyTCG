@@ -115,15 +115,30 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
       <DealAlerts />
       <PreorderTracker />
 
-      {/* Your cards banner */}
+      {/* Your cards in the news */}
       {myCardItems.length > 0 && (
-        <div className="mb-5 border-l-2 border-[#059669] pl-4 py-1">
-          <div className="text-sm font-semibold text-[#059669] mb-1.5">Your cards in the news</div>
-          {myCardItems.slice(0, 3).map((item) => (
-            <ArticleLink key={item.id} item={item}>
-              <span className="text-sm text-text hover:underline block mb-1">{item.title}</span>
-            </ArticleLink>
-          ))}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-text mb-3">Your cards in the news</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {myCardItems.slice(0, 3).map((item) => (
+              <ArticleLink key={item.id} item={item} className="group block bg-bg-elevated rounded-2xl overflow-hidden hover:shadow-sm transition-shadow">
+                {item.imageUrl && (
+                  <div className="w-full aspect-[16/9] bg-[#E4E4E7]">
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                )}
+                <div className="p-3">
+                  <h4 className="text-sm font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-2">
+                    {item.title}
+                  </h4>
+                  <div className="text-xs text-text-dim">
+                    {item.published && <span>{timeAgo(item.published)}</span>}
+                    {item.source && <span> · {item.source}</span>}
+                  </div>
+                </div>
+              </ArticleLink>
+            ))}
+          </div>
         </div>
       )}
 
