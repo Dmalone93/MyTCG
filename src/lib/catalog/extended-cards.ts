@@ -68,11 +68,23 @@ export function getExtendedCards(): ExtendedCard[] {
   return _cache;
 }
 
-/** Find extended data for a card by ID */
+/** Find extended data for a card by ID — tries exact match then normalized */
 export function findExtended(cardCode: string): ExtendedCard | undefined {
-  return getExtendedCards().find(
-    (c) => c.cid.toUpperCase() === cardCode.toUpperCase()
-  );
+  const cards = getExtendedCards();
+  const upper = cardCode.toUpperCase().replace(/\s+/g, "");
+
+  // Exact match
+  let match = cards.find((c) => c.cid.toUpperCase() === upper);
+  if (match) return match;
+
+  // Try without leading zeros: OP1-025 → OP01-025
+  const normalized = upper.replace(/^(OP|ST|EB)(\d)(-)/, "$1 0$2$3").replace(" ", "");
+  match = cards.find((c) => c.cid.toUpperCase() === normalized);
+  if (match) return match;
+
+  // Partial match — code starts with input
+  match = cards.find((c) => c.cid.toUpperCase().startsWith(upper));
+  return match;
 }
 
 /** Find cards that synergize with a given card (same color, shared traits) */

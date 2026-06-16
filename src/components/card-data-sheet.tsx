@@ -99,7 +99,7 @@ export function CardDataSheet({
             {/* Market price banner */}
             {marketPrice != null && marketPrice > 0 && (
               <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
-                <span className="text-xs text-text-dim font-mono uppercase">Market Price</span>
+                <span className="text-sm text-text-dim">Market Price</span>
                 <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(marketPrice)}</span>
               </div>
             )}
@@ -114,7 +114,7 @@ export function CardDataSheet({
                     key={row.label}
                     className="flex border-b border-[rgba(255,255,255,0.04)] last:border-0"
                   >
-                    <div className="w-[120px] sm:w-[140px] flex-none px-4 sm:px-5 py-2.5 text-xs text-text-dim">
+                    <div className="w-[120px] sm:w-[140px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">
                       {row.label}
                     </div>
                     <div className={`flex-1 px-4 sm:px-5 py-2.5 text-sm text-text ${isEffect ? "whitespace-pre-line leading-relaxed" : "text-right"}`}>
@@ -137,7 +137,7 @@ export function CardDataSheet({
         {/* Synergies */}
         {ext && ext.synergies.length > 0 && (
           <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-4">
-            <div className="text-[10px] font-mono text-text-dim uppercase mb-2">Synergies</div>
+            <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {ext.synergies.map((s) => (
                 <div key={s.cid} className="flex-none w-[60px]">

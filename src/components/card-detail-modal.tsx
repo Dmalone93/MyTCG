@@ -45,10 +45,23 @@ export function CardDetailModal({
   const [ext, setExt] = useState<ExtData | null>(null);
 
   useEffect(() => {
+    setExt(null);
     fetch(`/api/card-info?code=${encodeURIComponent(card.cardCode)}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => { if (data) setExt(data); })
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) throw new Error("not found");
+        return r.json();
+      })
+      .then((data) => { if (data?.card) setExt(data); })
+      .catch(() => {
+        // Try without any normalization issues
+        const alt = card.cardCode.toUpperCase().replace(/\s/g, "");
+        if (alt !== card.cardCode) {
+          fetch(`/api/card-info?code=${encodeURIComponent(alt)}`)
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => { if (data?.card) setExt(data); })
+            .catch(() => {});
+        }
+      });
   }, [card.cardCode]);
 
   const market = num(price?.rawMarket);
@@ -116,20 +129,20 @@ export function CardDetailModal({
               <div className="flex-1 min-w-0 sm:border-l border-[rgba(255,255,255,0.04)]">
                 {/* Market price */}
                 {market > 0 && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
-                    <span className="text-xs text-text-dim font-mono uppercase">Market</span>
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
+                    <span className="text-sm text-text-dim">Market</span>
                     <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(market)}</span>
                   </div>
                 )}
                 {paid > 0 && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-[rgba(255,255,255,0.06)]">
-                    <span className="text-xs text-text-dim font-mono uppercase">Paid</span>
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+                    <span className="text-sm text-text-dim">Paid</span>
                     <span className="font-mono text-sm">{fmt(paid)}</span>
                   </div>
                 )}
                 {pl != null && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-[rgba(255,255,255,0.06)]">
-                    <span className="text-xs text-text-dim font-mono uppercase">P/L ({card.quantity ?? 1}x)</span>
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+                    <span className="text-sm text-text-dim">P/L ({card.quantity ?? 1}x)</span>
                     <span className="font-mono text-sm font-semibold" style={{ color: plColor }}>{pl >= 0 ? "+" : ""}{fmt(pl)}</span>
                   </div>
                 )}
@@ -140,14 +153,14 @@ export function CardDetailModal({
                   const isEffect = row.label === "Effect";
                   return (
                     <div key={row.label} className="flex border-b border-[rgba(255,255,255,0.04)] last:border-0">
-                      <div className="w-[110px] sm:w-[130px] flex-none px-4 sm:px-5 py-2 text-xs text-text-dim">{row.label}</div>
-                      <div className={`flex-1 px-4 sm:px-5 py-2 text-sm text-text ${isEffect ? "whitespace-pre-line leading-relaxed" : "text-right"}`}>{row.value}</div>
+                      <div className="w-[110px] sm:w-[130px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">{row.label}</div>
+                      <div className={`flex-1 px-4 sm:px-5 py-2.5 text-sm text-text ${isEffect ? "whitespace-pre-line leading-relaxed" : "text-right"}`}>{row.value}</div>
                     </div>
                   );
                 })}
 
                 {!ext && (
-                  <div className="px-4 py-4 text-center text-text-dim text-xs animate-pulse">Loading...</div>
+                  <div className="px-4 py-4 text-center text-text-dim text-sm animate-pulse">Loading card data...</div>
                 )}
               </div>
             </div>
@@ -155,7 +168,7 @@ export function CardDetailModal({
             {/* Graded prices */}
             {sortedGrades.length > 0 && (
               <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
-                <div className="text-[10px] font-mono text-text-dim uppercase mb-2">Graded Prices</div>
+                <div className="text-sm font-medium text-text-dim mb-2">Graded Prices</div>
                 {sortedGrades.map((g) => (
                   <div key={g} className="flex justify-between py-1.5 text-sm">
                     <span className="text-text-muted">{g}</span>
@@ -167,7 +180,7 @@ export function CardDetailModal({
 
             {/* Collection info */}
             <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
-              <div className="text-[10px] font-mono text-text-dim uppercase mb-2">Your Copy</div>
+              <div className="text-sm font-medium text-text-dim mb-2">Your Copy</div>
               <div className="flex justify-between text-sm py-1"><span className="text-text-dim">Quantity</span><span>{card.quantity ?? 1}</span></div>
               <div className="flex justify-between text-sm py-1"><span className="text-text-dim">Condition</span><span>{card.condition ?? "—"}</span></div>
               {card.isGraded && <div className="flex justify-between text-sm py-1"><span className="text-text-dim">Grade</span><span>{card.gradedCompany} {card.grade}</span></div>}
@@ -177,7 +190,7 @@ export function CardDetailModal({
             {/* Synergies */}
             {ext && ext.synergies.length > 0 && (
               <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
-                <div className="text-[10px] font-mono text-text-dim uppercase mb-2">Synergies</div>
+                <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {ext.synergies.map((s) => (
                     <div key={s.cid} className="flex-none w-[60px]">

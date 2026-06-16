@@ -39,10 +39,13 @@ export function NavLinks() {
             title={link.label}
           >
             {link.icon ? (
-              <span className="inline-flex items-center gap-1.5">
-                {link.icon}
-                <span className="hidden sm:inline text-sm">{link.label}</span>
-              </span>
+              <>
+                <span className="sm:hidden">{link.icon}</span>
+                <span className="hidden sm:inline-flex items-center gap-1.5">
+                  {link.icon}
+                  <span>{link.label}</span>
+                </span>
+              </>
             ) : (
               link.mobileLabel ?? link.label
             )}
