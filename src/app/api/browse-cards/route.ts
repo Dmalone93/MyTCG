@@ -18,9 +18,11 @@ export async function GET() {
 
   // Track unique filter values
   const setMap = new Map<string, { id: string; name: string }>();
-  const colorSet = new Set<string>();
   const raritySet = new Set<string>();
   const typeSet = new Set<string>();
+
+  // Base colors only — multi-color cards get matched via "includes"
+  const BASE_COLORS = ["Red", "Blue", "Green", "Purple", "Black", "Yellow"];
 
   // Enrich all catalog cards with extended data
   const cards = catalog.map((c) => {
@@ -34,7 +36,6 @@ export async function GET() {
     if (c.setId && c.setName) {
       setMap.set(c.setId, { id: c.setId, name: c.setName });
     }
-    if (cardColor) colorSet.add(cardColor);
     if (rarity) raritySet.add(rarity);
     if (cardType) typeSet.add(cardType);
 
@@ -62,7 +63,7 @@ export async function GET() {
     return numA - numB;
   });
 
-  const colors = [...colorSet].sort((a, b) => a.localeCompare(b));
+  const colors = BASE_COLORS;
   const rarities = [...raritySet].sort((a, b) => a.localeCompare(b));
   const types = [...typeSet].sort((a, b) => a.localeCompare(b));
 
