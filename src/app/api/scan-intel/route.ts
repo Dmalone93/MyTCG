@@ -91,19 +91,21 @@ ${cat.prompt}
 
 IMPORTANT: Only include information from the last 6 weeks. Do NOT include anything older than 6 weeks. Today's date is ${new Date().toISOString().split("T")[0]}.
 
-Return ONLY a JSON array of news items (max 5). Each item must have these fields:
-- "title": string (unique, specific, actionable headline — not generic)
-- "summary": string (2-3 sentences with specific details: dates, prices, locations, card codes)
+You are writing for a One Piece TCG collector newsletter. Write like a journalist — be specific, factual, and tell the reader WHY this matters and WHAT they should do about it.
+
+Return ONLY a JSON array of news items (max 4). Each item must have these fields:
+- "title": string (newspaper-quality headline — specific and informative, e.g. "OP-17 English Release Confirmed for August 15" not "New Set Coming")
+- "summary": string (3-4 sentences. First sentence is the key fact. Then context/details. End with what this means for collectors — should they buy, sell, wait, pre-order?)
 - "source": string (site name e.g. "Total Cards", "Reddit", "Bandai")
 - "source_url": string (full URL to the article/post/listing)
 - "author": string (username or author name, or "" if unknown)
 - "image_url": string (URL to a relevant image, or "" if none)
-- "published": string (date like "2026-06-14" or "recent")
-- "urgent": boolean (true only for time-sensitive deals, pre-orders closing, or breaking news)
+- "published": string (date like "2026-06-14")
+- "urgent": boolean (true only if collectors need to act within 48 hours)
 - "jp_only": boolean (true if Japan-only content)
-- "card_names": string[] (specific card codes like "OP13-001" or card names mentioned)
+- "card_names": string[] (specific card codes like "OP13-001" or card names)
 
-Be specific. Include actual prices, dates, and links. Don't be vague.
+Write headlines like a newspaper. Summaries should answer: What happened? Why does it matter? What should I do?
 Return ONLY the JSON array, no other text.`,
         }],
       });

@@ -19,72 +19,48 @@ type IntelItem = {
   mentionsUserCard: boolean;
 };
 
-function timeAgo(d: string): string {
+function formatDate(d: string): string {
   const parsed = new Date(d);
   if (isNaN(parsed.getTime())) return d;
+  return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function timeAgo(d: string): string {
+  const parsed = new Date(d);
+  if (isNaN(parsed.getTime())) return "";
   const diff = Date.now() - parsed.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
+  const hrs = Math.floor(diff / 3600000);
+  if (hrs < 1) return "Just now";
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  return formatDate(d);
 }
 
 const CAT_LABEL: Record<string, string> = {
-  new_sets: "Sets", preorders_uk: "Pre-order", top_cards: "Value",
-  trending: "Trending", promos: "Promo", tournaments: "Event",
-  deals: "Deal", tcg_japan: "Japan", tcg_english: "English",
-  sec_alt_arts: "Alt Art", prices: "Price", anime_manga: "Anime",
+  new_sets: "Releases", preorders_uk: "Pre-orders", top_cards: "Market",
+  trending: "Trending", promos: "Promos", tournaments: "Events",
+  deals: "Deals", tcg_japan: "Japan", tcg_english: "English",
+  sec_alt_arts: "Alt Art", prices: "Market", anime_manga: "Anime",
 };
-
-/** Extract key facts from items — dates, prices, locations */
-function extractHighlights(items: IntelItem[]): string[] {
-  const highlights: string[] = [];
-  const seen = new Set<string>();
-
-  for (const item of items) {
-    if (!item.summary) continue;
-    const text = item.summary;
-
-    // Extract dates like "June 2026", "July 25, 2026", "Q3 2026"
-    const dateMatches = text.match(
-      /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,?\s+\d{4})?|\b(?:Q[1-4]\s+\d{4})\b|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}/gi
-    );
-
-    // Extract prices like "€89.99", "£45", "$120"
-    const priceMatches = text.match(/[€£$]\d+(?:\.\d{2})?/g);
-
-    // Extract card codes
-    const codeMatches = text.match(/(?:OP|ST|EB|PRB)-?\d{1,2}-?\d{2,3}/gi);
-
-    // Build highlight from title + key facts
-    const facts: string[] = [];
-    if (dateMatches) facts.push(...dateMatches.slice(0, 1));
-    if (priceMatches) facts.push(...priceMatches.slice(0, 1));
-    if (codeMatches) facts.push(...codeMatches.slice(0, 1));
-
-    if (facts.length > 0 && item.title) {
-      const h = `${item.title} — ${facts.join(" · ")}`;
-      if (!seen.has(item.title)) {
-        highlights.push(h);
-        seen.add(item.title);
-      }
-    }
-  }
-
-  return highlights.slice(0, 5);
-}
 
 export function IntelFeed({ items }: { items: IntelItem[] }) {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
-  const [expanded, setExpanded] = useState<string | null>(null);
 
   const myCardItems = items.filter((i) => i.mentionsUserCard);
-  const feedItems = items.filter((i) => !i.mentionsUserCard);
-  const highlights = extractHighlights(items);
+
+  // Lead story = most recent urgent, or most recent overall
+  const lead = items.find((i) => i.urgent) ?? items[0] ?? null;
+  const rest = items.filter((i) => i !== lead);
+
+  // Get latest fetch time
+  const latestFetch = items[0]?.fetchedAt
+    ? new Date(items[0].fetchedAt).toLocaleDateString("en-GB", {
+        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+      })
+    : null;
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -92,165 +68,173 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
     try {
       const res = await fetch("/api/scan-intel", { method: "POST" });
       const data = await res.json();
-      if (res.ok) setRefreshMsg(`${data.inserted ?? 0} new`);
-      else setRefreshMsg("Failed");
-    } catch { setRefreshMsg("Error"); }
+      if (res.ok) setRefreshMsg(`${data.inserted ?? 0} new items`);
+      else setRefreshMsg("Failed to scan");
+    } catch { setRefreshMsg("Network error"); }
     setRefreshing(false);
   }
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="font-bold text-lg text-text">Intel</h2>
-        <div className="flex-1" />
-        {refreshMsg && <span className="text-sm text-text-dim">{refreshMsg}</span>}
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="text-sm text-text-muted hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
-        >
-          {refreshing ? "Scanning..." : "Refresh"}
-        </button>
+      {/* Masthead */}
+      <div className="mb-6">
+        <div className="flex items-baseline justify-between gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-text tracking-tight">What&apos;s Happening</h1>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="text-sm text-text-muted hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
+          >
+            {refreshing ? "Scanning..." : "Refresh"}
+          </button>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-text-dim">
+          {latestFetch && <span>Updated {latestFetch}</span>}
+          {refreshMsg && <span>· {refreshMsg}</span>}
+        </div>
+        <div className="h-px bg-[rgba(255,255,255,0.08)] mt-4" />
       </div>
 
-      {/* Highlights banner */}
-      {highlights.length > 0 && (
-        <div className="mb-6 border border-[rgba(255,255,255,0.08)] rounded-xl p-4 bg-[rgba(255,255,255,0.02)]">
-          <div className="text-sm font-semibold text-text mb-3">Key highlights</div>
-          <div className="space-y-2.5">
-            {highlights.map((h, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] mt-2 flex-none" />
-                <span className="text-sm text-text leading-relaxed">{h}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Your cards in the news */}
+      {/* Your cards alert */}
       {myCardItems.length > 0 && (
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-text mb-3">Your cards in the news</div>
-          <div className="space-y-1">
-            {myCardItems.map((item) => (
-              <FeedRow
-                key={item.id}
-                item={item}
-                isExpanded={expanded === item.id}
-                onToggle={() => setExpanded(expanded === item.id ? null : item.id)}
-              />
-            ))}
-          </div>
+        <div className="mb-6 border-l-2 border-[#34D399] pl-4">
+          <div className="text-sm font-semibold text-[#34D399] mb-2">Your cards in the news</div>
+          {myCardItems.slice(0, 3).map((item) => (
+            <div key={item.id} className="mb-2 last:mb-0">
+              <ArticleLink item={item}>
+                <span className="text-sm text-text hover:underline">{item.title}</span>
+              </ArticleLink>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Feed */}
-      {feedItems.length > 0 && (
-        <div>
-          <div className="space-y-1">
-            {feedItems.map((item) => (
-              <FeedRow
-                key={item.id}
-                item={item}
-                isExpanded={expanded === item.id}
-                onToggle={() => setExpanded(expanded === item.id ? null : item.id)}
-              />
-            ))}
-          </div>
+      {/* Lead story */}
+      {lead && (
+        <div className="mb-6">
+          <ArticleLink item={lead}>
+            <article className="group">
+              {lead.imageUrl && (
+                <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-[#1C1C1F] mb-4">
+                  <img
+                    src={lead.imageUrl}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  />
+                </div>
+              )}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm text-text-dim">{CAT_LABEL[lead.category ?? ""] ?? lead.category}</span>
+                {lead.urgent && <span className="text-sm text-red-400 font-medium">Urgent</span>}
+                <span className="text-sm text-text-dim">·</span>
+                <span className="text-sm text-text-dim">{lead.published ? timeAgo(lead.published) : ""}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-text leading-tight mb-3 group-hover:underline decoration-1 underline-offset-4">
+                {lead.title}
+              </h2>
+              {lead.summary && (
+                <p className="text-base text-text-muted leading-relaxed mb-3">{lead.summary}</p>
+              )}
+              {lead.cardNames && lead.cardNames.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap mb-2">
+                  {lead.cardNames.map((name, i) => (
+                    <span key={i} className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded">{name}</span>
+                  ))}
+                </div>
+              )}
+              {lead.source && (
+                <div className="text-sm text-text-dim">{lead.source}</div>
+              )}
+            </article>
+          </ArticleLink>
+          <div className="h-px bg-[rgba(255,255,255,0.06)] mt-6" />
+        </div>
+      )}
+
+      {/* Rest of the feed */}
+      {rest.length > 0 && (
+        <div className="space-y-0">
+          {rest.map((item) => (
+            <ArticleRow key={item.id} item={item} />
+          ))}
         </div>
       )}
 
       {items.length === 0 && (
-        <div className="py-16 text-center text-text-muted text-sm">
-          No intel yet. Hit Refresh to scan.
+        <div className="py-16 text-center">
+          <div className="text-text-muted text-base mb-2">No stories yet</div>
+          <div className="text-text-dim text-sm">Hit Refresh to scan for the latest news</div>
         </div>
       )}
     </div>
   );
 }
 
-function FeedRow({
-  item,
-  isExpanded,
-  onToggle,
-}: {
-  item: IntelItem;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const isAction = item.urgent || item.mentionsUserCard;
+function ArticleLink({ item, children }: { item: IntelItem; children: React.ReactNode }) {
+  if (item.sourceUrl) {
+    return (
+      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="block">
+        {children}
+      </a>
+    );
+  }
+  return <div>{children}</div>;
+}
+
+function ArticleRow({ item }: { item: IntelItem }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className={`rounded-lg transition-colors ${isExpanded ? "bg-bg-surface" : ""}`}>
-      {/* Row */}
+    <div className="border-b border-[rgba(255,255,255,0.04)]">
       <button
-        onClick={onToggle}
-        className={`flex items-center gap-3 w-full text-left px-3 py-3 rounded-lg transition-colors active:opacity-80 ${
-          isExpanded ? "" : "hover:bg-[rgba(255,255,255,0.02)]"
-        }`}
+        onClick={() => setOpen(!open)}
+        className="flex items-start gap-4 w-full text-left py-4 hover:bg-[rgba(255,255,255,0.01)] active:opacity-80 transition-colors"
       >
-        {/* Urgency dot */}
-        {isAction && (
-          <span className={`w-2 h-2 rounded-full flex-none ${
-            item.urgent ? "bg-red-400" : "bg-[#34D399]"
-          }`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm text-text-dim">{CAT_LABEL[item.category ?? ""] ?? item.category}</span>
+            {item.urgent && <span className="text-sm text-red-400 font-medium">Urgent</span>}
+            <span className="text-sm text-text-dim ml-auto">{item.published ? timeAgo(item.published) : ""}</span>
+          </div>
+          <h3 className="text-base font-semibold text-text leading-snug">{item.title}</h3>
+        </div>
+        {item.imageUrl && !open && (
+          <div className="w-[80px] h-[56px] rounded-lg overflow-hidden bg-[#1C1C1F] flex-none hidden sm:block">
+            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+          </div>
         )}
-
-        {/* Category */}
-        <span className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded flex-none">
-          {CAT_LABEL[item.category ?? ""] ?? item.category}
-        </span>
-
-        {/* Title */}
-        <span className={`flex-1 text-sm leading-relaxed min-w-0 ${
-          isExpanded ? "text-text" : "text-text-muted"
-        }`}>
-          {item.title}
-        </span>
-
-        {/* Time */}
-        <span className="text-sm text-text-dim flex-none">
-          {item.published ? timeAgo(item.published) : ""}
-        </span>
       </button>
 
-      {/* Expanded detail */}
-      {isExpanded && (
-        <div className="px-3 pb-4">
-          <div className="pl-3 sm:pl-[72px] border-l-2 border-[rgba(255,255,255,0.06)] sm:border-0 ml-3 sm:ml-0">
-            {item.summary && (
-              <p className="text-sm text-text leading-relaxed mb-3">{item.summary}</p>
-            )}
-
-            {item.cardNames && item.cardNames.length > 0 && (
-              <div className="flex gap-1.5 mb-3 flex-wrap">
-                {item.cardNames.map((name, i) => (
-                  <span
-                    key={i}
-                    className="text-sm text-text-muted bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded"
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 text-sm text-text-dim">
-              {item.source && <span>{item.source}</span>}
-              {item.sourceUrl && (
-                <a
-                  href={item.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-text-muted hover:text-text transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Open link →
-                </a>
-              )}
+      {open && (
+        <div className="pb-4 pr-4">
+          {item.imageUrl && (
+            <div className="w-full sm:w-[280px] aspect-[16/10] rounded-lg overflow-hidden bg-[#1C1C1F] mb-3 sm:float-right sm:ml-4">
+              <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
             </div>
+          )}
+          {item.summary && (
+            <p className="text-base text-text leading-relaxed mb-3">{item.summary}</p>
+          )}
+          {item.cardNames && item.cardNames.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap mb-3">
+              {item.cardNames.map((name, i) => (
+                <span key={i} className="text-sm text-text-dim bg-[rgba(255,255,255,0.04)] px-2 py-0.5 rounded">{name}</span>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-3 text-sm text-text-dim clear-both">
+            {item.source && <span>{item.source}</span>}
+            {item.published && <span>{formatDate(item.published)}</span>}
+            {item.sourceUrl && (
+              <a
+                href={item.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-text-muted hover:text-text transition-colors ml-auto"
+              >
+                Read full article →
+              </a>
+            )}
           </div>
         </div>
       )}
