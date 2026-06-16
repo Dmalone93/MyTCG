@@ -230,7 +230,7 @@ export function CardPicker({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 sm:relative sm:inset-auto" onClick={onCancel}>
+    <div className="fixed inset-0 z-[60] sm:relative sm:inset-auto" onClick={onCancel}>
       <div className="absolute inset-0 bg-white/60 sm:hidden" />
 
       <div
@@ -426,7 +426,7 @@ export function CardPicker({
 
         {/* Confirm bar — always visible at bottom when cards are selected */}
         {selected.size > 0 && (
-          <div className="flex-none flex items-center gap-3 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-bg-elevated border-t border-[rgba(0,0,0,0.08)]">
+          <div className="flex-none flex items-center gap-3 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-3 bg-bg-elevated border-t border-[rgba(0,0,0,0.08)]">
             <span className="text-sm font-medium text-text">
               {selected.size} card{selected.size !== 1 ? "s" : ""} selected
             </span>
