@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
+import { ScanResultScreen } from "./scan-result-screen";
+import { CardPicker } from "./card-picker";
+import { useRegion } from "./region-selector";
 
 type ScanResult = {
   codes: string[];
@@ -90,6 +93,9 @@ export function ScanModal({
   const [cameraReady, setCameraReady] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [matchedCards, setMatchedCards] = useState<CatalogCard[]>([]);
+  const [resultCard, setResultCard] = useState<CatalogCard | null>(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const { formatPrice } = useRegion();
 
   // Load card index for local matching
   useEffect(() => {
@@ -408,16 +414,23 @@ export function ScanModal({
       if (cards.length > 0) {
         setMatchedCards(cards.slice(0, 5));
         setStatus(`Matched: ${cards[0].cardName}`);
+        if (cards.length === 1) {
+          setResultCard(cards[0]); // Auto-show result for HIGH confidence
+        }
       } else {
         // Fall back to local index
         const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase());
         if (local.length > 0) {
-          setMatchedCards(local.map((c) => ({
+          const localCards = local.map((c) => ({
             cardSetId: c.id, cardName: c.n, setName: "", setId: "",
             rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
             cardPower: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
-          })));
+          }));
+          setMatchedCards(localCards);
           setStatus(`Matched: ${local[0].n}`);
+          if (local.length === 1) {
+            setResultCard(localCards[0]); // Auto-show result for HIGH confidence
+          }
         } else {
           setMatchedCards([]);
           setStatus(`Found code ${code} but no match`);
@@ -515,45 +528,65 @@ export function ScanModal({
           )}
         </div>
 
-        {matchedCards.length > 0 && (
+        {resultCard && !showManualEntry && (
+          <div className="px-4 py-4 border-t border-[rgba(0,0,0,0.06)] max-h-[60vh] overflow-y-auto">
+            <ScanResultScreen
+              card={resultCard}
+              onRescan={() => {
+                setResultCard(null);
+                setMatchedCards([]);
+                setConfidence(0);
+                visionCallCount.current = 0;
+                startScanning();
+              }}
+              onManualEntry={() => setShowManualEntry(true)}
+              onClose={onClose}
+            />
+          </div>
+        )}
+
+        {!resultCard && matchedCards.length > 0 && (
           <div className="border-t border-[rgba(0,0,0,0.04)]">
-            <div className="px-3 py-1.5 text-[10px] font-mono tracking-[.08em] uppercase text-text-dim">
-              {quickMode ? "Tap to add" : "Select a match"}
+            <div className="px-3 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
+              {matchedCards.length === 1 ? "Match found" : "Pick your card"}
             </div>
             {matchedCards.map((card, i) => (
               <button
                 key={card.cardSetId + i}
-                onClick={async () => {
-                  await onResult(card);
-                  if (quickMode) {
-                    setMatchedCards([]);
-                    setConfidence(0);
-                    visionCallCount.current = 0;
-                    setStatus("Scan next card...");
-                    setTimeout(() => startScanning(), 300);
-                  }
-                }}
-                className="flex items-center gap-2.5 w-full text-left px-3 py-3 sm:py-2 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(59,130,246,0.08)] active:opacity-80 transition-colors"
+                onClick={() => setResultCard(card)}
+                className="flex items-center gap-3 w-full text-left px-3 py-3 sm:py-2.5 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
               >
-                <div className="relative w-8 h-[44px] flex-none rounded overflow-hidden bg-[#E4E4E7]">
-                  <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="w-10 h-[56px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
+                  <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
                 </div>
                 <span className="flex-1 min-w-0">
-                  <span className="text-[13px] font-semibold text-text block truncate">
-                    {card.cardName}
-                  </span>
-                  <span className="text-[10px] text-text-dim">
-                    {card.cardSetId} · {card.rarity} · {card.cardColor}
-                  </span>
+                  <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+                  <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</span>
                 </span>
                 {card.marketPrice != null && card.marketPrice > 0 && (
-                  <span className="font-mono text-xs font-semibold text-[#059669] flex-none">
-                    €{card.marketPrice.toFixed(2)}
+                  <span className="font-mono text-sm font-semibold text-[#059669] flex-none">
+                    {formatPrice(card.marketPrice)}
                   </span>
                 )}
               </button>
             ))}
           </div>
+        )}
+
+        {showManualEntry && (
+          <CardPicker
+            onPick={(card) => {
+              setShowManualEntry(false);
+              setResultCard(card);
+            }}
+            onPickMultiple={(cards) => {
+              if (cards[0]) {
+                setShowManualEntry(false);
+                setResultCard(cards[0]);
+              }
+            }}
+            onCancel={() => setShowManualEntry(false)}
+          />
         )}
 
         <div className="flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
@@ -580,6 +613,14 @@ export function ScanModal({
               className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
             >
               Scan again
+            </button>
+          )}
+          {!scanning && matchedCards.length === 0 && !resultCard && (
+            <button
+              onClick={() => setShowManualEntry(true)}
+              className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
+            >
+              Enter code
             </button>
           )}
         </div>
