@@ -379,7 +379,13 @@ export function CardPicker({
                   isSelected ? "bg-accent/10" : "active:bg-[rgba(0,0,0,0.02)]"
                 }`}
                 onClick={() => {
+                  // Cancel any pending long-press
+                  if (longPressTimer.current) {
+                    clearTimeout(longPressTimer.current);
+                    longPressTimer.current = null;
+                  }
                   if (!isDragging.current) toggleCard(card.cardSetId);
+                  isDragging.current = false;
                 }}
                 onPointerDown={(e) => {
                   if (e.pointerType === "touch") handlePointerDown(card.cardSetId);

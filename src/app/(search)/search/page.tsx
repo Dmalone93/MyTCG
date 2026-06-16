@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo, useCallback, useEffect } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
@@ -184,13 +184,14 @@ export default function SearchPage() {
   }, [allCards, effectiveFilters, textQuery, hasAnyInput]);
 
   // Sort
-  const handleSort = useCallback((key: SortKey) => {
-    setSortKey((prev) => {
-      if (prev === key) { setSortDir((d) => d === "asc" ? "desc" : "asc"); return key; }
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
       setSortDir(key === "price" ? "desc" : "asc");
-      return key;
-    });
-  }, []);
+    }
+  }
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
