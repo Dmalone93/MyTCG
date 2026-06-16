@@ -319,8 +319,8 @@ export default function SearchPage() {
 
       {/* ─── BROWSE TAB — set header + quick switcher ─── */}
       {tab === "browse" && selectedSet && (
-        <div className="mt-3">
-          <div className="flex items-center gap-3 mb-3">
+        <div className="mt-5">
+          <div className="flex items-center gap-3 mb-4">
             <button onClick={() => { setSelectedSet(null); setSetCards([]); }} className="text-sm text-text-muted hover:text-text active:opacity-70">
               ← Sets
             </button>
@@ -329,7 +329,7 @@ export default function SearchPage() {
           </div>
 
           {/* Quick set switcher */}
-          <div className="flex gap-1 overflow-x-auto pb-1 mb-3 -mx-4 px-4">
+          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
             {sets
               .filter((s) => categoriseSet(s) === categoriseSet(selectedSet))
               .sort((a, b) => {
@@ -359,7 +359,7 @@ export default function SearchPage() {
         <div>
           {/* Color filter (browse only) */}
           {tab === "browse" && selectedSet && (
-            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-0.5">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
               <button
                 onClick={() => setColorFilter(null)}
                 className={`px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${
@@ -384,7 +384,7 @@ export default function SearchPage() {
           )}
 
           {/* Sort + view controls */}
-          <div className="flex items-center gap-1 mb-3 flex-wrap">
+          <div className="flex items-center gap-1.5 mb-5 flex-wrap">
             {activeSortKeys.map((k) => {
               const active = sortKey === k;
               const label = k === "relevance" ? "Best match" : k === "code" ? "Code" : k === "name" ? "Name" : "Price";
@@ -444,7 +444,7 @@ export default function SearchPage() {
 
           {/* Grid view */}
           {!activeLoading && view === "grid" && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
               {sorted.map((card, i) => (
                 <button
                   key={card.cardSetId + i}
@@ -454,13 +454,13 @@ export default function SearchPage() {
                   <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
                   </div>
-                  <div className="p-2">
+                  <div className="px-2.5 py-2">
                     <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
-                    <div className="text-xs font-mono text-text-dim">{card.cardSetId}</div>
+                    <div className="text-xs font-mono text-text-dim mt-0.5">{card.cardSetId}</div>
                     {card.marketPrice != null && card.marketPrice > 0 ? (
-                      <div className="font-mono text-xs font-semibold text-[#059669] mt-0.5">{formatPrice(card.marketPrice)}</div>
+                      <div className="font-mono text-xs font-semibold text-[#059669] mt-1">{formatPrice(card.marketPrice)}</div>
                     ) : (
-                      <div className="text-xs text-text-dim mt-0.5">—</div>
+                      <div className="text-xs text-text-dim mt-1">—</div>
                     )}
                   </div>
                 </button>
