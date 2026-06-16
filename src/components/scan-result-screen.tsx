@@ -121,13 +121,23 @@ export function ScanResultScreen({
           <div className="text-base font-semibold text-text">{card.cardName}</div>
           <div className="font-mono text-sm text-text-dim mt-0.5">{card.cardSetId} · {card.rarity}</div>
           {card.cardColor && <div className="text-sm text-text-dim">{card.cardColor}</div>}
-          <button
-            onClick={onRescan}
-            className="text-sm font-medium text-text-muted hover:text-text mt-2 active:opacity-70"
-          >
-            Not this card? Rescan
-          </button>
         </div>
+      </div>
+
+      {/* Wrong card? — prominent, always visible */}
+      <div className="flex gap-2">
+        <button
+          onClick={onRescan}
+          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
+        >
+          Not this card? Rescan
+        </button>
+        <button
+          onClick={onManualEntry}
+          className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
+        >
+          Enter code
+        </button>
       </div>
 
       {/* 2. Asking vs market — the hero */}
@@ -254,13 +264,6 @@ export function ScanResultScreen({
         )}
       </div>
 
-      {/* Manual entry fallback */}
-      <button
-        onClick={onManualEntry}
-        className="w-full text-sm font-medium text-text-muted hover:text-text py-2 active:opacity-70 text-center"
-      >
-        Enter code manually
-      </button>
     </div>
   );
 }
