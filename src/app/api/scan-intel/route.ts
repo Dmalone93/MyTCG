@@ -140,8 +140,32 @@ Return ONLY the JSON array, no other text.`,
     }
   }
 
-  // Enrich with card images from extended DB when image_url is empty
+  // Enrich images: try OG image from source URL first, then card images
   const extCards = getExtendedCards();
+
+  // Fetch OG images in parallel (with timeout)
+  await Promise.all(allResults.map(async (item) => {
+    if (item.image_url && item.image_url !== "") return;
+    if (!item.source_url) return;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(item.source_url, {
+        signal: controller.signal,
+        headers: { "User-Agent": "MyTCG Bot/1.0" },
+      });
+      clearTimeout(timeout);
+      const html = await res.text();
+      const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
+        ?? html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+      if (ogMatch?.[1]) {
+        item.image_url = ogMatch[1];
+      }
+    } catch {
+      // Timeout or fetch error — skip
+    }
+  }));
+
   for (const item of allResults) {
     if (!item.image_url || item.image_url === "") {
       // Try card_names first
