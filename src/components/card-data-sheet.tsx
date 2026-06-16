@@ -88,11 +88,11 @@ export function CardDataSheet({
         {/* Content — image + table side by side on desktop, stacked on mobile */}
         <div className="flex flex-col sm:flex-row">
           {/* Card image */}
-          <div className="sm:w-[240px] flex-none p-4 sm:p-5 flex justify-center sm:justify-start">
+          <div className="sm:w-[180px] flex-none p-4 sm:p-4 flex justify-center sm:justify-start sm:items-start">
             <img
               src={imageUrl}
               alt={cardName}
-              className="w-[160px] sm:w-full rounded-lg aspect-[2.5/3.5] object-cover"
+              className="w-[140px] sm:w-full rounded-lg aspect-[2.5/3.5] object-cover"
             />
           </div>
 
@@ -138,13 +138,9 @@ export function CardDataSheet({
           </div>
         </div>
 
-        {/* Live market price */}
-        <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+        {/* Live market price + price chart */}
+        <div className="px-4 sm:px-5 py-3 space-y-3">
           <LivePriceBadge cardCode={cardCode} cardName={cardName} />
-        </div>
-
-        {/* Price chart */}
-        <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
           <PriceChart cardCode={cardCode} />
         </div>
 

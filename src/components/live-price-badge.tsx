@@ -40,7 +40,7 @@ export function LivePriceBadge({ cardCode, cardName }: { cardCode: string; cardN
       .finally(() => setLoading(false));
   }, [cardCode, cardName]);
 
-  if (loading) return <div className="h-[120px] bg-bg-surface rounded-lg animate-pulse" />;
+  if (loading) return null;
   if (!data?.found || !data.price) return null;
 
   const fmtPrice = (usd: number | null) => {
