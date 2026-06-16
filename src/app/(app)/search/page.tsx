@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
@@ -16,6 +17,7 @@ export default function SearchPage() {
   const [view, setView] = useState<"list" | "grid">("list");
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
 
   function doSearch(q: string) {
     setQuery(q);
@@ -50,7 +52,7 @@ export default function SearchPage() {
     <div>
       {/* Search bar */}
       <div className="sticky top-0 z-10 bg-bg pb-3 pt-1">
-        <div className="flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl px-4 py-3">
+        <div className="flex items-center gap-2.5 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-sm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -64,10 +66,13 @@ export default function SearchPage() {
             className="flex-1 bg-transparent border-none outline-none text-base text-text placeholder:text-text-dim"
           />
           {query && (
-            <button onClick={() => { setQuery(""); setResults([]); setSelected(null); }} className="text-text-dim text-xs active:opacity-70">
+            <button onClick={() => { setQuery(""); setResults([]); setSelected(null); }} className="text-text-dim text-sm active:opacity-70">
               Clear
             </button>
           )}
+          <button onClick={() => router.back()} className="text-text-muted text-sm font-medium active:opacity-70 flex-none">
+            Close
+          </button>
         </div>
       </div>
 

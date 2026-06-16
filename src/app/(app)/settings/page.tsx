@@ -79,8 +79,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-lg font-bold text-text mb-6">Settings</h1>
+    <div className="max-w-lg mx-auto">
+      <h1 className="text-2xl font-bold text-text mb-8">Settings</h1>
 
       {/* Pricing region */}
       <section className="mb-8">

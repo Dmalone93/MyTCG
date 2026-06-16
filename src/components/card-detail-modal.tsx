@@ -172,6 +172,25 @@ export function CardDetailModal({
               </div>
             </div>
 
+            {/* Buy links */}
+            <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+              <div className="text-sm font-medium text-text mb-2">Buy this card</div>
+              <div className="flex gap-2 flex-wrap">
+                <a href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(card.cardName)}`} target="_blank" rel="noopener noreferrer"
+                  className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
+                  TCGPlayer
+                </a>
+                <a href={`https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(card.cardName)}`} target="_blank" rel="noopener noreferrer"
+                  className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
+                  Cardmarket
+                </a>
+                <a href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`One Piece TCG ${card.cardCode} ${card.cardName}`)}`} target="_blank" rel="noopener noreferrer"
+                  className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
+                  eBay UK
+                </a>
+              </div>
+            </div>
+
             {/* Live market price + price chart */}
             <div className="px-4 sm:px-5 py-3 space-y-3">
               <LivePriceBadge cardCode={card.cardCode} cardName={card.cardName} />

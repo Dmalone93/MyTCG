@@ -193,28 +193,21 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
         <div className="h-px bg-[rgba(0,0,0,0.08)] mb-5" />
       )}
 
-      {/* Category columns */}
+      {/* Category sections */}
       {columns.size > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-6">
+        <div className="space-y-8">
           {[...columns.entries()].map(([cat, catItems]) => (
             <div key={cat}>
-              {/* Column header */}
-              <div className="text-sm font-bold text-text uppercase tracking-wide mb-2 pb-1.5 border-b border-text">
-                {CAT_LABEL[cat] ?? cat}
-              </div>
-              {/* Column items */}
-              <div className="space-y-3">
-                {catItems.slice(0, 4).map((item) => (
-                  <ArticleLink key={item.id} item={item} className="group block">
-                    <h4 className="text-sm font-semibold text-text leading-snug mb-0.5 group-hover:underline decoration-1 underline-offset-2">
+              <h2 className="text-lg font-bold text-text mb-3">{CAT_LABEL[cat] ?? cat}</h2>
+              <div className="space-y-2">
+                {catItems.slice(0, 3).map((item) => (
+                  <ArticleLink key={item.id} item={item} className="group block bg-bg-elevated rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                    <h4 className="text-sm font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-2">
                       {item.title}
                     </h4>
-                    {item.summary && (
-                      <p className="text-sm text-text-muted leading-relaxed line-clamp-2">{item.summary}</p>
-                    )}
-                    <div className="flex items-center gap-2 text-sm mt-1">
-                      {item.published && <><span className="text-text-dim">|</span><span className="font-semibold text-text">{timeAgo(item.published)}</span></>}
-                      {item.source && <span className="text-text-dim">{item.source}</span>}
+                    <div className="flex items-center gap-2 text-sm text-text-dim">
+                      {item.published && <span className="font-medium text-text-muted">{timeAgo(item.published)}</span>}
+                      {item.source && <span>{item.source}</span>}
                     </div>
                   </ArticleLink>
                 ))}
