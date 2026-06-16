@@ -57,9 +57,18 @@ export default function BrowsePage() {
   const sorted = useMemo(() => {
     return [...cards].sort((a, b) => {
       let cmp = 0;
-      if (sortKey === "code") cmp = a.cardSetId.localeCompare(b.cardSetId);
-      else if (sortKey === "name") cmp = a.cardName.localeCompare(b.cardName);
-      else if (sortKey === "price") cmp = (a.marketPrice ?? 0) - (b.marketPrice ?? 0);
+      if (sortKey === "code") {
+        // Extract numeric part for proper ordering: OP01-001 → 1001, OP01-100 → 1100
+        const numA = parseInt(a.cardSetId.replace(/\D/g, "") || "0");
+        const numB = parseInt(b.cardSetId.replace(/\D/g, "") || "0");
+        cmp = numA - numB;
+      } else if (sortKey === "name") {
+        cmp = a.cardName.localeCompare(b.cardName);
+      } else if (sortKey === "price") {
+        const pA = a.marketPrice ?? -1;
+        const pB = b.marketPrice ?? -1;
+        cmp = pA - pB;
+      }
       return sortDir === "desc" ? -cmp : cmp;
     });
   }, [cards, sortKey, sortDir]);
