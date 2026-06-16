@@ -143,25 +143,37 @@ Return ONLY the JSON array, no other text.`,
   // Enrich with card images from extended DB when image_url is empty
   const extCards = getExtendedCards();
   for (const item of allResults) {
-    if (!item.image_url && item.card_names.length > 0) {
-      // Find a card image for the first mentioned card
+    if (!item.image_url || item.image_url === "") {
+      // Try card_names first
       for (const name of item.card_names) {
         const match = extCards.find(
-          (c) => c.cid.toUpperCase() === name.toUpperCase() ||
+          (c) => c.cid.toUpperCase() === name.toUpperCase().replace(/\s/g, "") ||
                  c.name.toLowerCase() === name.toLowerCase()
         );
-        if (match?.imageUrl) {
-          item.image_url = match.imageUrl;
-          break;
+        if (match?.imageUrl) { item.image_url = match.imageUrl; break; }
+      }
+    }
+    // Try extracting card codes from title/summary
+    if (!item.image_url || item.image_url === "") {
+      const text = `${item.title} ${item.summary}`.toUpperCase();
+      // Match OP01-001, OP16-118, P-119, ST01-001, EB01-001, PRB01-001
+      const codeMatches = text.match(/(OP|ST|EB|PRB|P)-?\d{1,2}-?\d{2,3}/g);
+      if (codeMatches) {
+        for (const raw of codeMatches) {
+          const normalized = raw.replace(/\s/g, "");
+          const card = extCards.find((c) => c.cid.toUpperCase() === normalized);
+          if (card?.imageUrl) { item.image_url = card.imageUrl; break; }
         }
       }
     }
-    // If still no image, try to find any card mentioned in the title/summary
-    if (!item.image_url) {
+    // Fallback: use set image from optcgapi for set-related articles
+    if (!item.image_url || item.image_url === "") {
       const text = `${item.title} ${item.summary}`.toUpperCase();
-      const codeMatch = text.match(/(OP|ST|EB)\d{2}-\d{3}/);
-      if (codeMatch) {
-        const card = extCards.find((c) => c.cid.toUpperCase() === codeMatch[0]);
+      const setMatch = text.match(/OP-?(\d{1,2})/);
+      if (setMatch) {
+        // Use a representative card from that set
+        const setNum = setMatch[1].padStart(2, "0");
+        const card = extCards.find((c) => c.cid.startsWith(`OP${setNum}-`));
         if (card?.imageUrl) item.image_url = card.imageUrl;
       }
     }

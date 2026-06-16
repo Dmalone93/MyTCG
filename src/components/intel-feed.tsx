@@ -209,13 +209,20 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
               {/* Column items */}
               {catItems.slice(0, 3).map((item, i) => (
                 <ArticleLink key={item.id} item={item} className="group block">
-                  <div className={`py-3 ${i > 0 ? "border-t border-[rgba(0,0,0,0.06)]" : ""}`}>
-                    <h4 className="text-sm font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-2">
-                      {item.title}
-                    </h4>
-                    <div className="text-xs text-text-dim">
-                      {item.published && <span className="font-medium">{timeAgo(item.published)}</span>}
-                      {item.source && <span> · {item.source}</span>}
+                  <div className={`flex gap-3 py-3 ${i > 0 ? "border-t border-[rgba(0,0,0,0.06)]" : ""}`}>
+                    {item.imageUrl && (
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#E4E4E7] flex-none">
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-text leading-snug mb-1 group-hover:underline decoration-1 underline-offset-2">
+                        {item.title}
+                      </h4>
+                      <div className="text-xs text-text-dim">
+                        {item.published && <span className="font-medium">{timeAgo(item.published)}</span>}
+                        {item.source && <span> · {item.source}</span>}
+                      </div>
                     </div>
                   </div>
                 </ArticleLink>

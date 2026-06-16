@@ -33,7 +33,7 @@ export default function SearchPage() {
     }
 
     setLoading(true);
-    debounceRef.current = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => { // 80ms debounce
       const controller = new AbortController();
       abortRef.current = controller;
       try {
@@ -41,7 +41,7 @@ export default function SearchPage() {
         if (res.ok) setResults(await res.json());
       } catch { /* */ }
       setLoading(false);
-    }, 120);
+    }, 80);
   }
 
   function selectCard(card: CatalogCard) {
@@ -52,25 +52,27 @@ export default function SearchPage() {
     <div>
       {/* Search bar */}
       <div className="sticky top-0 z-10 bg-bg pb-3 pt-1">
-        <div className="flex items-center gap-2.5 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            value={query}
-            onChange={(e) => doSearch(e.target.value)}
-            placeholder="Search card name or code..."
-            enterKeyHint="search"
-            autoFocus
-            className="flex-1 bg-transparent border-none outline-none text-base text-text placeholder:text-text-dim"
-          />
-          {query && (
-            <button onClick={() => { setQuery(""); setResults([]); setSelected(null); }} className="text-text-dim text-sm active:opacity-70">
-              Clear
-            </button>
-          )}
-          <button onClick={() => router.back()} className="text-text-muted text-sm font-medium active:opacity-70 flex-none">
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1 flex items-center gap-2.5 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              value={query}
+              onChange={(e) => doSearch(e.target.value)}
+              placeholder="Search card name or code..."
+              enterKeyHint="search"
+              autoFocus
+              className="flex-1 bg-transparent border-none outline-none text-base text-text placeholder:text-text-dim"
+            />
+            {query && (
+              <button onClick={() => { setQuery(""); setResults([]); setSelected(null); }} className="text-text-dim text-sm active:opacity-70">
+                ×
+              </button>
+            )}
+          </div>
+          <button onClick={() => router.back()} className="text-text-muted text-sm font-medium active:opacity-70 flex-none py-3">
             Close
           </button>
         </div>
