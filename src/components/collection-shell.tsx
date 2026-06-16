@@ -90,7 +90,7 @@ export function CollectionShell({
   }, [activeId, fetchCards]);
 
   async function handleCreateCollection() {
-    const name = `Collection ${collections.length + 1}`;
+    const name = "New Collection";
     const row = await createCollectionAction(name, collections.length);
     setCollections((prev) => [...prev, row]);
     setActiveId(row.id);
@@ -219,7 +219,9 @@ export function CollectionShell({
             className={`px-3 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors active:opacity-70 ${
               col.id === activeId
                 ? "bg-text text-bg"
-                : "text-text-muted hover:text-text"
+                : col.name === "New Collection"
+                  ? "text-text-dim hover:text-text"
+                  : "text-text-muted hover:text-text"
             }`}
           >
             {col.name}
