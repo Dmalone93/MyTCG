@@ -83,6 +83,29 @@ export function CardGrid({
     x: number;
     y: number;
   } | null>(null);
+  const [pendingCards, setPendingCards] = useState<CatalogCard[] | null>(null);
+
+  async function addCardsToCollection(cards: CatalogCard[]) {
+    for (const card of cards) {
+      await onAddCard({
+        cardCode: card.cardSetId,
+        cardName: card.cardName,
+        quantity: 1,
+        condition: "NM",
+        isGraded: false,
+        grade: null,
+        gradedCompany: null,
+        acquiredPrice: null,
+        notes: null,
+        imageUrl: card.imageUrl ?? null,
+        marketPrice: card.marketPrice ?? null,
+      });
+    }
+    setShowPicker(false);
+    setPendingCards(null);
+    setQuickAddMsg(`✓ Added ${cards.length} card${cards.length !== 1 ? "s" : ""}`);
+    setTimeout(() => setQuickAddMsg(null), 2000);
+  }
 
   async function quickAdd(card: CatalogCard) {
     setQuickAddMsg(`Adding ${card.cardName}...`);
@@ -183,25 +206,13 @@ export function CardGrid({
       {showPicker && !pickedCard && (
         <CardPicker
           onPick={(card) => setPickedCard(card)}
-          onPickMultiple={async (cards) => {
-            for (const card of cards) {
-              await onAddCard({
-                cardCode: card.cardSetId,
-                cardName: card.cardName,
-                quantity: 1,
-                condition: "NM",
-                isGraded: false,
-                grade: null,
-                gradedCompany: null,
-                acquiredPrice: null,
-                notes: null,
-                imageUrl: card.imageUrl ?? null,
-                marketPrice: card.marketPrice ?? null,
-              });
+          onPickMultiple={(cards) => {
+            if (collections.length > 1) {
+              setPendingCards(cards);
+              setShowPicker(false);
+            } else {
+              addCardsToCollection(cards);
             }
-            setShowPicker(false);
-            setQuickAddMsg(`✓ Added ${cards.length} cards`);
-            setTimeout(() => setQuickAddMsg(null), 2000);
           }}
           onCancel={() => setShowPicker(false)}
         />
@@ -365,9 +376,52 @@ export function CardGrid({
         />
       )}
 
+      {/* Collection picker modal */}
+      {pendingCards && pendingCards.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setPendingCards(null)}>
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
+          <div
+            className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sm:hidden flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
+            </div>
+            <div className="px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
+              <h3 className="text-base font-semibold text-text">Add to collection</h3>
+              <p className="text-sm text-text-dim mt-0.5">{pendingCards.length} card{pendingCards.length !== 1 ? "s" : ""} selected</p>
+            </div>
+            <div className="py-2 max-h-[50vh] overflow-y-auto">
+              {collections.map((col) => (
+                <button
+                  key={col.id}
+                  onClick={() => addCardsToCollection(pendingCards)}
+                  className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors hover:bg-bg-surface active:opacity-70 ${
+                    col.id === activeCollectionId ? "text-text" : "text-text-muted"
+                  }`}
+                >
+                  {col.name}
+                  {col.id === activeCollectionId && (
+                    <span className="text-xs text-text-dim ml-2">current</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-3 border-t border-[rgba(0,0,0,0.06)]">
+              <button
+                onClick={() => setPendingCards(null)}
+                className="w-full text-sm font-medium text-text-muted hover:text-text active:opacity-70 py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quick add toast */}
       {quickAddMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)] text-sm text-text font-medium animate-fade-in">
           {quickAddMsg}
         </div>
       )}
