@@ -121,7 +121,7 @@ export function CardGrid({
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-[rgba(255,255,255,0.12)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-[rgba(0,0,0,0.1)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
         >
           <span className="text-sm leading-none">+</span> Add
         </button>
@@ -134,7 +134,7 @@ export function CardGrid({
               setShowQuickScan(true);
             }
           }}
-          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(255,255,255,0.08)] text-text-muted text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:text-text hover:border-[rgba(255,255,255,0.15)] active:opacity-70 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(0,0,0,0.08)] text-text-muted text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:text-text hover:border-[rgba(0,0,0,0.12)] active:opacity-70 transition-colors"
           title="Quick scan"
         >
           Scan
@@ -239,7 +239,7 @@ export function CardGrid({
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(255,255,255,0.06)]">
+                <tr className="border-b border-[rgba(0,0,0,0.06)]">
                   <th className="w-[44px] py-2 px-2"></th>
                   <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Code</th>
                   <th className="text-left font-mono text-[10px] tracking-[.1em] uppercase text-text-dim py-2 px-3">Name</th>
@@ -365,7 +365,7 @@ export function CardGrid({
 
       {/* Quick add toast */}
       {quickAddMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
           {quickAddMsg}
         </div>
       )}
@@ -410,7 +410,7 @@ function CardTableRow({
 
   return (
     <tr
-      className="border-b border-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer select-none"
+      className="border-b border-[rgba(0,0,0,0.03)] hover:bg-[rgba(0,0,0,0.02)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
@@ -425,11 +425,11 @@ function CardTableRow({
         onMouseLeave={handleNameLeave}
       >
         {card.imageUrl ? (
-          <div className="w-[30px] h-[42px] rounded overflow-hidden bg-[#1C1C1F] flex-none">
+          <div className="w-[30px] h-[42px] rounded overflow-hidden bg-[#E4E4E7] flex-none">
             <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
         ) : (
-          <div className="w-[30px] h-[42px] rounded bg-[#1C1C1F]" />
+          <div className="w-[30px] h-[42px] rounded bg-[#E4E4E7]" />
         )}
         {showPreview && card.imageUrl && nameRef.current && (() => {
           const rect = nameRef.current!.getBoundingClientRect();
@@ -438,7 +438,7 @@ function CardTableRow({
               className="fixed z-[100] pointer-events-none"
               style={{ left: rect.left, top: rect.top - 8, transform: "translateY(-100%)" }}
             >
-              <div className="w-[160px] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-[rgba(255,255,255,0.1)]">
+              <div className="w-[160px] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-[rgba(0,0,0,0.08)]">
                 <img src={card.imageUrl} alt={card.cardName} className="w-full aspect-[2.5/3.5] object-cover" />
               </div>
             </div>
@@ -468,7 +468,7 @@ function CardTableRow({
       <td className="py-2.5 px-3 text-right font-mono">
         {market > 0 ? fmt(market) : "—"}
       </td>
-      <td className="py-2.5 px-3 text-right font-mono text-[#34D399]">
+      <td className="py-2.5 px-3 text-right font-mono text-[#059669]">
         {gp > 0 ? fmt(gp) : "—"}
       </td>
     </tr>
@@ -499,7 +499,7 @@ function CardMobileRow({
 
   return (
     <div
-      className="flex items-center gap-3 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-3 active:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer select-none"
+      className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3 active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
@@ -532,7 +532,7 @@ function CardMobileRow({
           {market > 0 ? fmt(market) : "—"}
         </div>
         {gp > 0 && (
-          <div className="font-mono text-xs text-[#34D399]">{fmt(gp)}</div>
+          <div className="font-mono text-xs text-[#059669]">{fmt(gp)}</div>
         )}
       </div>
     </div>
@@ -563,7 +563,7 @@ function CardGridTile({
 
   return (
     <div
-      className="bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-3 sm:p-4 hover:border-[rgba(255,255,255,0.12)] active:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer select-none"
+      className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3 sm:p-4 hover:border-[rgba(0,0,0,0.1)] active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
@@ -596,7 +596,7 @@ function CardGridTile({
           {market > 0 ? fmt(market) : "—"}
         </span>
         {gp > 0 && (
-          <span className="text-[#34D399] font-mono">{fmt(gp)}</span>
+          <span className="text-[#059669] font-mono">{fmt(gp)}</span>
         )}
       </div>
     </div>

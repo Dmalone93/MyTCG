@@ -26,7 +26,7 @@ export default async function AppLayout({
         <div className="flex gap-2 sm:gap-3 items-center">
           <Link
             href="/search"
-            className="hidden sm:flex items-center gap-2 border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-1.5 text-text-dim text-sm hover:border-[rgba(255,255,255,0.15)] hover:text-text-muted transition-colors min-w-[160px]"
+            className="hidden sm:flex items-center gap-2 border border-[rgba(0,0,0,0.08)] rounded-lg px-3 py-1.5 text-text-dim text-sm hover:border-[rgba(0,0,0,0.12)] hover:text-text-muted transition-colors min-w-[160px]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />

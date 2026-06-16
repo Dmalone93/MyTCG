@@ -135,14 +135,14 @@ export function CardPicker({
 
   return (
     <div className="fixed inset-0 z-50 sm:relative sm:inset-auto" onClick={onCancel}>
-      <div className="absolute inset-0 bg-black/60 sm:hidden" />
+      <div className="absolute inset-0 bg-white/60 sm:hidden" />
 
       <div
-        className="absolute inset-0 sm:relative flex flex-col bg-bg-elevated sm:border sm:border-[rgba(255,255,255,0.06)] sm:rounded-xl sm:mb-3 sm:max-h-[70vh] sm:overflow-hidden sm:shadow-[0_14px_40px_rgba(0,0,0,0.5)]"
+        className="absolute inset-0 sm:relative flex flex-col bg-bg-elevated sm:border sm:border-[rgba(0,0,0,0.06)] sm:rounded-xl sm:mb-3 sm:max-h-[70vh] sm:overflow-hidden sm:shadow-[0_14px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with mode toggle */}
-        <div className="flex-none border-b border-[rgba(255,255,255,0.06)] bg-bg-elevated">
+        <div className="flex-none border-b border-[rgba(0,0,0,0.06)] bg-bg-elevated">
           {/* Mode tabs */}
           <div className="flex items-center gap-0 px-4 pt-3">
             <button
@@ -234,7 +234,7 @@ export function CardPicker({
                 <button
                   key={s.name}
                   onClick={() => loadSetCards(s.name)}
-                  className="flex items-center justify-between w-full text-left px-4 py-3.5 sm:py-2.5 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] active:opacity-80 transition-colors"
+                  className="flex items-center justify-between w-full text-left px-4 py-3.5 sm:py-2.5 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-text truncate">{s.name}</div>
@@ -253,13 +253,13 @@ export function CardPicker({
               {setCards.map((card, i) => (
                 <div
                   key={card.cardSetId + i}
-                  className={`flex items-center gap-3 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
+                  className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
                     selected.has(card.cardSetId) ? "bg-[rgba(59,130,246,0.1)]" : "hover:bg-[rgba(59,130,246,0.05)]"
                   }`}
                   onClick={() => toggleSelect(card)}
                 >
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
-                    selected.has(card.cardSetId) ? "bg-accent border-accent" : "border-[rgba(255,255,255,0.2)]"
+                    selected.has(card.cardSetId) ? "bg-accent border-accent" : "border-[rgba(0,0,0,0.15)]"
                   }`}>
                     {selected.has(card.cardSetId) && (
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -267,7 +267,7 @@ export function CardPicker({
                       </svg>
                     )}
                   </div>
-                  <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#1C1C1F]">
+                  <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
                   </div>
                   <span className="flex-1 min-w-0">
@@ -277,7 +277,7 @@ export function CardPicker({
                     </span>
                   </span>
                   {card.marketPrice != null && card.marketPrice > 0 && (
-                    <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
+                    <span className="font-mono text-xs font-semibold text-[#059669] flex-none">
                       {fmt(card.marketPrice)}
                     </span>
                   )}
@@ -288,14 +288,14 @@ export function CardPicker({
         </div>
 
         {results.length >= 30 && mode === "search" && (
-          <div className="flex-none py-1.5 bg-[#0D0D0F] border-t border-[rgba(255,255,255,0.04)] text-center font-mono text-[10px] text-text-dim">
+          <div className="flex-none py-1.5 bg-[#F4F4F5] border-t border-[rgba(0,0,0,0.04)] text-center font-mono text-[10px] text-text-dim">
             Top 30 — refine your search
           </div>
         )}
 
         {/* Multi-select action bar */}
         {mode === "browse" && selected.size > 0 && (
-          <div className="flex-none flex items-center gap-3 px-4 py-3 bg-bg-elevated border-t border-[rgba(255,255,255,0.08)]">
+          <div className="flex-none flex items-center gap-3 px-4 py-3 bg-bg-elevated border-t border-[rgba(0,0,0,0.08)]">
             <span className="text-sm text-text-muted">
               {selected.size} card{selected.size !== 1 ? "s" : ""} selected
             </span>
@@ -308,7 +308,7 @@ export function CardPicker({
             </button>
             <button
               onClick={addSelected}
-              className="border border-[rgba(255,255,255,0.15)] text-text font-medium text-sm py-2.5 px-5 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
+              className="border border-[rgba(0,0,0,0.12)] text-text font-medium text-sm py-2.5 px-5 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
             >
               Add {selected.size} card{selected.size !== 1 ? "s" : ""}
             </button>
@@ -335,11 +335,11 @@ function CardRow({
       onMouseDown={(e) => { e.preventDefault(); onPick(card); }}
       onTouchEnd={(e) => { e.preventDefault(); onPick(card); }}
       onMouseEnter={onHover}
-      className={`flex items-center gap-3 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
+      className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-4 py-3 sm:py-2.5 cursor-pointer transition-colors active:opacity-80 ${
         selected ? "bg-[rgba(59,130,246,0.08)]" : "hover:bg-[rgba(59,130,246,0.05)]"
       }`}
     >
-      <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#1C1C1F]">
+      <div className="relative w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
         <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
       <span className="flex-1 min-w-0">
@@ -349,7 +349,7 @@ function CardRow({
         </span>
       </span>
       {card.marketPrice != null && card.marketPrice > 0 && (
-        <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
+        <span className="font-mono text-xs font-semibold text-[#059669] flex-none">
           {fmt(card.marketPrice)}
         </span>
       )}

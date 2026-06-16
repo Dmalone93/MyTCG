@@ -67,7 +67,7 @@ export function CardDetailModal({
   const market = num(price?.rawMarket);
   const paid = num(card.acquiredPrice);
   const pl = market > 0 ? (market - paid) * (card.quantity ?? 1) : null;
-  const plColor = pl != null ? (pl >= 0 ? "#34D399" : "#F87171") : undefined;
+  const plColor = pl != null ? (pl >= 0 ? "#059669" : "#F87171") : undefined;
   const gradedPrices = (price?.gradedPrices as Record<string, number> | null) ?? {};
   const sortedGrades = GRADE_ORDER.filter((g) => g in gradedPrices);
 
@@ -80,7 +80,7 @@ export function CardDetailModal({
     setEditing(false);
   }
 
-  const inputClass = "bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-text focus:outline-2 focus:outline-accent";
+  const inputClass = "bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-lg px-3 py-2 text-sm text-text focus:outline-2 focus:outline-accent";
 
   // Data rows for the property table
   const dataRows: Array<{ label: string; value: string | null | undefined }> = [
@@ -101,17 +101,17 @@ export function CardDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sm:hidden flex justify-center pt-2 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
+          <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
           <h2 className="font-semibold text-base sm:text-lg text-text truncate">{card.cardName}</h2>
           <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none">×</button>
         </div>
@@ -126,22 +126,22 @@ export function CardDetailModal({
                 )}
               </div>
 
-              <div className="flex-1 min-w-0 sm:border-l border-[rgba(255,255,255,0.04)]">
+              <div className="flex-1 min-w-0 sm:border-l border-[rgba(0,0,0,0.04)]">
                 {/* Market price */}
                 {market > 0 && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)]">
                     <span className="text-sm text-text-dim">Market</span>
-                    <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(market)}</span>
+                    <span className="font-mono text-lg font-semibold text-[#059669]">{fmt(market)}</span>
                   </div>
                 )}
                 {paid > 0 && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
                     <span className="text-sm text-text-dim">Paid</span>
                     <span className="font-mono text-sm">{fmt(paid)}</span>
                   </div>
                 )}
                 {pl != null && (
-                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
                     <span className="text-sm text-text-dim">P/L ({card.quantity ?? 1}x)</span>
                     <span className="font-mono text-sm font-semibold" style={{ color: plColor }}>{pl >= 0 ? "+" : ""}{fmt(pl)}</span>
                   </div>
@@ -152,7 +152,7 @@ export function CardDetailModal({
                   if (!row.value) return null;
                   const isEffect = row.label === "Effect";
                   return (
-                    <div key={row.label} className="flex border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                    <div key={row.label} className="flex border-b border-[rgba(0,0,0,0.04)] last:border-0">
                       <div className="w-[110px] sm:w-[130px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">{row.label}</div>
                       <div className={`flex-1 px-4 sm:px-5 py-2.5 text-sm text-text ${isEffect ? "whitespace-pre-line leading-relaxed" : "text-right"}`}>{row.value}</div>
                     </div>
@@ -167,19 +167,19 @@ export function CardDetailModal({
 
             {/* Graded prices */}
             {sortedGrades.length > 0 && (
-              <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
+              <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
                 <div className="text-sm font-medium text-text-dim mb-2">Graded Prices</div>
                 {sortedGrades.map((g) => (
                   <div key={g} className="flex justify-between py-1.5 text-sm">
                     <span className="text-text-muted">{g}</span>
-                    <span className="font-mono font-semibold text-[#34D399]">{fmt(gradedPrices[g])}</span>
+                    <span className="font-mono font-semibold text-[#059669]">{fmt(gradedPrices[g])}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {/* Collection info */}
-            <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
+            <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
               <div className="text-sm font-medium text-text-dim mb-2">Your Copy</div>
               <div className="flex justify-between text-sm py-1"><span className="text-text-dim">Quantity</span><span>{card.quantity ?? 1}</span></div>
               <div className="flex justify-between text-sm py-1"><span className="text-text-dim">Condition</span><span>{card.condition ?? "—"}</span></div>
@@ -189,12 +189,12 @@ export function CardDetailModal({
 
             {/* Synergies */}
             {ext && ext.synergies.length > 0 && (
-              <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3">
+              <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
                 <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {ext.synergies.map((s) => (
                     <div key={s.cid} className="flex-none w-[60px]">
-                      <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#1C1C1F] mb-1">
+                      <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#E4E4E7] mb-1">
                         <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
                       </div>
                       <div className="text-[9px] text-text-dim truncate">{s.name}</div>
@@ -205,9 +205,9 @@ export function CardDetailModal({
             )}
 
             {/* Actions */}
-            <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-3 flex gap-2">
-              <button onClick={() => setEditing(true)} className="flex-1 border border-[rgba(255,255,255,0.1)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.04)] active:opacity-70 transition-colors">Edit</button>
-              <button onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }} className="border border-[rgba(255,255,255,0.06)] text-red-400 font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-red-400/10 active:opacity-70 transition-colors">Delete</button>
+            <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3 flex gap-2">
+              <button onClick={() => setEditing(true)} className="flex-1 border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors">Edit</button>
+              <button onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }} className="border border-[rgba(0,0,0,0.06)] text-red-400 font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-red-400/10 active:opacity-70 transition-colors">Delete</button>
             </div>
           </>
         ) : (
@@ -251,7 +251,7 @@ export function CardDetailModal({
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={inputClass + " w-full resize-none"} />
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleSave} disabled={saving} className="flex-1 border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 disabled:opacity-40 transition-colors">{saving ? "..." : "Save"}</button>
+              <button onClick={handleSave} disabled={saving} className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 disabled:opacity-40 transition-colors">{saving ? "..." : "Save"}</button>
               <button onClick={() => setEditing(false)} className="text-sm text-text-muted hover:text-text active:opacity-70 px-4 py-2.5 transition-colors">Cancel</button>
             </div>
           </div>

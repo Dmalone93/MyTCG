@@ -23,10 +23,10 @@ export function IntelTicker({ items }: { items: TickerItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <div className="mb-4 bg-bg-elevated border border-[rgba(255,255,255,0.05)] rounded-xl overflow-hidden">
+    <div className="mb-4 bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden">
       <div className="flex items-center">
         {/* Label */}
-        <div className="flex-none px-2.5 sm:px-3 py-2.5 border-r border-[rgba(255,255,255,0.06)] bg-[#0D0D0F]">
+        <div className="flex-none px-2.5 sm:px-3 py-2.5 border-r border-[rgba(0,0,0,0.06)] bg-[#F4F4F5]">
           <Link
             href="/intel"
             className="font-mono text-[10px] tracking-[.1em] uppercase text-accent font-semibold hover:underline"

@@ -157,7 +157,7 @@ export default function WatchPage() {
         const style = pip.document.createElement("style");
         style.textContent = `
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { background: #0A0A0B; color: #ECECEF; font-family: -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-y: auto; }
+          body { background: #FAFAFA; color: #18181B; font-family: -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-y: auto; }
         `;
         pip.document.head.appendChild(style);
 
@@ -323,7 +323,7 @@ export default function WatchPage() {
         {watching && !isPopped && (
           <button
             onClick={popOut}
-            className="border border-[rgba(255,255,255,0.08)] text-text-muted font-medium text-xs py-2 px-3 rounded-lg hover:text-text active:opacity-70 transition-colors"
+            className="border border-[rgba(0,0,0,0.08)] text-text-muted font-medium text-xs py-2 px-3 rounded-lg hover:text-text active:opacity-70 transition-colors"
             title="Pop out as floating widget"
           >
             Pop out ↗
@@ -332,14 +332,14 @@ export default function WatchPage() {
         {!watching ? (
           <button
             onClick={startWatching}
-            className="border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
+            className="border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
           >
             Share screen
           </button>
         ) : (
           <button
             onClick={stopWatching}
-            className="border border-[rgba(255,255,255,0.08)] text-text-muted font-medium text-sm py-2.5 px-4 rounded-lg hover:text-text active:opacity-70 transition-colors"
+            className="border border-[rgba(0,0,0,0.08)] text-text-muted font-medium text-sm py-2.5 px-4 rounded-lg hover:text-text active:opacity-70 transition-colors"
           >
             Stop
           </button>
@@ -365,25 +365,25 @@ export default function WatchPage() {
           {/* Pending cards — building confidence */}
           {pending.length > 0 && (
             <div style={{ padding: isPopped ? "12px 12px 0" : undefined }} className={isPopped ? "" : "mb-3"}>
-              <div style={isPopped ? { fontSize: "10px", color: "#4E4E52", marginBottom: "6px" } : undefined} className={isPopped ? "" : "text-[10px] text-text-dim mb-1.5"}>
+              <div style={isPopped ? { fontSize: "10px", color: "#A1A1AA", marginBottom: "6px" } : undefined} className={isPopped ? "" : "text-[10px] text-text-dim mb-1.5"}>
                 Identifying...
               </div>
               {pending.map((p) => (
                 <div
                   key={p.code}
-                  style={isPopped ? { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#8B8B8F", marginBottom: "4px" } : undefined}
+                  style={isPopped ? { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#71717A", marginBottom: "4px" } : undefined}
                   className={isPopped ? "" : "flex items-center gap-2 text-xs text-text-muted mb-1"}
                 >
                   <span style={isPopped ? { flex: 1 } : undefined} className={isPopped ? "" : "flex-1 truncate"}>{p.name}</span>
-                  <span style={isPopped ? { fontFamily: "monospace", fontSize: "10px", color: "#4E4E52" } : undefined} className={isPopped ? "" : "font-mono text-[10px] text-text-dim"}>
+                  <span style={isPopped ? { fontFamily: "monospace", fontSize: "10px", color: "#A1A1AA" } : undefined} className={isPopped ? "" : "font-mono text-[10px] text-text-dim"}>
                     {p.count}/{p.needed}
                   </span>
-                  <div style={isPopped ? { width: "40px", height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" } : undefined} className={isPopped ? "" : "w-10 h-[3px] bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden"}>
+                  <div style={isPopped ? { width: "40px", height: "3px", background: "rgba(0,0,0,0.06)", borderRadius: "2px", overflow: "hidden" } : undefined} className={isPopped ? "" : "w-10 h-[3px] bg-[rgba(0,0,0,0.06)] rounded-full overflow-hidden"}>
                     <div
                       style={{
                         width: `${(p.count / p.needed) * 100}%`,
                         height: "100%",
-                        background: "#34D399",
+                        background: "#059669",
                         borderRadius: "2px",
                         transition: "width 0.3s",
                       }}
@@ -412,26 +412,26 @@ export default function WatchPage() {
                     onClick={() => openDetail(card)}
                     style={isPopped ? {
                       display: "flex", alignItems: "center", gap: "10px",
-                      background: "#161618", border: "1px solid rgba(255,255,255,0.06)",
+                      background: "#F4F4F5", border: "1px solid rgba(0,0,0,0.06)",
                       borderRadius: "10px", padding: "10px", cursor: "pointer",
                     } : undefined}
-                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl p-2.5 cursor-pointer hover:border-[rgba(255,255,255,0.12)] active:opacity-80 transition-colors"}
+                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-2.5 cursor-pointer hover:border-[rgba(0,0,0,0.1)] active:opacity-80 transition-colors"}
                   >
                     <div
-                      style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#1C1C1F" } : undefined}
-                      className={isPopped ? "" : "w-10 h-[56px] rounded-md overflow-hidden bg-[#1C1C1F] flex-none"}
+                      style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#E4E4E7" } : undefined}
+                      className={isPopped ? "" : "w-10 h-[56px] rounded-md overflow-hidden bg-[#E4E4E7] flex-none"}
                     >
                       <img src={card.imageUrl} alt="" style={isPopped ? { width: "100%", height: "100%", objectFit: "cover" } : undefined} className={isPopped ? "" : "w-full h-full object-cover"} />
                     </div>
                     <div style={isPopped ? { flex: 1, minWidth: 0 } : undefined} className={isPopped ? "" : "flex-1 min-w-0"}>
                       <div
-                        style={isPopped ? { fontSize: "13px", fontWeight: 600, color: "#ECECEF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } : undefined}
+                        style={isPopped ? { fontSize: "13px", fontWeight: 600, color: "#18181B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } : undefined}
                         className={isPopped ? "" : "font-medium text-sm text-text truncate"}
                       >
                         {card.name}
                       </div>
                       <div
-                        style={isPopped ? { fontSize: "10px", color: "#4E4E52", fontFamily: "monospace", marginTop: "2px" } : undefined}
+                        style={isPopped ? { fontSize: "10px", color: "#A1A1AA", fontFamily: "monospace", marginTop: "2px" } : undefined}
                         className={isPopped ? "" : "font-mono text-[10px] text-text-dim mt-0.5"}
                       >
                         {card.code} · {card.rarity}
@@ -440,14 +440,14 @@ export default function WatchPage() {
                     <div style={isPopped ? { textAlign: "right", flexShrink: 0 } : undefined} className={isPopped ? "" : "text-right flex-none"}>
                       {card.marketPrice != null && card.marketPrice > 0 ? (
                         <div
-                          style={isPopped ? { fontFamily: "monospace", fontSize: "14px", fontWeight: 600, color: "#34D399" } : undefined}
-                          className={isPopped ? "" : "font-mono text-sm font-semibold text-[#34D399]"}
+                          style={isPopped ? { fontFamily: "monospace", fontSize: "14px", fontWeight: 600, color: "#059669" } : undefined}
+                          className={isPopped ? "" : "font-mono text-sm font-semibold text-[#059669]"}
                         >
                           {fmt(card.marketPrice)}
                         </div>
                       ) : (
                         <div
-                          style={isPopped ? { fontFamily: "monospace", fontSize: "12px", color: "#4E4E52" } : undefined}
+                          style={isPopped ? { fontFamily: "monospace", fontSize: "12px", color: "#A1A1AA" } : undefined}
                           className={isPopped ? "" : "font-mono text-xs text-text-dim"}
                         >
                           —
@@ -461,7 +461,7 @@ export default function WatchPage() {
                         setDetected((prev) => prev.filter((d) => d.code !== card.code));
                       }}
                       style={isPopped ? {
-                        background: "none", border: "none", color: "#4E4E52", cursor: "pointer",
+                        background: "none", border: "none", color: "#A1A1AA", cursor: "pointer",
                         fontSize: "16px", padding: "4px", flexShrink: 0, lineHeight: 1,
                       } : undefined}
                       className={isPopped ? "" : "text-text-dim hover:text-text-muted active:opacity-70 text-base p-1 flex-none transition-colors"}

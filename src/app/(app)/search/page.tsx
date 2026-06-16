@@ -50,7 +50,7 @@ export default function SearchPage() {
     <div>
       {/* Search bar */}
       <div className="sticky top-0 z-10 bg-bg pb-3 pt-1">
-        <div className="flex items-center gap-2.5 bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl px-4 py-3">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -98,11 +98,11 @@ export default function SearchPage() {
           {/* View toggle */}
           {results.length > 0 && (
             <div className="flex justify-end mb-2">
-              <div className="flex border border-[rgba(255,255,255,0.06)] bg-bg-surface rounded-lg overflow-hidden">
+              <div className="flex border border-[rgba(0,0,0,0.06)] bg-bg-surface rounded-lg overflow-hidden">
                 <button
                   onClick={() => setView("list")}
                   className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    view === "list" ? "bg-[#27272A] text-text" : "text-text-muted"
+                    view === "list" ? "bg-[#E4E4E7] text-text" : "text-text-muted"
                   }`}
                 >
                   List
@@ -110,7 +110,7 @@ export default function SearchPage() {
                 <button
                   onClick={() => setView("grid")}
                   className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    view === "grid" ? "bg-[#27272A] text-text" : "text-text-muted"
+                    view === "grid" ? "bg-[#E4E4E7] text-text" : "text-text-muted"
                   }`}
                 >
                   Grid
@@ -124,9 +124,9 @@ export default function SearchPage() {
             <button
               key={card.cardSetId + i}
               onClick={() => selectCard(card)}
-              className="flex items-center gap-3 w-full text-left border-b border-[rgba(255,255,255,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors"
+              className="flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors"
             >
-              <div className="w-10 h-[56px] sm:w-8 sm:h-[44px] flex-none rounded-md overflow-hidden bg-[#1C1C1F]">
+              <div className="w-10 h-[56px] sm:w-8 sm:h-[44px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                 <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
               </div>
               <span className="flex-1 min-w-0">
@@ -134,7 +134,7 @@ export default function SearchPage() {
                 <span className="text-[11px] text-text-dim">{card.cardSetId} · {card.rarity}</span>
               </span>
               {card.marketPrice != null && card.marketPrice > 0 ? (
-                <span className="font-mono text-sm font-semibold text-[#34D399] flex-none">{fmt(card.marketPrice)}</span>
+                <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{fmt(card.marketPrice)}</span>
               ) : (
                 <span className="text-xs text-text-dim flex-none">—</span>
               )}
@@ -148,16 +148,16 @@ export default function SearchPage() {
                 <button
                   key={card.cardSetId + i}
                   onClick={() => selectCard(card)}
-                  className="bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden active:opacity-80 transition-colors text-left"
+                  className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden active:opacity-80 transition-colors text-left"
                 >
-                  <div className="aspect-[2.5/3.5] bg-[#1C1C1F]">
+                  <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   <div className="p-2">
                     <div className="text-[11px] font-semibold text-text truncate">{card.cardName}</div>
                     <div className="text-[9px] font-mono text-text-dim">{card.cardSetId}</div>
                     {card.marketPrice != null && card.marketPrice > 0 ? (
-                      <div className="font-mono text-[11px] font-semibold text-[#34D399] mt-0.5">{fmt(card.marketPrice)}</div>
+                      <div className="font-mono text-[11px] font-semibold text-[#059669] mt-0.5">{fmt(card.marketPrice)}</div>
                     ) : (
                       <div className="text-[9px] text-text-dim mt-0.5">—</div>
                     )}

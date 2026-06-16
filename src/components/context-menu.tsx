@@ -61,7 +61,7 @@ export function ContextMenu({
     <div
       ref={ref}
       style={style}
-      className="bg-bg-elevated border border-[rgba(255,255,255,0.08)] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-1.5 min-w-[180px] text-sm"
+      className="bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-1.5 min-w-[180px] text-sm"
     >
       {otherCollections.length > 0 && (
         <>
@@ -72,12 +72,12 @@ export function ContextMenu({
             <button
               key={col.id}
               onClick={() => onMove(col.id)}
-              className="w-full text-left px-3 py-2.5 text-text-muted hover:bg-[rgba(255,255,255,0.04)] hover:text-text active:bg-[rgba(255,255,255,0.06)] transition-colors"
+              className="w-full text-left px-3 py-2.5 text-text-muted hover:bg-[rgba(0,0,0,0.04)] hover:text-text active:bg-[rgba(0,0,0,0.06)] transition-colors"
             >
               {col.name}
             </button>
           ))}
-          <div className="border-t border-[rgba(255,255,255,0.04)] my-1" />
+          <div className="border-t border-[rgba(0,0,0,0.04)] my-1" />
         </>
       )}
       <button

@@ -453,22 +453,22 @@ export function ScanModal({
   }
 
   const confidenceColor =
-    confidence >= 80 ? "#34D399" : confidence >= 40 ? "#FACC15" : "rgba(255,255,255,0.2)";
+    confidence >= 80 ? "#059669" : confidence >= 40 ? "#FACC15" : "rgba(0,0,0,0.15)";
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sm:hidden flex justify-center pt-2 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
+          <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">
           <h2 className="font-semibold text-sm text-text">
             {quickMode ? "Quick Scan" : "Scan Card"}
           </h2>
@@ -480,7 +480,7 @@ export function ScanModal({
           </button>
         </div>
 
-        <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-black overflow-hidden">
+        <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-white overflow-hidden">
           <video
             ref={videoRef}
             autoPlay
@@ -516,7 +516,7 @@ export function ScanModal({
         </div>
 
         {matchedCards.length > 0 && (
-          <div className="border-t border-[rgba(255,255,255,0.04)]">
+          <div className="border-t border-[rgba(0,0,0,0.04)]">
             <div className="px-3 py-1.5 text-[10px] font-mono tracking-[.08em] uppercase text-text-dim">
               {quickMode ? "Tap to add" : "Select a match"}
             </div>
@@ -533,9 +533,9 @@ export function ScanModal({
                     setTimeout(() => startScanning(), 300);
                   }
                 }}
-                className="flex items-center gap-2.5 w-full text-left px-3 py-3 sm:py-2 border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(59,130,246,0.08)] active:opacity-80 transition-colors"
+                className="flex items-center gap-2.5 w-full text-left px-3 py-3 sm:py-2 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(59,130,246,0.08)] active:opacity-80 transition-colors"
               >
-                <div className="relative w-8 h-[44px] flex-none rounded overflow-hidden bg-[#1C1C1F]">
+                <div className="relative w-8 h-[44px] flex-none rounded overflow-hidden bg-[#E4E4E7]">
                   <img src={card.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                 </div>
                 <span className="flex-1 min-w-0">
@@ -547,7 +547,7 @@ export function ScanModal({
                   </span>
                 </span>
                 {card.marketPrice != null && card.marketPrice > 0 && (
-                  <span className="font-mono text-xs font-semibold text-[#34D399] flex-none">
+                  <span className="font-mono text-xs font-semibold text-[#059669] flex-none">
                     €{card.marketPrice.toFixed(2)}
                   </span>
                 )}
@@ -556,7 +556,7 @@ export function ScanModal({
           </div>
         )}
 
-        <div className="flex gap-2 px-4 py-3 border-t border-[rgba(255,255,255,0.04)]">
+        <div className="flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
           <input
             ref={fileRef}
             type="file"
@@ -570,14 +570,14 @@ export function ScanModal({
           />
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex-1 bg-bg-surface border border-[rgba(255,255,255,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#27272A] active:opacity-80 transition-colors"
+            className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#E4E4E7] active:opacity-80 transition-colors"
           >
             Upload photo
           </button>
           {!scanning && cameraReady && matchedCards.length === 0 && (
             <button
               onClick={startScanning}
-              className="flex-1 border border-[rgba(255,255,255,0.12)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors"
+              className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
             >
               Scan again
             </button>

@@ -73,9 +73,9 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
           {recs.map((rec) => (
             <div
               key={rec.cardSetId}
-              className="flex-none w-[140px] sm:w-[160px] bg-bg-surface border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden snap-start"
+              className="flex-none w-[140px] sm:w-[160px] bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden snap-start"
             >
-              <div className="aspect-[2.5/3.5] bg-[#1C1C1F] relative">
+              <div className="aspect-[2.5/3.5] bg-[#E4E4E7] relative">
                 <img
                   src={rec.imageUrl}
                   alt={rec.cardName}
@@ -83,7 +83,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   loading="lazy"
                 />
                 {rec.altArt && (
-                  <div className="absolute top-1.5 right-1.5 bg-black/70 text-[8px] font-mono text-yellow-400 px-1.5 py-0.5 rounded">
+                  <div className="absolute top-1.5 right-1.5 bg-white/70 text-[8px] font-mono text-yellow-400 px-1.5 py-0.5 rounded">
                     ALT
                   </div>
                 )}
@@ -96,15 +96,15 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   {rec.cardName}
                 </div>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.04)] text-text-dim">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
                     {rec.rarity}
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.04)] text-text-dim">
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
                     {rec.color}
                   </span>
                 </div>
                 {rec.marketPrice != null && rec.marketPrice > 0 && (
-                  <div className="font-mono text-[11px] text-[#34D399] font-semibold mt-1">
+                  <div className="font-mono text-[11px] text-[#059669] font-semibold mt-1">
                     {fmt(rec.marketPrice)}
                   </div>
                 )}

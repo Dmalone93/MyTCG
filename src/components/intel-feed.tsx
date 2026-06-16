@@ -110,13 +110,13 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
           {refreshMsg && <span> · {refreshMsg}</span>}
         </div>
         <div className="h-[2px] bg-text mt-3 mb-1" />
-        <div className="h-px bg-[rgba(255,255,255,0.15)]" />
+        <div className="h-px bg-[rgba(0,0,0,0.12)]" />
       </div>
 
       {/* Your cards banner */}
       {myCardItems.length > 0 && (
-        <div className="mb-5 border-l-2 border-[#34D399] pl-4 py-1">
-          <div className="text-sm font-semibold text-[#34D399] mb-1.5">Your cards in the news</div>
+        <div className="mb-5 border-l-2 border-[#059669] pl-4 py-1">
+          <div className="text-sm font-semibold text-[#059669] mb-1.5">Your cards in the news</div>
           {myCardItems.slice(0, 3).map((item) => (
             <ArticleLink key={item.id} item={item}>
               <span className="text-sm text-text hover:underline block mb-1">{item.title}</span>
@@ -129,10 +129,10 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
       {lead && (
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-5 mb-5">
           {/* Lead — takes 3 columns */}
-          <div className="sm:col-span-3 sm:border-r sm:border-[rgba(255,255,255,0.06)] sm:pr-5">
+          <div className="sm:col-span-3 sm:border-r sm:border-[rgba(0,0,0,0.06)] sm:pr-5">
             <ArticleLink item={lead} className="group block">
               {lead.imageUrl && (
-                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#1C1C1F] mb-3">
+                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#E4E4E7] mb-3">
                   <img src={lead.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
                 </div>
               )}
@@ -159,7 +159,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
               <div key={item.id}>
                 <ArticleLink item={item} className="group block">
                   {item.imageUrl && (
-                    <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#1C1C1F] mb-2">
+                    <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-[#E4E4E7] mb-2">
                       <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
                     </div>
                   )}
@@ -175,7 +175,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
                   )}
                 </ArticleLink>
                 {i < secondary.length - 1 && (
-                  <div className="h-px bg-[rgba(255,255,255,0.06)] mt-4" />
+                  <div className="h-px bg-[rgba(0,0,0,0.06)] mt-4" />
                 )}
               </div>
             ))}
@@ -185,7 +185,7 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
 
       {/* Divider */}
       {rest.length > 0 && (
-        <div className="h-px bg-[rgba(255,255,255,0.08)] mb-5" />
+        <div className="h-px bg-[rgba(0,0,0,0.08)] mb-5" />
       )}
 
       {/* Category columns */}

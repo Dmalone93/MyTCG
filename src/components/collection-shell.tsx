@@ -229,7 +229,7 @@ export function CollectionShell({
         {/* Add collection */}
         <button
           onClick={handleCreateCollection}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(255,255,255,0.05)] active:opacity-70 transition-colors text-lg flex-none"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors text-lg flex-none"
           title="New collection"
         >
           +

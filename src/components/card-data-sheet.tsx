@@ -67,18 +67,18 @@ export function CardDataSheet({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-elevated border border-[rgba(255,255,255,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" />
+          <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
           <h2 className="font-semibold text-base sm:text-lg text-text truncate">{cardName}</h2>
           <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none">×</button>
         </div>
@@ -95,12 +95,12 @@ export function CardDataSheet({
           </div>
 
           {/* Data table */}
-          <div className="flex-1 min-w-0 sm:border-l border-[rgba(255,255,255,0.04)]">
+          <div className="flex-1 min-w-0 sm:border-l border-[rgba(0,0,0,0.04)]">
             {/* Market price banner */}
             {marketPrice != null && marketPrice > 0 && (
-              <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)]">
+              <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)]">
                 <span className="text-sm text-text-dim">Market Price</span>
-                <span className="font-mono text-lg font-semibold text-[#34D399]">{fmt(marketPrice)}</span>
+                <span className="font-mono text-lg font-semibold text-[#059669]">{fmt(marketPrice)}</span>
               </div>
             )}
 
@@ -112,7 +112,7 @@ export function CardDataSheet({
                 return (
                   <div
                     key={row.label}
-                    className="flex border-b border-[rgba(255,255,255,0.04)] last:border-0"
+                    className="flex border-b border-[rgba(0,0,0,0.04)] last:border-0"
                   >
                     <div className="w-[120px] sm:w-[140px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">
                       {row.label}
@@ -136,12 +136,12 @@ export function CardDataSheet({
 
         {/* Synergies */}
         {ext && ext.synergies.length > 0 && (
-          <div className="border-t border-[rgba(255,255,255,0.06)] px-4 sm:px-5 py-4">
+          <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-4">
             <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {ext.synergies.map((s) => (
                 <div key={s.cid} className="flex-none w-[60px]">
-                  <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#1C1C1F] mb-1">
+                  <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#E4E4E7] mb-1">
                     <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   <div className="text-[9px] text-text-dim truncate">{s.name}</div>

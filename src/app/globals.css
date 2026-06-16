@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0A0A0B;
-  --bg-elevated: #111113;
-  --bg-surface: #161618;
-  --text: #ECECEF;
-  --text-muted: #8B8B8F;
-  --text-dim: #4E4E52;
-  --accent: #ECECEF;
-  --accent-hover: #FFFFFF;
-  --accent-subtle: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-focus: rgba(255, 255, 255, 0.3);
-  --green: #34D399;
-  --red: #F87171;
+  --bg: #FAFAFA;
+  --bg-elevated: #FFFFFF;
+  --bg-surface: #F4F4F5;
+  --text: #18181B;
+  --text-muted: #71717A;
+  --text-dim: #A1A1AA;
+  --accent: #18181B;
+  --accent-hover: #000000;
+  --accent-subtle: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-focus: rgba(0, 0, 0, 0.3);
+  --green: #059669;
+  --red: #DC2626;
 }
 
 @theme inline {
@@ -53,7 +53,7 @@ textarea:focus {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-track {

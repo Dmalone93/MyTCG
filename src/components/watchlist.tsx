@@ -105,9 +105,9 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
       </button>
 
       {!collapsed && (
-        <div className="bg-bg-elevated border border-[rgba(255,255,255,0.05)] rounded-xl overflow-hidden">
+        <div className="bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden">
           {/* Add button / search */}
-          <div className="px-3 py-2.5 border-b border-[rgba(255,255,255,0.04)] flex items-center gap-2">
+          <div className="px-3 py-2.5 border-b border-[rgba(0,0,0,0.04)] flex items-center gap-2">
             {!adding ? (
               <button
                 onClick={() => setAdding(true)}
@@ -139,14 +139,14 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
 
           {/* Search results */}
           {searchResults.length > 0 && (
-            <div className="border-b border-[rgba(255,255,255,0.04)] max-h-[200px] overflow-y-auto">
+            <div className="border-b border-[rgba(0,0,0,0.04)] max-h-[200px] overflow-y-auto">
               {searchResults.map((card, i) => (
                 <button
                   key={card.cardSetId + i}
                   onClick={() => addToWatchlist(card)}
-                  className="flex items-center gap-2.5 w-full text-left px-3 py-2.5 hover:bg-[rgba(59,130,246,0.06)] active:opacity-80 transition-colors border-b border-[rgba(255,255,255,0.02)] last:border-0"
+                  className="flex items-center gap-2.5 w-full text-left px-3 py-2.5 hover:bg-[rgba(59,130,246,0.06)] active:opacity-80 transition-colors border-b border-[rgba(0,0,0,0.02)] last:border-0"
                 >
-                  <div className="w-6 h-[33px] rounded overflow-hidden bg-[#1C1C1F] flex-none">
+                  <div className="w-6 h-[33px] rounded overflow-hidden bg-[#E4E4E7] flex-none">
                     <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                   <span className="flex-1 min-w-0">
@@ -154,7 +154,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                     <span className="text-[10px] text-text-dim">{card.cardSetId}</span>
                   </span>
                   {card.marketPrice != null && card.marketPrice > 0 && (
-                    <span className="font-mono text-xs text-[#34D399] flex-none">{fmt(card.marketPrice)}</span>
+                    <span className="font-mono text-xs text-[#059669] flex-none">{fmt(card.marketPrice)}</span>
                   )}
                 </button>
               ))}
@@ -184,12 +184,12 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 border-b border-[rgba(255,255,255,0.03)] last:border-0 ${
+                    className={`flex items-center gap-3 px-3 py-2.5 border-b border-[rgba(0,0,0,0.03)] last:border-0 ${
                       belowTarget ? "bg-[rgba(74,222,128,0.05)]" : ""
                     }`}
                   >
                     {item.imageUrl && (
-                      <div className="w-8 h-[44px] rounded overflow-hidden bg-[#1C1C1F] flex-none">
+                      <div className="w-8 h-[44px] rounded overflow-hidden bg-[#E4E4E7] flex-none">
                         <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                       </div>
                     )}
@@ -198,7 +198,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                       <div className="flex items-center gap-2 text-[10px] text-text-dim">
                         <span className="font-mono">{item.cardCode}</span>
                         {target != null && (
-                          <span className={belowTarget ? "text-[#34D399] font-semibold" : ""}>
+                          <span className={belowTarget ? "text-[#059669] font-semibold" : ""}>
                             Target: {fmt(target)}
                           </span>
                         )}
