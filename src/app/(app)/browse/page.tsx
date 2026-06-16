@@ -1,232 +1,333 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
 import { useRegion } from "@/components/region-selector";
 
-type CardSet = { name: string; id?: string; count: number; date: string | null };
+/* ── Types ── */
 type SortKey = "code" | "name" | "price";
 type SortDir = "asc" | "desc";
+type FilterKey = "set" | "color" | "rarity" | "type";
 
-function categoriseSet(s: CardSet): string {
-  const id = s.id ?? "";
-  const name = s.name;
-  if (/^OP-?\d/i.test(id) || /^OP\d/i.test(id)) return "Booster Packs";
-  if (/^ST-?\d/i.test(id)) return "Starter Decks";
-  if (/^EB-?\d/i.test(id) || /Extra Booster/i.test(name)) return "Extra Boosters";
-  if (/^PRB/i.test(id) || /Premium Booster/i.test(name)) return "Premium Boosters";
-  if (/Promo/i.test(name) || id === "P") return "Promos";
-  if (/^OP\d+-EB/i.test(id)) return "Booster Packs";
-  return "Other";
-}
+type Filters = {
+  set: string | null;
+  color: string | null;
+  rarity: string | null;
+  type: string | null;
+};
 
-const GROUP_ORDER = ["Booster Packs", "Extra Boosters", "Premium Boosters", "Starter Decks", "Promos", "Other"];
+type FilterMeta = {
+  sets: { id: string; name: string }[];
+  colors: string[];
+  rarities: string[];
+  types: string[];
+};
+
+/* ── Color dot map ── */
+const COLOR_DOT: Record<string, string> = {
+  Red: "#DC2626",
+  Blue: "#2563EB",
+  Green: "#16A34A",
+  Purple: "#9333EA",
+  Black: "#18181B",
+  Yellow: "#CA8A04",
+};
+
+/* ── Rarity sort order ── */
+const RARITY_ORDER: Record<string, number> = {
+  SEC: 0, SP: 1, "SEC-P": 2, SR: 3, L: 4, R: 5, UC: 6, C: 7,
+};
 
 export default function BrowsePage() {
-  const [sets, setSets] = useState<CardSet[]>([]);
-  const [selectedSet, setSelectedSet] = useState<CardSet | null>(null);
-  const [cards, setCards] = useState<CatalogCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingCards, setLoadingCards] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("code");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
-  const [view, setView] = useState<"list" | "grid">("grid");
-  const [colorFilter, setColorFilter] = useState<string | null>(null);
   const { formatPrice } = useRegion();
 
+  // All cards + filter options
+  const [allCards, setAllCards] = useState<CatalogCard[]>([]);
+  const [filterMeta, setFilterMeta] = useState<FilterMeta | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const dataLoadedRef = useRef(false);
+
+  // Filter state
+  const [filters, setFilters] = useState<Filters>({ set: null, color: null, rarity: null, type: null });
+  const [openPicker, setOpenPicker] = useState<FilterKey | null>(null);
+
+  // Display state
+  const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
+  const [view, setView] = useState<"list" | "grid">("grid");
+  const [sortKey, setSortKey] = useState<SortKey>("code");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  // Load all cards on mount
   useEffect(() => {
-    fetch("/api/card-sets")
+    if (dataLoadedRef.current) return;
+    dataLoadedRef.current = true;
+    fetch("/api/browse-cards")
       .then((r) => r.json())
-      .then((data) => setSets(data))
+      .then((data) => {
+        setAllCards(data.cards ?? []);
+        setFilterMeta(data.filters ?? null);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => setDataLoading(false));
   }, []);
 
-  const loadSet = useCallback(async (s: CardSet) => {
-    setSelectedSet(s);
-    setLoadingCards(true);
-    setColorFilter(null);
-    try {
-      const res = await fetch(`/api/card-sets?set=${encodeURIComponent(s.id ?? s.name)}`);
-      setCards(await res.json());
-    } catch { /* */ }
-    setLoadingCards(false);
-  }, []);
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
-  // Sort with explicit key + direction as a single state update
+  // Filter
+  const filtered = useMemo(() => {
+    if (activeFilterCount === 0) return [];
+
+    let arr = allCards;
+    if (filters.set) arr = arr.filter((c) => c.setId === filters.set);
+    if (filters.color) arr = arr.filter((c) => c.cardColor?.toLowerCase().includes(filters.color!.toLowerCase()));
+    if (filters.rarity) arr = arr.filter((c) => c.rarity?.toUpperCase() === filters.rarity!.toUpperCase());
+    if (filters.type) arr = arr.filter((c) => c.cardType?.toLowerCase() === filters.type!.toLowerCase());
+    return arr;
+  }, [allCards, filters, activeFilterCount]);
+
+  // Sort
   const handleSort = useCallback((key: SortKey) => {
-    setSortKey((prevKey) => {
-      if (prevKey === key) {
-        setSortDir((d) => d === "asc" ? "desc" : "asc");
-        return key;
-      }
+    setSortKey((prev) => {
+      if (prev === key) { setSortDir((d) => d === "asc" ? "desc" : "asc"); return key; }
       setSortDir(key === "price" ? "desc" : "asc");
       return key;
     });
   }, []);
 
   const sorted = useMemo(() => {
-    let arr = [...cards];
-    if (colorFilter) {
-      arr = arr.filter((c) => c.cardColor?.toLowerCase().includes(colorFilter.toLowerCase()));
-    }
+    const arr = [...filtered];
     arr.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
         case "code": {
-          const numA = parseInt(a.cardSetId.replace(/\D/g, "") || "0");
-          const numB = parseInt(b.cardSetId.replace(/\D/g, "") || "0");
-          cmp = numA - numB;
+          const setA = a.setId || "";
+          const setB = b.setId || "";
+          cmp = setA.localeCompare(setB);
+          if (cmp === 0) {
+            const numA = parseInt(a.cardSetId.replace(/\D/g, "") || "0");
+            const numB = parseInt(b.cardSetId.replace(/\D/g, "") || "0");
+            cmp = numA - numB;
+          }
           break;
         }
         case "name":
           cmp = a.cardName.localeCompare(b.cardName);
           break;
-        case "price": {
-          const pA = a.marketPrice ?? -1;
-          const pB = b.marketPrice ?? -1;
-          cmp = pA - pB;
+        case "price":
+          cmp = (a.marketPrice ?? -1) - (b.marketPrice ?? -1);
           break;
-        }
       }
       return sortDir === "desc" ? -cmp : cmp;
     });
     return arr;
-  }, [cards, sortKey, sortDir, colorFilter]);
+  }, [filtered, sortKey, sortDir]);
 
-  const groupedSets = useMemo(() => {
-    const groups = new Map<string, CardSet[]>();
-    for (const s of sets) {
-      const group = categoriseSet(s);
-      if (!groups.has(group)) groups.set(group, []);
-      groups.get(group)!.push(s);
+  // Filter helpers
+  function setFilter(key: FilterKey, value: string | null) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setOpenPicker(null);
+  }
+
+  function clearFilter(key: FilterKey) {
+    setFilters((prev) => ({ ...prev, [key]: null }));
+  }
+
+  function togglePicker(key: FilterKey) {
+    setOpenPicker((prev) => prev === key ? null : key);
+  }
+
+  function filterLabel(key: FilterKey): string {
+    const v = filters[key];
+    if (!v) return key === "set" ? "Set" : key === "color" ? "Color" : key === "rarity" ? "Rarity" : "Type";
+    if (key === "set") {
+      const s = filterMeta?.sets.find((s) => s.id === v);
+      return s ? s.id : v;
     }
-    return GROUP_ORDER.filter((g) => groups.has(g)).map((g) => ({
-      group: g,
-      sets: groups.get(g)!.sort((a, b) => {
-        const numA = parseInt(((a.id ?? a.name).match(/(\d+)/)?.[1]) ?? "999");
-        const numB = parseInt(((b.id ?? b.name).match(/(\d+)/)?.[1]) ?? "999");
-        return numA - numB;
-      }),
-    }));
-  }, [sets]);
+    return v;
+  }
+
+  function pickerOptions(key: FilterKey): { value: string; label: string; sub?: string }[] {
+    if (!filterMeta) return [];
+    switch (key) {
+      case "set":
+        return filterMeta.sets.map((s) => ({ value: s.id, label: s.id, sub: s.name }));
+      case "color":
+        return filterMeta.colors.map((c) => ({ value: c, label: c }));
+      case "rarity":
+        return [...filterMeta.rarities].sort((a, b) =>
+          (RARITY_ORDER[a] ?? 99) - (RARITY_ORDER[b] ?? 99)
+        ).map((r) => ({ value: r, label: r }));
+      case "type":
+        return filterMeta.types.map((t) => ({ value: t, label: t }));
+    }
+  }
+
+  const MAX_DISPLAY = 200;
+  const displayed = sorted.slice(0, MAX_DISPLAY);
+  const hasMore = sorted.length > MAX_DISPLAY;
 
   return (
     <div>
-      {/* Set selector — always visible as a horizontal strip */}
-      <div className="mb-4">
-        {!selectedSet && <h1 className="text-lg font-bold text-text mb-4">Browse All Cards</h1>}
+      {/* ── Sticky header: title + filters ── */}
+      <div className="sticky top-0 z-10 bg-bg pb-3 pt-1">
+        <h1 className="text-lg font-bold text-text mb-4">Browse</h1>
 
-        {selectedSet && (
-          <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => { setSelectedSet(null); setCards([]); }} className="text-sm text-text-muted hover:text-text active:opacity-70">
-              ← Sets
-            </button>
-            <h1 className="text-base font-bold text-text flex-1 truncate">{selectedSet.name}</h1>
-            <span className="text-sm text-text-dim font-mono">{cards.length}</span>
+        {/* Filter chips */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {(["set", "color", "rarity", "type"] as FilterKey[]).map((key) => {
+            const isActive = filters[key] !== null;
+            const label = filterLabel(key);
+            return (
+              <button
+                key={key}
+                onClick={() => togglePicker(key)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl whitespace-nowrap transition-all flex-none ${
+                  isActive
+                    ? "bg-text text-bg font-medium"
+                    : "bg-bg-surface text-text-dim hover:text-text border border-transparent"
+                }`}
+              >
+                {key === "color" && isActive && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-none"
+                    style={{ backgroundColor: COLOR_DOT[filters[key]!] ?? "#999" }}
+                  />
+                )}
+                {label}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-50">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active filter pills */}
+        {activeFilterCount > 0 && (
+          <div className="flex gap-1.5 mt-3 flex-wrap">
+            {(["set", "color", "rarity", "type"] as FilterKey[]).map((key) => {
+              const v = filters[key];
+              if (!v) return null;
+              const label = key === "set"
+                ? filterMeta?.sets.find((s) => s.id === v)?.name ?? v
+                : v;
+              return (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-bg-surface rounded-lg text-xs font-medium text-text"
+                >
+                  {key === "color" && (
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLOR_DOT[v] ?? "#999" }} />
+                  )}
+                  <span className="text-text-dim uppercase tracking-wider text-[10px]">{key}</span>
+                  {label}
+                  <button onClick={() => clearFilter(key)} className="ml-0.5 text-text-dim hover:text-text">×</button>
+                </span>
+              );
+            })}
           </div>
         )}
 
-        {/* Quick set switcher — horizontal scroll of sets in same group */}
-        {selectedSet && (
-          <div className="flex gap-1 overflow-x-auto pb-1 mb-3 -mx-4 px-4">
-            {sets
-              .filter((s) => categoriseSet(s) === categoriseSet(selectedSet))
-              .sort((a, b) => {
-                const numA = parseInt(((a.id ?? a.name).match(/(\d+)/)?.[1]) ?? "999");
-                const numB = parseInt(((b.id ?? b.name).match(/(\d+)/)?.[1]) ?? "999");
-                return numA - numB;
-              })
-              .map((s) => (
-                <button
-                  key={s.id ?? s.name}
-                  onClick={() => loadSet(s)}
-                  className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors flex-none ${
-                    (s.id ?? s.name) === (selectedSet.id ?? selectedSet.name)
-                      ? "bg-text text-bg font-semibold"
-                      : "text-text-dim hover:text-text bg-bg-surface"
-                  }`}
-                >
-                  {s.id ?? s.name}
-                </button>
-              ))}
+        {/* Inline picker */}
+        {openPicker && filterMeta && (
+          <div className="mt-2 bg-white rounded-2xl shadow-lg border border-[rgba(0,0,0,0.08)] max-h-[60vh] overflow-y-auto">
+            <button
+              onClick={() => setFilter(openPicker, null)}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-bg-surface ${
+                !filters[openPicker] ? "font-medium text-text" : "text-text-dim"
+              }`}
+            >
+              All {openPicker === "set" ? "Sets" : openPicker === "color" ? "Colors" : openPicker === "rarity" ? "Rarities" : "Types"}
+            </button>
+            <div className="border-t border-[rgba(0,0,0,0.04)]" />
+            {openPicker === "color" ? (
+              <div className="grid grid-cols-3 gap-1 p-2">
+                {pickerOptions("color").map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFilter("color", opt.value)}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                      filters.color === opt.value ? "bg-bg-surface font-medium text-text" : "text-text-dim hover:bg-bg-surface"
+                    }`}
+                  >
+                    <span className="w-3 h-3 rounded-full flex-none" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            ) : openPicker === "set" ? (
+              <div className="py-1">
+                {pickerOptions("set").map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFilter("set", opt.value)}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-bg-surface flex items-center gap-3 ${
+                      filters.set === opt.value ? "font-medium text-text bg-bg-surface" : "text-text"
+                    }`}
+                  >
+                    <span className="font-mono text-text-dim text-xs w-12 flex-none">{opt.label}</span>
+                    <span className="truncate">{opt.sub}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-1 p-2">
+                {pickerOptions(openPicker).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFilter(openPicker!, opt.value)}
+                    className={`px-3 py-2.5 rounded-xl text-sm text-left transition-colors ${
+                      filters[openPicker!] === opt.value ? "bg-bg-surface font-medium text-text" : "text-text-dim hover:bg-bg-surface"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Set list */}
-      {!selectedSet && (
-        <>
-          {loading && (
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-14 bg-bg-surface rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          )}
-          {groupedSets.map(({ group, sets: groupSets }) => (
-            <div key={group} className="mb-6">
-              <div className="text-sm font-bold text-text uppercase tracking-wide mb-2 pb-1.5 border-b border-[rgba(0,0,0,0.08)]">
-                {group}
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
-                {groupSets.map((s) => (
-                  <button
-                    key={s.id ?? s.name}
-                    onClick={() => loadSet(s)}
-                    className="flex flex-col text-left px-3 py-2.5 rounded-2xl bg-bg-surface hover:bg-[rgba(0,0,0,0.04)] active:opacity-80 transition-colors"
-                  >
-                    <div className="text-sm font-medium text-text truncate">{s.name}</div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {s.id && <span className="text-xs text-text-dim">{s.id}</span>}
-                      <span className="text-xs text-text-dim font-mono ml-auto">{s.count}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </>
+      {/* Card detail */}
+      {selectedCard && (
+        <CardDataSheet
+          key={selectedCard.cardSetId}
+          cardCode={selectedCard.cardSetId}
+          cardName={selectedCard.cardName}
+          imageUrl={selectedCard.imageUrl}
+          marketPrice={selectedCard.marketPrice}
+          onClose={() => setSelectedCard(null)}
+        />
       )}
 
-      {/* Cards in set */}
-      {selectedSet && (
-        <>
-          {/* Color filter */}
-          <div className="flex gap-1.5 mb-3 overflow-x-auto pb-0.5">
-            <button
-              onClick={() => setColorFilter(null)}
-              className={`px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${
-                !colorFilter ? "bg-text text-bg font-semibold" : "text-text-dim hover:text-text"
-              }`}
-            >
-              All
-            </button>
-            {[
-              { name: "Red", color: "#DC2626" },
-              { name: "Blue", color: "#2563EB" },
-              { name: "Green", color: "#16A34A" },
-              { name: "Purple", color: "#9333EA" },
-              { name: "Black", color: "#18181B" },
-              { name: "Yellow", color: "#CA8A04" },
-            ].map((c) => (
-              <button
-                key={c.name}
-                onClick={() => setColorFilter(colorFilter === c.name ? null : c.name)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${
-                  colorFilter === c.name ? "bg-bg-surface font-semibold text-text" : "text-text-dim hover:text-text"
-                }`}
-              >
-                <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ backgroundColor: c.color }} />
-                {c.name}
-              </button>
-            ))}
-          </div>
+      {/* ── Results ── */}
+      {dataLoading && (
+        <div className="py-12 text-center text-text-dim text-sm animate-pulse">Loading cards...</div>
+      )}
 
-          {/* Sort + view controls */}
-          <div className="flex items-center gap-1 mb-3 flex-wrap">
+      {!dataLoading && activeFilterCount === 0 && (
+        <div className="py-16 text-center">
+          <div className="text-text-dim text-base mb-2">Browse all cards</div>
+          <div className="text-sm text-text-muted max-w-[280px] mx-auto">
+            Pick a set, color, rarity, or type to start exploring
+          </div>
+        </div>
+      )}
+
+      {!dataLoading && activeFilterCount > 0 && filtered.length === 0 && (
+        <div className="py-12 text-center text-text-dim text-sm">No cards match your filters</div>
+      )}
+
+      {!dataLoading && filtered.length > 0 && (
+        <div className="mt-2">
+          {/* Results count + sort + view */}
+          <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+            <span className="text-xs text-text-dim font-mono mr-1">
+              {sorted.length} card{sorted.length !== 1 ? "s" : ""}
+            </span>
+            <div className="w-px h-3.5 bg-[rgba(0,0,0,0.1)]" />
             {(["code", "name", "price"] as SortKey[]).map((k) => {
               const active = sortKey === k;
               const label = k === "code" ? "Code" : k === "name" ? "Name" : "Price";
@@ -253,30 +354,22 @@ export default function BrowsePage() {
             </div>
           </div>
 
-          {loadingCards && (
-            <div className="space-y-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-16 bg-bg-surface rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          )}
-
           {/* List view */}
-          {!loadingCards && view === "list" && (
+          {view === "list" && (
             <div>
-              {sorted.map((card, i) => (
+              {displayed.map((card, i) => (
                 <button
-                  key={`${card.cardSetId}-${i}`}
+                  key={card.cardSetId + i}
                   onClick={() => setSelectedCard(card)}
-                  className="flex items-center gap-3 w-full text-left py-3 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.01)] active:opacity-80 transition-colors"
+                  className="flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors"
                 >
-                  <div className="w-9 h-[50px] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
+                  <div className="w-10 h-[56px] sm:w-8 sm:h-[44px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-text truncate">{card.cardName}</div>
-                    <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</div>
-                  </div>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+                    <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}{card.cardColor ? ` · ${card.cardColor}` : ""}</span>
+                  </span>
                   {card.marketPrice != null && card.marketPrice > 0 ? (
                     <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.marketPrice)}</span>
                   ) : (
@@ -288,42 +381,37 @@ export default function BrowsePage() {
           )}
 
           {/* Grid view */}
-          {!loadingCards && view === "grid" && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-              {sorted.map((card, i) => (
+          {view === "grid" && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              {displayed.map((card, i) => (
                 <button
-                  key={`${card.cardSetId}-${i}`}
+                  key={card.cardSetId + i}
                   onClick={() => setSelectedCard(card)}
                   className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden active:opacity-80 transition-colors text-left"
                 >
                   <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
                   </div>
-                  <div className="p-2">
+                  <div className="px-2.5 py-2">
                     <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
-                    <div className="text-xs font-mono text-text-dim">{card.cardSetId}</div>
+                    <div className="text-xs font-mono text-text-dim mt-0.5">{card.cardSetId}</div>
                     {card.marketPrice != null && card.marketPrice > 0 ? (
-                      <div className="font-mono text-xs font-semibold text-[#059669] mt-0.5">{formatPrice(card.marketPrice)}</div>
+                      <div className="font-mono text-xs font-semibold text-[#059669] mt-1">{formatPrice(card.marketPrice)}</div>
                     ) : (
-                      <div className="text-xs text-text-dim mt-0.5">—</div>
+                      <div className="text-xs text-text-dim mt-1">—</div>
                     )}
                   </div>
                 </button>
               ))}
             </div>
           )}
-        </>
-      )}
 
-      {selectedCard && (
-        <CardDataSheet
-          key={selectedCard.cardSetId}
-          cardCode={selectedCard.cardSetId}
-          cardName={selectedCard.cardName}
-          imageUrl={selectedCard.imageUrl}
-          marketPrice={selectedCard.marketPrice}
-          onClose={() => setSelectedCard(null)}
-        />
+          {hasMore && (
+            <div className="py-6 text-center text-sm text-text-dim">
+              Showing {MAX_DISPLAY} of {sorted.length} results — narrow your filters to see more
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
