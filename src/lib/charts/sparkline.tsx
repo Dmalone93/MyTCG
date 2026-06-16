@@ -1,20 +1,34 @@
 "use client";
 
+import { useRef, useEffect, useState } from "react";
+
 export function Sparkline({
   data,
-  width = 120,
   height = 40,
   color = "#059669",
   negativeColor = "#DC2626",
 }: {
   data: number[];
-  width?: number;
   height?: number;
   color?: string;
   negativeColor?: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(200);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver((entries) => {
+      for (const entry of entries) setWidth(entry.contentRect.width);
+    });
+    obs.observe(el);
+    setWidth(el.clientWidth);
+    return () => obs.disconnect();
+  }, []);
+
   if (data.length < 2) {
-    return <div style={{ width, height }} className="bg-bg-surface rounded" />;
+    return <div ref={containerRef} style={{ height }} className="w-full bg-bg-surface rounded" />;
   }
 
   const min = Math.min(...data);
@@ -32,15 +46,17 @@ export function Sparkline({
   const strokeColor = isUp ? color : negativeColor;
 
   return (
-    <svg width={width} height={height} className="block">
-      <polyline
-        points={points.join(" ")}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div ref={containerRef} className="w-full">
+      <svg width={width} height={height} className="block w-full">
+        <polyline
+          points={points.join(" ")}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
   );
 }

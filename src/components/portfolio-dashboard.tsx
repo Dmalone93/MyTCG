@@ -53,7 +53,7 @@ export function PortfolioDashboard() {
 
       {!collapsed && (
         <div className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-4 space-y-4">
-          <Sparkline data={values} width={600} height={80} />
+          <Sparkline data={values} height={80} />
 
           {(data.winners.length > 0 || data.losers.length > 0) && (
             <div className="grid grid-cols-2 gap-4">

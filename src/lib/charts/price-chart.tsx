@@ -59,7 +59,7 @@ export function PriceChart({ cardCode }: { cardCode: string }) {
         <span className="text-sm text-text-dim">L {fmt(data.low)}</span>
       </div>
 
-      <Sparkline data={prices} width={500} height={80} />
+      <Sparkline data={prices} height={80} />
 
       <div className="flex gap-1 mt-3">
         {(["7", "30", "90", "365"] as Range[]).map((r) => (
