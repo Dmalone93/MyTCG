@@ -1,5 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { NavLinks } from "@/components/nav-links";
 import Link from "next/link";
@@ -7,14 +5,11 @@ import { RegionPicker } from "@/components/region-selector";
 import { HeaderSearch } from "@/components/header-search";
 import { MobileNav } from "@/components/mobile-nav";
 
-export default async function AppLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
-
   return (
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
