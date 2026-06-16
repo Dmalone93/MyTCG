@@ -17,8 +17,8 @@ export default async function AppLayout({
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/" className="text-sm font-bold text-text tracking-tight mr-1">
-            MyTCG
+          <Link href="/" className="flex-none mr-1">
+            <img src="/logo.svg" alt="MyTCG" className="h-5" />
           </Link>
           <NavLinks />
           <div className="flex-1" />
