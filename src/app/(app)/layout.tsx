@@ -2,7 +2,6 @@ import { UserButton } from "@clerk/nextjs";
 import { NavLinks } from "@/components/nav-links";
 import Link from "next/link";
 import { RegionPicker } from "@/components/region-selector";
-import { HeaderSearch } from "@/components/header-search";
 import { MobileNav } from "@/components/mobile-nav";
 
 export default function AppLayout({
@@ -19,7 +18,16 @@ export default function AppLayout({
           </Link>
           <span className="hidden sm:contents"><NavLinks /></span>
           <div className="flex-1" />
-          <HeaderSearch />
+          <Link
+            href="/search"
+            className="hidden sm:flex items-center gap-2 bg-white rounded-full px-4 py-2 text-text-dim text-sm hover:shadow-md hover:text-text-muted transition-all min-w-[180px] shadow-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Search cards
+          </Link>
           <span className="hidden sm:block"><RegionPicker /></span>
           <Link
             href="/settings"

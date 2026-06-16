@@ -130,23 +130,9 @@ export function CardGrid({
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-accent text-accent text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-accent hover:text-white active:opacity-80 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-text text-text text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-text hover:text-bg active:opacity-80 transition-colors"
         >
           <span className="text-sm leading-none">+</span> Add
-        </button>
-        <button
-          onClick={() => {
-            // Desktop: screen capture. Mobile: camera.
-            if (window.innerWidth >= 640) {
-              window.location.href = "/watch";
-            } else {
-              setShowQuickScan(true);
-            }
-          }}
-          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(0,0,0,0.1)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
-          title="Quick scan"
-        >
-          Scan
         </button>
         {onRefreshPrices && (
           <button
