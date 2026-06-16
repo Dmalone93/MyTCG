@@ -51,13 +51,13 @@ export function DealAlerts() {
               <div className="flex items-center gap-2 text-sm mt-0.5">
                 <span className="font-mono font-semibold text-[#059669]">{fmt(deal.currentPrice)}</span>
                 <span className="font-mono text-text-dim line-through">{fmt(deal.avgPrice)}</span>
-                <span className="text-[11px] font-semibold text-[#059669] bg-[rgba(5,150,105,0.08)] px-1.5 py-0.5 rounded">-{deal.discountPct}%</span>
+                <span className="text-xs font-semibold text-[#059669] bg-[rgba(5,150,105,0.08)] px-1.5 py-0.5 rounded">-{deal.discountPct}%</span>
               </div>
             </div>
             <div className="flex gap-1.5 flex-none">
               {RETAILERS.map((r) => (
                 <a key={r.name} href={r.url(deal.cardName)} target="_blank" rel="noopener noreferrer"
-                  className="text-[10px] text-text-dim hover:text-text border border-[rgba(0,0,0,0.06)] rounded px-2 py-1 transition-colors">
+                  className="text-xs text-text-dim hover:text-text border border-[rgba(0,0,0,0.06)] rounded px-2 py-1 transition-colors">
                   {r.name.split(" ")[0]}
                 </a>
               ))}

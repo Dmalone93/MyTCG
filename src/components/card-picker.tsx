@@ -238,7 +238,7 @@ export function CardPicker({
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-text truncate">{s.name}</div>
-                    {s.date && <div className="text-[10px] text-text-dim">{s.date}</div>}
+                    {s.date && <div className="text-xs text-text-dim">{s.date}</div>}
                   </div>
                   <span className="text-xs text-text-dim font-mono flex-none ml-3">{s.count} cards</span>
                 </button>
@@ -272,7 +272,7 @@ export function CardPicker({
                   </div>
                   <span className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
-                    <span className="text-[11px] text-text-dim">
+                    <span className="text-xs text-text-dim">
                       {card.cardSetId} · {card.rarity} · {card.cardColor}
                     </span>
                   </span>
@@ -288,7 +288,7 @@ export function CardPicker({
         </div>
 
         {results.length >= 30 && mode === "search" && (
-          <div className="flex-none py-1.5 bg-[#F4F4F5] border-t border-[rgba(0,0,0,0.04)] text-center font-mono text-[10px] text-text-dim">
+          <div className="flex-none py-1.5 bg-[#F4F4F5] border-t border-[rgba(0,0,0,0.04)] text-center font-mono text-xs text-text-dim">
             Top 30 — refine your search
           </div>
         )}
@@ -344,7 +344,7 @@ function CardRow({
       </div>
       <span className="flex-1 min-w-0">
         <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
-        <span className="text-[11px] text-text-dim">
+        <span className="text-xs text-text-dim">
           {card.cardSetId} · {card.rarity} · {card.cardColor}
         </span>
       </span>

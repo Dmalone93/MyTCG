@@ -81,3 +81,12 @@ textarea:focus {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
+
+.expand-enter {
+  animation: expand 0.15s ease-out;
+}
+
+@keyframes expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

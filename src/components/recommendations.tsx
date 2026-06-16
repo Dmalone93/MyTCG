@@ -69,7 +69,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
         <div className="py-4 text-center text-text-dim text-xs">Add more cards to get recommendations</div>
       )}
       {!collapsed && recs.length > 0 && (
-        <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
+        <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory expand-enter">
           {recs.map((rec) => (
             <div
               key={rec.cardSetId}
@@ -96,10 +96,10 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   {rec.cardName}
                 </div>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
                     {rec.rarity}
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-[rgba(0,0,0,0.04)] text-text-dim">
                     {rec.color}
                   </span>
                 </div>
@@ -109,7 +109,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   </div>
                 )}
                 {rec.traits && (
-                  <div className="text-[9px] text-text-dim mt-0.5 truncate">
+                  <div className="text-xs text-text-dim mt-0.5 truncate">
                     {rec.traits}
                   </div>
                 )}

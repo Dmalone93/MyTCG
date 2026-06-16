@@ -50,7 +50,7 @@ export function PreorderTracker() {
                   }`}>
                   <span className="text-text-muted">{r.name}</span>
                   <span className="font-mono font-semibold text-text">{r.currency === "GBP" ? "£" : "€"}{r.price.toFixed(2)}</span>
-                  {r.isCheapest && <span className="text-[9px] font-semibold text-[#059669]">Cheapest</span>}
+                  {r.isCheapest && <span className="text-xs font-semibold text-[#059669]">Cheapest</span>}
                 </a>
               ))}
             </div>

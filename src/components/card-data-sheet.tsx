@@ -128,8 +128,10 @@ export function CardDataSheet({
 
             {/* Loading state */}
             {!ext && (
-              <div className="px-4 py-6 text-center text-text-dim text-xs animate-pulse">
-                Loading card data...
+              <div className="px-4 py-4 space-y-3 animate-pulse">
+                <div className="h-4 w-24 bg-[#E4E4E7] rounded" />
+                <div className="h-4 w-full bg-[#E4E4E7] rounded" />
+                <div className="h-4 w-3/4 bg-[#E4E4E7] rounded" />
               </div>
             )}
           </div>

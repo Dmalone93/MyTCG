@@ -70,7 +70,7 @@ export function GradingROI({
               {row.roi >= 0 ? "+" : ""}{row.roi.toFixed(0)}%
             </span>
             {row.grade === best.grade && (
-              <span className="text-[10px] font-semibold text-[#059669] bg-[rgba(5,150,105,0.1)] px-1.5 py-0.5 rounded flex-none">
+              <span className="text-xs font-semibold text-[#059669] bg-[rgba(5,150,105,0.1)] px-1.5 py-0.5 rounded flex-none">
                 Best
               </span>
             )}

@@ -100,12 +100,12 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
           {collapsed ? "▸" : "▾"}
         </span>
         {items.length > 0 && (
-          <span className="text-[10px] font-mono text-text-dim">{items.length} cards</span>
+          <span className="text-xs font-mono text-text-dim">{items.length} cards</span>
         )}
       </button>
 
       {!collapsed && (
-        <div className="bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden">
+        <div className="bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden expand-enter">
           {/* Add button / search */}
           <div className="px-3 py-2.5 border-b border-[rgba(0,0,0,0.04)] flex items-center gap-2">
             {!adding ? (
@@ -151,7 +151,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                   </div>
                   <span className="flex-1 min-w-0">
                     <span className="text-[13px] font-semibold text-text block truncate">{card.cardName}</span>
-                    <span className="text-[10px] text-text-dim">{card.cardSetId}</span>
+                    <span className="text-xs text-text-dim">{card.cardSetId}</span>
                   </span>
                   {card.marketPrice != null && card.marketPrice > 0 && (
                     <span className="font-mono text-xs text-[#059669] flex-none">{fmt(card.marketPrice)}</span>
@@ -195,7 +195,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-text truncate">{item.cardName}</div>
-                      <div className="flex items-center gap-2 text-[10px] text-text-dim">
+                      <div className="flex items-center gap-2 text-xs text-text-dim">
                         <span className="font-mono">{item.cardCode}</span>
                         {target != null && (
                           <span className={belowTarget ? "text-[#059669] font-semibold" : ""}>
