@@ -33,6 +33,7 @@ export default function BrowsePage() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"list" | "grid">("grid");
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
   const { formatPrice } = useRegion();
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function BrowsePage() {
   const loadSet = useCallback(async (s: CardSet) => {
     setSelectedSet(s);
     setLoadingCards(true);
+    setColorFilter(null);
     try {
       const res = await fetch(`/api/card-sets?set=${encodeURIComponent(s.id ?? s.name)}`);
       setCards(await res.json());
@@ -66,7 +68,10 @@ export default function BrowsePage() {
   }, []);
 
   const sorted = useMemo(() => {
-    const arr = [...cards];
+    let arr = [...cards];
+    if (colorFilter) {
+      arr = arr.filter((c) => c.cardColor?.toLowerCase().includes(colorFilter.toLowerCase()));
+    }
     arr.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -89,7 +94,7 @@ export default function BrowsePage() {
       return sortDir === "desc" ? -cmp : cmp;
     });
     return arr;
-  }, [cards, sortKey, sortDir]);
+  }, [cards, sortKey, sortDir, colorFilter]);
 
   const groupedSets = useMemo(() => {
     const groups = new Map<string, CardSet[]>();
@@ -189,6 +194,37 @@ export default function BrowsePage() {
       {/* Cards in set */}
       {selectedSet && (
         <>
+          {/* Color filter */}
+          <div className="flex gap-1.5 mb-3 overflow-x-auto pb-0.5">
+            <button
+              onClick={() => setColorFilter(null)}
+              className={`px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${
+                !colorFilter ? "bg-text text-bg font-semibold" : "text-text-dim hover:text-text"
+              }`}
+            >
+              All
+            </button>
+            {[
+              { name: "Red", color: "#DC2626" },
+              { name: "Blue", color: "#2563EB" },
+              { name: "Green", color: "#16A34A" },
+              { name: "Purple", color: "#9333EA" },
+              { name: "Black", color: "#18181B" },
+              { name: "Yellow", color: "#CA8A04" },
+            ].map((c) => (
+              <button
+                key={c.name}
+                onClick={() => setColorFilter(colorFilter === c.name ? null : c.name)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors ${
+                  colorFilter === c.name ? "bg-bg-surface font-semibold text-text" : "text-text-dim hover:text-text"
+                }`}
+              >
+                <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ backgroundColor: c.color }} />
+                {c.name}
+              </button>
+            ))}
+          </div>
+
           {/* Sort + view controls */}
           <div className="flex items-center gap-1 mb-3 flex-wrap">
             {(["code", "name", "price"] as SortKey[]).map((k) => {
