@@ -95,6 +95,7 @@ export function ScanModal({
   const [matchedCards, setMatchedCards] = useState<CatalogCard[]>([]);
   const [resultCard, setResultCard] = useState<CatalogCard | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const wasRescannedRef = useRef(false); // After rescan, don't auto-lock — show candidate list
   const { formatPrice } = useRegion();
 
   // Load card index for local matching
@@ -415,9 +416,6 @@ export function ScanModal({
       if (cards.length > 0) {
         setMatchedCards(cards.slice(0, 5));
         setStatus(`Matched: ${cards[0].cardName}`);
-        if (cards.length === 1) {
-          setResultCard(cards[0]); // Auto-show result for HIGH confidence
-        }
       } else {
         // Fall back to local index
         const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase());
@@ -429,9 +427,6 @@ export function ScanModal({
           }));
           setMatchedCards(localCards);
           setStatus(`Matched: ${local[0].n}`);
-          if (local.length === 1) {
-            setResultCard(localCards[0]); // Auto-show result for HIGH confidence
-          }
         } else {
           setMatchedCards([]);
           setStatus(`Found code ${code} but no match`);
@@ -544,6 +539,7 @@ export function ScanModal({
                 setMatchedCards([]);
                 setConfidence(0);
                 visionCallCount.current = 0;
+                wasRescannedRef.current = true;
                 startScanning();
               }}
               onManualEntry={() => setShowManualEntry(true)}
@@ -555,27 +551,44 @@ export function ScanModal({
         {!resultCard && matchedCards.length > 0 && (
           <div className="border-t border-[rgba(0,0,0,0.04)]">
             <div className="px-3 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
-              {matchedCards.length === 1 ? "Match found" : "Pick your card"}
+              {matchedCards.length === 1 ? "Is this your card?" : "Pick your card"}
             </div>
             {matchedCards.map((card, i) => (
-              <button
-                key={card.cardSetId + i}
-                onClick={() => setResultCard(card)}
-                className="flex items-center gap-3 w-full text-left px-3 py-3 sm:py-2.5 border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
-              >
-                <div className="w-10 h-[56px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
-                  <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
-                </div>
-                <span className="flex-1 min-w-0">
-                  <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
-                  <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</span>
-                </span>
-                {card.marketPrice != null && card.marketPrice > 0 && (
-                  <span className="font-mono text-sm font-semibold text-[#059669] flex-none">
-                    {formatPrice(card.marketPrice)}
+              <div key={card.cardSetId + i} className="border-b border-[rgba(0,0,0,0.04)] px-3 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-[67px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
+                    <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+                    <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</span>
                   </span>
-                )}
-              </button>
+                  {card.marketPrice != null && card.marketPrice > 0 && (
+                    <span className="font-mono text-sm font-semibold text-[#059669] flex-none">
+                      {formatPrice(card.marketPrice)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2 mt-2.5">
+                  <button
+                    onClick={() => setResultCard(card)}
+                    className="flex-1 bg-text text-bg font-medium text-sm py-2 px-4 rounded-xl active:opacity-80 transition-colors"
+                  >
+                    {matchedCards.length === 1 ? "Yes, check price" : "Select"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMatchedCards([]);
+                      setConfidence(0);
+                      visionCallCount.current = 0;
+                      startScanning();
+                    }}
+                    className="bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2 px-4 rounded-xl active:opacity-70 transition-colors"
+                  >
+                    Rescan
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
