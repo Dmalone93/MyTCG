@@ -1,9 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
+
+type SortKey = "relevance" | "name" | "price";
+type SortDir = "asc" | "desc";
 
 function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
@@ -15,9 +18,29 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"list" | "grid">("list");
+  const [sortKey, setSortKey] = useState<SortKey>("relevance");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prev) => {
+      if (prev === key) { setSortDir((d) => d === "asc" ? "desc" : "asc"); return key; }
+      setSortDir(key === "price" ? "desc" : "asc");
+      return key;
+    });
+  }, []);
+
+  const sorted = useMemo(() => {
+    if (sortKey === "relevance") return results;
+    return [...results].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "name") cmp = a.cardName.localeCompare(b.cardName);
+      else if (sortKey === "price") cmp = (a.marketPrice ?? -1) - (b.marketPrice ?? -1);
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+  }, [results, sortKey, sortDir]);
 
   function doSearch(q: string) {
     setQuery(q);
@@ -92,6 +115,36 @@ export default function SearchPage() {
 
       {/* Results */}
       <div>
+          {/* Sort + view when results exist */}
+          {results.length > 0 && (
+            <div className="flex items-center gap-1 mb-2 flex-wrap">
+              {(["relevance", "name", "price"] as SortKey[]).map((k) => {
+                const active = sortKey === k;
+                const label = k === "relevance" ? "Best match" : k === "name" ? "Name" : "Price";
+                return (
+                  <button
+                    key={k}
+                    onClick={() => handleSort(k)}
+                    className={`text-sm px-2.5 py-1.5 rounded-lg transition-colors ${
+                      active ? "text-text font-semibold bg-bg-surface" : "text-text-dim hover:text-text"
+                    }`}
+                  >
+                    {label} {active && k !== "relevance" && (sortDir === "asc" ? "↑" : "↓")}
+                  </button>
+                );
+              })}
+              <div className="flex-1" />
+              <div className="flex gap-0.5">
+                <button onClick={() => setView("list")} className={`p-1.5 rounded-lg transition-colors ${view === "list" ? "text-text bg-bg-surface" : "text-text-dim"}`}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <button onClick={() => setView("grid")} className={`p-1.5 rounded-lg transition-colors ${view === "grid" ? "text-text bg-bg-surface" : "text-text-dim"}`}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {loading && <div className="py-8 text-center text-text-dim text-sm animate-pulse">Searching...</div>}
           {!loading && results.length === 0 && query.length > 0 && (
             <div className="py-12 text-center text-text-dim text-sm">No cards found</div>
@@ -128,7 +181,7 @@ export default function SearchPage() {
           )}
 
           {/* List view */}
-          {view === "list" && results.map((card, i) => (
+          {view === "list" && sorted.map((card, i) => (
             <button
               key={card.cardSetId + i}
               onClick={() => selectCard(card)}
@@ -152,7 +205,7 @@ export default function SearchPage() {
           {/* Grid view */}
           {view === "grid" && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-              {results.map((card, i) => (
+              {sorted.map((card, i) => (
                 <button
                   key={card.cardSetId + i}
                   onClick={() => selectCard(card)}
