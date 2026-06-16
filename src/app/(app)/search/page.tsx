@@ -87,7 +87,7 @@ export default function SearchPage() {
               placeholder="What are you looking for?"
               enterKeyHint="search"
               autoFocus
-              className="flex-1 bg-transparent border-none outline-none text-base text-text placeholder:text-text-muted focus:outline-none"
+              className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder:text-text-muted focus:outline-none"
             />
             {query && (
               <button onClick={() => { setQuery(""); setResults([]); setSelected(null); }} className="text-text-dim hover:text-text text-lg leading-none active:opacity-70">

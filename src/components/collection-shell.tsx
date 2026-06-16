@@ -221,7 +221,7 @@ export function CollectionShell({
                   )}
                 </div>
               </div>
-              <div className="sm:ml-auto">
+              <div className="sm:flex-1">
                 <MetricStrip cards={cards} prices={prices} />
               </div>
             </div>
