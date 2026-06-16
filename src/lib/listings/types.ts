@@ -9,5 +9,5 @@ export interface Listing {
 }
 
 export interface ListingProvider {
-  getListings(cardCode: string, grade?: string): Promise<Listing[]>;
+  getListings(cardCode: string, cardName?: string, grade?: string): Promise<Listing[]>;
 }

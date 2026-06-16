@@ -1,7 +1,7 @@
 import type { Listing, ListingProvider } from "./types";
 
 export class MockListingProvider implements ListingProvider {
-  async getListings(cardCode: string, grade?: string): Promise<Listing[]> {
+  async getListings(cardCode: string, cardName?: string, grade?: string): Promise<Listing[]> {
     await new Promise((r) => setTimeout(r, 200));
 
     const basePrice = this.hashPrice(cardCode);
@@ -15,7 +15,7 @@ export class MockListingProvider implements ListingProvider {
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Near Mint",
         shipping: +(1.5 + Math.random() * 2.5).toFixed(2),
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}${cardName ? ` ${cardName}` : ""}`)}`,
         soldDate: null,
       },
       {
@@ -24,7 +24,7 @@ export class MockListingProvider implements ListingProvider {
         currency: "GBP",
         condition: isGraded ? `${grade}` : "Lightly Played",
         shipping: 0,
-        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}`)}`,
+        url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode}${cardName ? ` ${cardName}` : ""}`)}`,
         soldDate: null,
       },
       {

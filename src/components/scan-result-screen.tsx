@@ -63,7 +63,7 @@ export function ScanResultScreen({
       .then((d) => { if (d) setHistory(d); })
       .catch(() => {});
 
-    listingProvider.getListings(card.cardSetId, grade !== "Raw" ? grade : undefined)
+    listingProvider.getListings(card.cardSetId, card.cardName, grade !== "Raw" ? grade : undefined)
       .then(setListings)
       .catch(() => {});
   }, [card.cardSetId, grade]);
