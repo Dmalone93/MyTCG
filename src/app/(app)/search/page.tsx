@@ -90,8 +90,9 @@ export default function SearchPage() {
             <div className="py-12 text-center text-text-dim text-sm">No cards found</div>
           )}
           {!loading && results.length === 0 && query.length === 0 && (
-            <div className="py-12 text-center text-text-dim text-sm">
-              Look up any card to see its market price and stats
+            <div className="py-20 text-center">
+              <div className="text-text-dim text-base mb-2">Look up any card</div>
+              <div className="text-sm text-text-muted">Search by name or set code to see market price and stats</div>
             </div>
           )}
 

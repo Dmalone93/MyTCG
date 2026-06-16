@@ -47,12 +47,12 @@ export function MetricStrip({
   return (
     <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden mb-3">
       <div className="px-3 sm:px-[18px] py-3 sm:py-[13px] border-r border-b sm:border-b-0 border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[120px]">
-        <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
+        <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
           Cards
         </div>
         <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight">
           {cards.length}{" "}
-          <span className="text-[10px] sm:text-xs text-text-dim font-medium">
+          <span className="text-xs text-text-dim font-medium">
             · {totalQty}x
           </span>
         </div>
@@ -60,7 +60,7 @@ export function MetricStrip({
 
       {totalSpent > 0 && (
         <div className="px-3 sm:px-[18px] py-3 sm:py-[13px] sm:border-r border-b sm:border-b-0 border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[120px]">
-          <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
+          <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
             Spent
           </div>
           <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight">
@@ -71,7 +71,7 @@ export function MetricStrip({
 
       {totalRaw > 0 && (
         <div className="px-3 sm:px-[18px] py-3 sm:py-[13px] border-r border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[120px]">
-          <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
+          <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
             Raw value
           </div>
           <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight">
@@ -82,7 +82,7 @@ export function MetricStrip({
 
       {totalSpent > 0 && totalRaw > 0 && (
         <div className="px-3 sm:px-[18px] py-3 sm:py-[13px] sm:border-r border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[140px]">
-          <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
+          <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
             P/L
           </div>
           <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
@@ -93,7 +93,7 @@ export function MetricStrip({
               {fmt(pl)}
             </span>
             <span
-              className="font-mono font-semibold text-[10px] sm:text-xs px-1.5 sm:px-[7px] py-[2px] rounded-md"
+              className="font-mono font-semibold text-xs px-1.5 sm:px-[7px] py-[2px] rounded-md"
               style={{ color: plColor, background: plBg }}
             >
               {plPct >= 0 ? "+" : ""}
@@ -105,7 +105,7 @@ export function MetricStrip({
 
       {totalGraded > 0 && (
         <div className="col-span-2 sm:col-span-1 px-3 sm:px-[18px] py-3 sm:py-[13px] border-t sm:border-t-0 border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[120px]">
-          <div className="font-mono text-[10px] tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
+          <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
             If graded · PSA 10
           </div>
           <div className="font-mono font-semibold text-lg sm:text-[22px] tracking-tight text-[#059669]">

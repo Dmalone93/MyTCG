@@ -221,11 +221,11 @@ export function CardGrid({
 
       {/* Empty state */}
       {cards.length === 0 && !showPicker && (
-        <div className="py-16 text-center">
-          <p className="text-text-dim text-sm mb-4">No cards in this collection</p>
+        <div className="py-20 text-center">
+          <div className="text-text-dim text-base mb-2">No cards yet</div>
           <button
             onClick={() => { setShowPicker(true); setPickedCard(null); }}
-            className="text-accent text-sm font-semibold hover:underline"
+            className="text-sm text-text-muted hover:text-text transition-colors"
           >
             + Add your first card
           </button>
