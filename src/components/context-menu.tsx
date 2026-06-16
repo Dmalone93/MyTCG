@@ -61,7 +61,7 @@ export function ContextMenu({
     <div
       ref={ref}
       style={style}
-      className="bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-1.5 min-w-[180px] text-sm"
+      className="bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-1.5 min-w-[180px] text-sm"
     >
       {otherCollections.length > 0 && (
         <>

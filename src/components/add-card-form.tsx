@@ -59,7 +59,7 @@ export function AddCardForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl p-4 mb-3 space-y-3"
+      className="bg-bg-elevated rounded-2xl shadow-sm p-4 mb-3 space-y-3"
     >
       {/* Card preview from catalog */}
       {prefill && (

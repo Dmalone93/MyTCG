@@ -73,7 +73,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
           {recs.map((rec) => (
             <div
               key={rec.cardSetId}
-              className="flex-none w-[140px] sm:w-[160px] bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden snap-start"
+              className="flex-none w-[140px] sm:w-[160px] bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden snap-start"
             >
               <div className="aspect-[2.5/3.5] bg-[#E4E4E7] relative">
                 <img

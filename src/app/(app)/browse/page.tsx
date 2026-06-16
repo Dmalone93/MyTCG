@@ -162,7 +162,7 @@ export default function BrowsePage() {
           {loading && (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-14 bg-bg-surface rounded-xl animate-pulse" />
+                <div key={i} className="h-14 bg-bg-surface rounded-2xl animate-pulse" />
               ))}
             </div>
           )}
@@ -176,7 +176,7 @@ export default function BrowsePage() {
                   <button
                     key={s.id ?? s.name}
                     onClick={() => loadSet(s)}
-                    className="flex flex-col text-left px-3 py-2.5 rounded-xl bg-bg-surface hover:bg-[rgba(0,0,0,0.04)] active:opacity-80 transition-colors"
+                    className="flex flex-col text-left px-3 py-2.5 rounded-2xl bg-bg-surface hover:bg-[rgba(0,0,0,0.04)] active:opacity-80 transition-colors"
                   >
                     <div className="text-sm font-medium text-text truncate">{s.name}</div>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -256,7 +256,7 @@ export default function BrowsePage() {
           {loadingCards && (
             <div className="space-y-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-16 bg-bg-surface rounded-xl animate-pulse" />
+                <div key={i} className="h-16 bg-bg-surface rounded-2xl animate-pulse" />
               ))}
             </div>
           )}
@@ -294,7 +294,7 @@ export default function BrowsePage() {
                 <button
                   key={`${card.cardSetId}-${i}`}
                   onClick={() => setSelectedCard(card)}
-                  className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden active:opacity-80 transition-colors text-left"
+                  className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden active:opacity-80 transition-colors text-left"
                 >
                   <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />

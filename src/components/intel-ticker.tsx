@@ -30,7 +30,7 @@ export function IntelTicker({ items }: { items: TickerItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <div className="mb-4 bg-[#18181B] rounded-xl overflow-hidden">
+    <div className="mb-4 bg-[#18181B] rounded-2xl overflow-hidden">
       <div className="flex items-center">
         {/* Label */}
         <div className="flex-none px-3 py-2.5 border-r border-[rgba(255,255,255,0.1)] bg-[#111113]">

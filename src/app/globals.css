@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #FAFAFA;
+  --bg: #F8F7F4;
   --bg-elevated: #FFFFFF;
-  --bg-surface: #F4F4F5;
-  --text: #18181B;
-  --text-muted: #71717A;
-  --text-dim: #A1A1AA;
-  --accent: #18181B;
-  --accent-hover: #000000;
-  --accent-subtle: rgba(0, 0, 0, 0.04);
+  --bg-surface: #F0EFEC;
+  --text: #1A1A1A;
+  --text-muted: #6B6B6B;
+  --text-dim: #9CA3AF;
+  --accent: #C4170C;
+  --accent-hover: #A31209;
+  --accent-subtle: rgba(196, 23, 12, 0.06);
   --border: rgba(0, 0, 0, 0.08);
-  --border-focus: rgba(0, 0, 0, 0.3);
+  --border-focus: rgba(196, 23, 12, 0.4);
   --green: #059669;
   --red: #DC2626;
 }

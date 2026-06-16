@@ -216,12 +216,12 @@ export function CollectionShell({
               const name = prompt("Rename collection", col.name);
               if (name?.trim()) handleRenameCollection(col.id, name.trim());
             }}
-            className={`px-3 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors active:opacity-70 ${
+            className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors active:opacity-70 ${
               col.id === activeId
-                ? "bg-text text-bg"
+                ? "bg-accent text-white"
                 : col.name === "New Collection"
-                  ? "text-text-dim hover:text-text"
-                  : "text-text-muted hover:text-text"
+                  ? "text-text-dim hover:text-text border border-[rgba(0,0,0,0.08)]"
+                  : "text-text-muted hover:text-text border border-[rgba(0,0,0,0.08)]"
             }`}
           >
             {col.name}

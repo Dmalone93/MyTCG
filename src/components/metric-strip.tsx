@@ -45,7 +45,7 @@ export function MetricStrip({
   const plBg = pl >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)";
 
   return (
-    <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden mb-3">
+    <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch bg-bg-elevated rounded-2xl shadow-sm overflow-hidden mb-3">
       <div className="px-3 sm:px-[18px] py-3 sm:py-[13px] border-r border-b sm:border-b-0 border-[rgba(0,0,0,0.04)] sm:flex-1 sm:min-w-[120px]">
         <div className="font-mono text-xs tracking-[.1em] uppercase text-text-dim mb-1 sm:mb-[7px]">
           Cards

@@ -138,7 +138,7 @@ export function CardPicker({
       <div className="absolute inset-0 bg-white/60 sm:hidden" />
 
       <div
-        className="absolute inset-0 sm:relative flex flex-col bg-bg-elevated sm:border sm:border-[rgba(0,0,0,0.06)] sm:rounded-xl sm:mb-3 sm:max-h-[70vh] sm:overflow-hidden sm:shadow-[0_14px_40px_rgba(0,0,0,0.5)]"
+        className="absolute inset-0 sm:relative flex flex-col bg-bg-elevated sm:border sm:border-[rgba(0,0,0,0.06)] sm:rounded-2xl sm:mb-3 sm:max-h-[70vh] sm:overflow-hidden sm:shadow-[0_14px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with mode toggle */}

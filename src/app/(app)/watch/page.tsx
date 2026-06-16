@@ -415,7 +415,7 @@ export default function WatchPage() {
                       background: "#F4F4F5", border: "1px solid rgba(0,0,0,0.06)",
                       borderRadius: "10px", padding: "10px", cursor: "pointer",
                     } : undefined}
-                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-2.5 cursor-pointer hover:border-[rgba(0,0,0,0.1)] active:opacity-80 transition-colors"}
+                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-2.5 cursor-pointer hover:border-[rgba(0,0,0,0.1)] active:opacity-80 transition-colors"}
                   >
                     <div
                       style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#E4E4E7" } : undefined}

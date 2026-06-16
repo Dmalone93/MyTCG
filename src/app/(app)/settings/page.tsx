@@ -95,7 +95,7 @@ export default function SettingsPage() {
             <button
               key={r.region}
               onClick={() => setRegion(r.region)}
-              className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-3 rounded-xl border transition-colors ${
+              className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-3 rounded-2xl border transition-colors ${
                 config.region === r.region
                   ? "border-text bg-bg-surface"
                   : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.12)]"
@@ -116,7 +116,7 @@ export default function SettingsPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setDefaultView("list")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border transition-colors ${
               defaultView === "list"
                 ? "border-text bg-bg-surface"
                 : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.12)]"
@@ -127,7 +127,7 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={() => setDefaultView("grid")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border transition-colors ${
               defaultView === "grid"
                 ? "border-text bg-bg-surface"
                 : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.12)]"
@@ -160,7 +160,7 @@ export default function SettingsPage() {
 
         {loading && (
           <div className="space-y-2">
-            {[1, 2].map((i) => <div key={i} className="h-12 bg-bg-surface rounded-xl animate-pulse" />)}
+            {[1, 2].map((i) => <div key={i} className="h-12 bg-bg-surface rounded-2xl animate-pulse" />)}
           </div>
         )}
 
@@ -168,7 +168,7 @@ export default function SettingsPage() {
           {collections.map((col) => (
             <div
               key={col.id}
-              className="flex items-center gap-3 bg-bg-surface rounded-xl px-4 py-3"
+              className="flex items-center gap-3 bg-bg-surface rounded-2xl px-4 py-3"
             >
               {editingId === col.id ? (
                 <input

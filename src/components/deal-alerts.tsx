@@ -40,7 +40,7 @@ export function DealAlerts() {
       <div className="text-sm font-bold text-text mb-3">Deals — cards below market average</div>
       <div className="space-y-2">
         {deals.map((deal) => (
-          <div key={deal.cardCode} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3">
+          <div key={deal.cardCode} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3">
             {deal.imageUrl && (
               <div className="w-10 h-[56px] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
                 <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />

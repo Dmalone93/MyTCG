@@ -42,7 +42,7 @@ export default async function AppLayout({
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </Link>
-          <RegionPicker />
+          <span className="hidden sm:block"><RegionPicker /></span>
           <Link
             href="/settings"
             className="p-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors"

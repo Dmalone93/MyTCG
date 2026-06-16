@@ -105,7 +105,7 @@ export function Watchlist({ defaultOpen = false }: { defaultOpen?: boolean }) {
       </button>
 
       {!collapsed && (
-        <div className="bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-xl overflow-hidden expand-enter">
+        <div className="bg-bg-elevated rounded-2xl shadow-sm overflow-hidden expand-enter">
           {/* Add button / search */}
           <div className="px-3 py-2.5 border-b border-[rgba(0,0,0,0.04)] flex items-center gap-2">
             {!adding ? (

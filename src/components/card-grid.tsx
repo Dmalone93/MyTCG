@@ -111,7 +111,7 @@ export function CardGrid({
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3 animate-pulse">
+          <div key={i} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3 animate-pulse">
             <div className="w-10 h-[56px] rounded-md bg-[#E4E4E7]" />
             <div className="flex-1">
               <div className="h-4 w-32 bg-[#E4E4E7] rounded mb-2" />
@@ -130,7 +130,7 @@ export function CardGrid({
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-[rgba(0,0,0,0.1)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center bg-accent text-white text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-accent-hover active:opacity-80 transition-colors"
         >
           <span className="text-sm leading-none">+</span> Add
         </button>
@@ -143,7 +143,7 @@ export function CardGrid({
               setShowQuickScan(true);
             }
           }}
-          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(0,0,0,0.08)] text-text-muted text-[13px] font-medium py-3 sm:py-2.5 px-3.5 rounded-lg hover:text-text hover:border-[rgba(0,0,0,0.12)] active:opacity-70 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-none border border-[rgba(0,0,0,0.1)] text-text text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
           title="Quick scan"
         >
           Scan
@@ -380,7 +380,7 @@ export function CardGrid({
 
       {/* Quick add toast */}
       {quickAddMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-bg-elevated border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] text-sm text-text font-medium animate-fade-in">
           {quickAddMsg}
         </div>
       )}
@@ -514,7 +514,7 @@ function CardMobileRow({
 
   return (
     <div
-      className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3 active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
+      className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3 active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}
@@ -578,7 +578,7 @@ function CardGridTile({
 
   return (
     <div
-      className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-3 sm:p-4 hover:border-[rgba(0,0,0,0.1)] active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
+      className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3 sm:p-4 hover:border-[rgba(0,0,0,0.1)] active:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer select-none"
       onClick={onClick}
       onContextMenu={longPress.onContextMenu}
       onPointerDown={longPress.onPointerDown}

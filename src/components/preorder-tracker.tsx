@@ -32,7 +32,7 @@ export function PreorderTracker() {
       <div className="text-sm font-bold text-text mb-3">Upcoming releases</div>
       <div className="space-y-3">
         {products.map((product) => (
-          <div key={product.name} className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-xl p-4">
+          <div key={product.name} className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-4">
             <div className="flex items-baseline justify-between mb-2">
               <div className="text-sm font-semibold text-text">{product.name}</div>
               {product.releaseDate && (
