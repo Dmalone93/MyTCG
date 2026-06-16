@@ -156,11 +156,11 @@ export default function SearchPage() {
                   </div>
                   <div className="p-2">
                     <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
-                    <div className="text-[9px] font-mono text-text-dim">{card.cardSetId}</div>
+                    <div className="text-xs font-mono text-text-dim">{card.cardSetId}</div>
                     {card.marketPrice != null && card.marketPrice > 0 ? (
                       <div className="font-mono text-xs font-semibold text-[#059669] mt-0.5">{fmt(card.marketPrice)}</div>
                     ) : (
-                      <div className="text-[9px] text-text-dim mt-0.5">—</div>
+                      <div className="text-xs text-text-dim mt-0.5">—</div>
                     )}
                   </div>
                 </button>

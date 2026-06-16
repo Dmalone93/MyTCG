@@ -56,7 +56,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
           {collapsed ? "▸" : "▾"}
         </span>
         {recs.length > 0 && (
-          <span className="text-[10px] font-mono text-text-dim">
+          <span className="text-xs font-mono text-text-dim">
             {recs.length} cards
           </span>
         )}
@@ -89,7 +89,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                 )}
               </div>
               <div className="p-2.5">
-                <div className="font-mono text-[10px] text-text-dim mb-0.5">
+                <div className="font-mono text-xs text-text-dim mb-0.5">
                   {rec.cardSetId}
                 </div>
                 <div className="font-semibold text-xs text-text truncate mb-1">
@@ -104,7 +104,7 @@ export function Recommendations({ defaultOpen = false }: { defaultOpen?: boolean
                   </span>
                 </div>
                 {rec.marketPrice != null && rec.marketPrice > 0 && (
-                  <div className="font-mono text-[11px] text-[#059669] font-semibold mt-1">
+                  <div className="font-mono text-xs text-[#059669] font-semibold mt-1">
                     {fmt(rec.marketPrice)}
                   </div>
                 )}
