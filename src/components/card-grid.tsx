@@ -130,7 +130,7 @@ export function CardGrid({
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center bg-accent text-white text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-accent-hover active:opacity-80 transition-colors"
+          className="inline-flex items-center gap-1.5 flex-1 sm:flex-none min-w-[100px] justify-center border border-accent text-accent text-[13px] font-medium py-3 sm:py-2.5 px-4 rounded-full hover:bg-accent hover:text-white active:opacity-80 transition-colors"
         >
           <span className="text-sm leading-none">+</span> Add
         </button>
