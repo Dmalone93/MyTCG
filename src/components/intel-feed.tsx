@@ -96,22 +96,20 @@ export function IntelFeed({ items }: { items: IntelItem[] }) {
   return (
     <div>
       {/* Masthead */}
-      <div className="mb-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h1 className="text-2xl font-bold text-text tracking-tight">What&apos;s Happening</h1>
+      <div className="mb-6 text-center">
+        <img src="/onepiece-logo.png" alt="One Piece" className="h-12 sm:h-16 mx-auto mb-1" />
+        <div className="text-sm font-bold tracking-[.3em] uppercase text-text-muted">News</div>
+        <div className="flex items-center justify-center gap-3 mt-2 text-sm text-text-dim">
+          {latestFetch && <span>Updated {latestFetch}</span>}
+          {refreshMsg && <span>· {refreshMsg}</span>}
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="text-sm text-text-muted hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
+            className="text-text-muted hover:text-text active:opacity-70 disabled:opacity-40 transition-colors"
           >
-            {refreshing ? "Scanning..." : "Refresh"}
+            {refreshing ? "..." : "Refresh"}
           </button>
         </div>
-        <div className="text-sm text-text-dim mt-1">
-          {latestFetch && <span>Updated {latestFetch}</span>}
-          {refreshMsg && <span> · {refreshMsg}</span>}
-        </div>
-        <div className="h-px bg-[rgba(0,0,0,0.1)] mt-3" />
       </div>
 
       <DealAlerts />
