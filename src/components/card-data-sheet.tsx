@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PriceChart } from "@/lib/charts/price-chart";
 
 type ExtData = {
   card: {
@@ -132,6 +133,11 @@ export function CardDataSheet({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Price chart */}
+        <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+          <PriceChart cardCode={cardCode} />
         </div>
 
         {/* Synergies */}

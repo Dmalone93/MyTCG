@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { CollectionCard, CardPrice } from "./collection-shell";
+import { PriceChart } from "@/lib/charts/price-chart";
+import { GradingROI } from "@/components/grading-roi";
 
 function fmt(n: number): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
@@ -164,6 +166,18 @@ export function CardDetailModal({
                 )}
               </div>
             </div>
+
+            {/* Price chart */}
+            <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+              <PriceChart cardCode={card.cardCode} />
+            </div>
+
+            {/* Grading ROI */}
+            {sortedGrades.length > 0 && market > 0 && (
+              <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
+                <GradingROI rawPrice={market} gradedPrices={gradedPrices} />
+              </div>
+            )}
 
             {/* Graded prices */}
             {sortedGrades.length > 0 && (
