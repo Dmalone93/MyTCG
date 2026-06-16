@@ -4,7 +4,6 @@ import { UserButton } from "@clerk/nextjs";
 import { NavLinks } from "@/components/nav-links";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
 
 export default async function AppLayout({
   children,

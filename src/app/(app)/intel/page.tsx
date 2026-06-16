@@ -11,16 +11,12 @@ export default async function IntelPage() {
   const user = await currentUser();
   if (!user) redirect("/login");
 
-  const items = await db
-    .select()
-    .from(intelItems)
-    .orderBy(desc(intelItems.fetchedAt))
-    .limit(100);
-
-  const userCards = await db
-    .select({ cardCode: collectionCards.cardCode, cardName: collectionCards.cardName })
-    .from(collectionCards)
-    .where(eq(collectionCards.userId, user.id));
+  // Run both queries in parallel
+  const [items, userCards] = await Promise.all([
+    db.select().from(intelItems).orderBy(desc(intelItems.fetchedAt)).limit(100),
+    db.select({ cardCode: collectionCards.cardCode, cardName: collectionCards.cardName })
+      .from(collectionCards).where(eq(collectionCards.userId, user.id)),
+  ]);
 
   const userCardCodes = new Set(userCards.map((c) => c.cardCode.toUpperCase()));
   const userCardNames = new Set(userCards.map((c) => c.cardName.toLowerCase()));

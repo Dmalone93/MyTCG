@@ -11,18 +11,15 @@ export default async function DashboardPage() {
   const user = await currentUser();
   if (!user) redirect("/login");
 
-  const userCollections = await db
-    .select()
-    .from(collections)
-    .where(eq(collections.userId, user.id))
-    .orderBy(collections.sortOrder, collections.createdAt);
-
-  // Fetch recent intel for ticker + cross-linking
-  const recentIntel = await db
-    .select()
-    .from(intelItems)
-    .orderBy(desc(intelItems.fetchedAt))
-    .limit(20);
+  // Run both queries in parallel
+  const [userCollections, recentIntel] = await Promise.all([
+    db.select().from(collections)
+      .where(eq(collections.userId, user.id))
+      .orderBy(collections.sortOrder, collections.createdAt),
+    db.select().from(intelItems)
+      .orderBy(desc(intelItems.fetchedAt))
+      .limit(20),
+  ]);
 
   const intelCardNames = new Set<string>();
   recentIntel.forEach((item) => {
