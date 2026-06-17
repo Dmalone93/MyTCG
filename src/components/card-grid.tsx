@@ -132,7 +132,7 @@ export function CardGrid({
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3 animate-pulse">
-            <div className="w-10 h-[56px] rounded-md bg-[#E4E4E7]" />
+            <div className="w-10 aspect-[2.5/3.5] rounded-md bg-[#E4E4E7]" />
             <div className="flex-1">
               <div className="h-4 w-32 bg-[#E4E4E7] rounded mb-2" />
               <div className="h-3 w-20 bg-[#E4E4E7] rounded" />
@@ -567,7 +567,7 @@ function CardMobileRow({
         <img
           src={card.imageUrl}
           alt={card.cardName}
-          className="w-12 h-[67px] rounded-md object-cover flex-none"
+          className="w-12 rounded-md object-cover flex-none aspect-[2.5/3.5]"
         />
       )}
       <div className="flex-1 min-w-0">

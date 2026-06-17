@@ -62,7 +62,7 @@ export function CardDetailModal({
 }) {
   const { formatPrice } = useRegion();
   const swipe = useSwipeDismiss(onClose);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(true);
   const [quantity, setQuantity] = useState(card.quantity ?? 1);
   const [condition, setCondition] = useState(card.condition ?? "NM");
   const [isGraded, setIsGraded] = useState(card.isGraded ?? false);
@@ -158,7 +158,11 @@ export function CardDetailModal({
         {/* Sticky header with actions */}
         <div className="flex-none flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
           <h2 className="font-semibold text-base text-text truncate flex-1">{card.cardName}</h2>
-          {!editing && (
+          {editing ? (
+            <button onClick={() => setEditing(false)} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-bg-surface transition-colors">
+              View details
+            </button>
+          ) : (
             <>
               <button onClick={() => setEditing(true)} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-bg-surface transition-colors">
                 Edit

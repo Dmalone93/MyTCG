@@ -42,7 +42,7 @@ export function DealAlerts() {
         {deals.map((deal) => (
           <div key={deal.cardCode} className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-3">
             {deal.imageUrl && (
-              <div className="w-10 h-[56px] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
+              <div className="w-10 aspect-[2.5/3.5] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
                 <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
               </div>
             )}

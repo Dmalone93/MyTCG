@@ -570,7 +570,7 @@ export function ScanModal({
             {matchedCards.map((card, i) => (
               <div key={card.cardSetId + i} className="border-b border-[rgba(0,0,0,0.04)] px-3 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-[67px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
+                  <div className="w-12 aspect-[2.5/3.5] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                     <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
                   <span className="flex-1 min-w-0">

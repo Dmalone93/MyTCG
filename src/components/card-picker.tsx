@@ -401,7 +401,7 @@ export function CardPicker({
                   )}
                 </div>
 
-                <div className="w-9 h-[50px] sm:w-7 sm:h-[38px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
+                <div className="w-9 sm:w-7 aspect-[2.5/3.5] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
                   <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <span className="flex-1 min-w-0">
