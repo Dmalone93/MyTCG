@@ -211,61 +211,59 @@ export function CollectionShell({
 
   return (
     <div>
-      <div className="mb-5">
-        {/* Title + metrics — editorial style */}
-        {active && (
-          <div className="mb-4">
-            <h1 className="text-xl font-bold text-text">{active.name}</h1>
-            <div className="flex items-center gap-4 mt-1 text-sm text-text-dim">
+      {/* Collection tabs — sticky at top */}
+      <div className="sticky top-0 z-10 bg-bg pt-1 pb-2">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 border-b border-[rgba(0,0,0,0.06)]">
+          {collections.map((col) => (
+            <button
+              key={col.id}
+              onClick={() => setActiveId(col.id)}
+              className={`px-3 py-2 text-sm whitespace-nowrap transition-colors active:opacity-70 relative ${
+                col.id === activeId
+                  ? "font-semibold text-text"
+                  : col.name === "New Collection"
+                    ? "text-text-dim hover:text-text"
+                    : "text-text-muted hover:text-text"
+              }`}
+            >
+              {col.name}
+              {col.id === activeId && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-text rounded-full" />}
+            </button>
+          ))}
+          <button
+            onClick={handleCreateCollection}
+            className="px-2.5 py-2 text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none whitespace-nowrap"
+            title="New collection"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Collection info + metrics */}
+      {active && (
+        <div className="mb-4 mt-3">
+          <div className="flex items-center gap-4 text-sm text-text-dim">
+            <span className="inline-flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
+              </svg>
+              {cards.length} cards
+            </span>
+            {active.createdAt && (
               <span className="inline-flex items-center gap-1.5">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                {cards.length} cards
+                {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
               </span>
-              {active.createdAt && (
-                <span className="inline-flex items-center gap-1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              )}
-            </div>
-            <div className="h-px bg-[rgba(0,0,0,0.08)] mt-3 mb-1" />
-            <MetricStrip cards={cards} prices={prices} />
-            <div className="h-px bg-[rgba(0,0,0,0.08)] mt-1" />
+            )}
           </div>
-        )}
-
-        {/* Collection switcher — only when multiple */}
-        {collections.length > 1 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {collections.map((col) => (
-              <button
-                key={col.id}
-                onClick={() => setActiveId(col.id)}
-                className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors active:opacity-70 ${
-                  col.id === activeId
-                    ? "font-semibold text-text bg-bg-surface"
-                    : col.name === "New Collection"
-                      ? "text-text-dim hover:text-text"
-                      : "text-text-muted hover:text-text"
-                }`}
-              >
-                {col.name}
-              </button>
-            ))}
-            <button
-              onClick={handleCreateCollection}
-              className="px-2.5 py-1.5 text-sm text-text-dim hover:text-text active:opacity-70 transition-colors flex-none whitespace-nowrap"
-              title="New collection"
-            >
-              +
-            </button>
-          </div>
-        )}
-      </div>
+          <div className="h-px bg-[rgba(0,0,0,0.08)] mt-3 mb-1" />
+          <MetricStrip cards={cards} prices={prices} />
+          <div className="h-px bg-[rgba(0,0,0,0.08)] mt-1" />
+        </div>
+      )}
 
       {active ? (
         <>
