@@ -11,9 +11,9 @@ import type { Listing } from "@/lib/listings/types";
 const listingProvider = new MockListingProvider();
 
 const SOURCE_INFO: Record<string, { logo: string; alt: string; height: number }> = {
-  ebay: { logo: "/logos/ebay.svg", alt: "eBay", height: 16 },
-  cardmarket: { logo: "/logos/cardmarket.png", alt: "Cardmarket", height: 14 },
-  tcgplayer: { logo: "/logos/tcgplayer.svg", alt: "TCGplayer", height: 14 },
+  ebay: { logo: "/logos/ebay.svg", alt: "eBay", height: 20 },
+  cardmarket: { logo: "/logos/cardmarket.png", alt: "Cardmarket", height: 20 },
+  tcgplayer: { logo: "/logos/tcgplayer.svg", alt: "TCGplayer", height: 20 },
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "£", EUR: "€", USD: "$" };

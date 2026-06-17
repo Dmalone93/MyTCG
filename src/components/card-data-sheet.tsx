@@ -195,21 +195,21 @@ export function CardDataSheet({
                 target="_blank" rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
               >
-                <img src="/logos/ebay.svg" alt="eBay" className="h-[16px]" />
+                <img src="/logos/ebay.svg" alt="eBay" className="h-[20px]" />
               </a>
               <a
                 href={`https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(cardCode)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
               >
-                <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[14px]" />
+                <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[20px]" />
               </a>
               <a
                 href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(cardCode)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
               >
-                <img src="/logos/tcgplayer.svg" alt="TCGplayer" className="h-[14px]" />
+                <img src="/logos/tcgplayer.svg" alt="TCGplayer" className="h-[20px]" />
               </a>
             </div>
           </div>
