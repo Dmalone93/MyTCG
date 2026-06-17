@@ -125,21 +125,27 @@ export function HomeDashboard({
                   href={`/collections?id=${col.id}`}
                   className="flex items-center gap-3 px-4 py-4 hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
                 >
-                  {/* Thumbnails */}
-                  <div className="flex -space-x-2 flex-none">
+                  {/* Mobile: stacked 3 thumbnails */}
+                  <div className="flex -space-x-2 flex-none sm:hidden">
                     {col.thumbnails.length > 0 ? (
-                      col.thumbnails.map((img, i) => (
-                        <div key={i} className="w-9 aspect-[63/88] rounded-lg overflow-hidden bg-[#E4E4E7] border-2 border-bg-surface" style={{ zIndex: 3 - i }}>
+                      col.thumbnails.slice(0, 3).map((img, i) => (
+                        <div key={i} className="w-8 aspect-[63/88] rounded-md overflow-hidden bg-[#E4E4E7] border-2 border-white" style={{ zIndex: 3 - i }}>
                           <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
                         </div>
                       ))
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-bg-elevated border border-[rgba(0,0,0,0.06)] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-bg-surface border border-[rgba(0,0,0,0.06)] flex items-center justify-center">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
                           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
                         </svg>
                       </div>
                     )}
+                  </div>
+                  {/* Desktop: icon only (thumbnails shown below) */}
+                  <div className="hidden sm:flex w-10 h-10 rounded-xl bg-bg-surface border border-[rgba(0,0,0,0.06)] items-center justify-center flex-none">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
+                    </svg>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-text truncate">{col.name}</div>
