@@ -193,13 +193,23 @@ Return ONLY the JSON array, no other text.`,
     // Fallback: use set image from optcgapi for set-related articles
     if (!item.image_url || item.image_url === "") {
       const text = `${item.title} ${item.summary}`.toUpperCase();
-      const setMatch = text.match(/OP-?(\d{1,2})/);
+      const setMatch = text.match(/(OP|ST|EB)-?(\d{1,2})/);
       if (setMatch) {
-        // Use a representative card from that set
-        const setNum = setMatch[1].padStart(2, "0");
-        const card = extCards.find((c) => c.cid.startsWith(`OP${setNum}-`));
-        if (card?.imageUrl) item.image_url = card.imageUrl;
+        const prefix = setMatch[1];
+        const setNum = setMatch[2].padStart(2, "0");
+        // Try extended cards first
+        const card = extCards.find((c) => c.cid.startsWith(`${prefix}${setNum}-`));
+        if (card?.imageUrl) {
+          item.image_url = card.imageUrl;
+        } else {
+          // Fallback to optcgapi image URL pattern
+          item.image_url = `https://optcgapi.com/media/static/Card_Images/${prefix}${setNum}-001.jpg`;
+        }
       }
+    }
+    // Last resort: generic card back or first available card
+    if (!item.image_url || item.image_url === "") {
+      item.image_url = `https://optcgapi.com/media/static/Card_Images/OP01-001.jpg`;
     }
   }
 
