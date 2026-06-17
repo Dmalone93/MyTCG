@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CollectionTab } from "./collection-tab";
 import { CardGrid } from "./card-grid";
-import { MetricStrip } from "./metric-strip";
+import { useRegion } from "@/components/region-selector";
 import {
   createCollection as createCollectionAction,
   renameCollection as renameCollectionAction,
@@ -240,29 +240,9 @@ export function CollectionShell({
         </div>
       </div>
 
-      {/* Collection info + metrics */}
+      {/* Collection value hero — same pattern as portfolio on home */}
       {active && (
-        <div className="mb-4 mt-3">
-          <div className="flex items-center gap-4 text-sm text-text-dim">
-            <span className="inline-flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
-              </svg>
-              {cards.length} cards
-            </span>
-            {active.createdAt && (
-              <span className="inline-flex items-center gap-1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-                {new Date(active.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-              </span>
-            )}
-          </div>
-          <div className="h-px bg-[rgba(0,0,0,0.08)] mt-3 mb-1" />
-          <MetricStrip cards={cards} prices={prices} />
-          <div className="h-px bg-[rgba(0,0,0,0.08)] mt-1" />
-        </div>
+        <CollectionValueHero cards={cards} prices={prices} cardCount={cards.length} createdAt={active.createdAt} />
       )}
 
       {active ? (
@@ -292,6 +272,68 @@ export function CollectionShell({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Portfolio-style value display for a single collection */
+function CollectionValueHero({ cards, prices, cardCount, createdAt }: {
+  cards: CollectionCard[];
+  prices: Record<string, CardPrice>;
+  cardCount: number;
+  createdAt: Date | null;
+}) {
+  const { formatPrice } = useRegion();
+
+  const totalValue = cards.reduce((s, c) => {
+    const p = prices[c.cardCode];
+    return s + (p?.rawMarket ? parseFloat(String(p.rawMarket)) : 0) * (c.quantity ?? 1);
+  }, 0);
+
+  const totalSpent = cards.reduce(
+    (s, c) => s + (c.acquiredPrice ? parseFloat(c.acquiredPrice) : 0) * (c.quantity ?? 1),
+    0
+  );
+
+  const pl = totalValue - totalSpent;
+  const plPct = totalSpent > 0 ? (pl / totalSpent) * 100 : 0;
+
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-[rgba(0,0,0,0.06)] mt-3 mb-4">
+      <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Collection value</div>
+      <div className="font-mono text-3xl font-bold text-text leading-tight">
+        {totalValue > 0 ? formatPrice(totalValue) : "—"}
+      </div>
+      {(totalSpent > 0 || totalValue > 0) && (
+        <div className="flex items-center gap-4 mt-2">
+          {totalSpent > 0 && (
+            <div>
+              <div className="text-xs text-text-dim">Spent</div>
+              <div className="font-mono text-sm text-text">{formatPrice(totalSpent)}</div>
+            </div>
+          )}
+          {totalSpent > 0 && totalValue > 0 && (
+            <>
+              <div className="w-px h-8 bg-[rgba(0,0,0,0.08)]" />
+              <div>
+                <div className="text-xs text-text-dim">P/L</div>
+                <div className={`font-mono text-sm font-semibold ${pl >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
+                  {pl >= 0 ? "+" : ""}{formatPrice(pl)} ({pl >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      <div className="flex items-center gap-3 mt-3 text-xs text-text-dim">
+        <span>{cardCount} cards</span>
+        {createdAt && (
+          <>
+            <span>·</span>
+            <span>{new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
