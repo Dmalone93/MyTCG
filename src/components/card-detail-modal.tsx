@@ -144,7 +144,7 @@ export function CardDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
         className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh]"
@@ -264,7 +264,7 @@ export function CardDetailModal({
                     target="_blank" rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
                   >
-                    <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[20px]" />
+                    <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[24px]" />
                   </a>
                   <a
                     href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(card.cardCode)}`}

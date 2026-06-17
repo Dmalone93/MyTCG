@@ -376,7 +376,7 @@ export function CardGrid({
       {/* Collection picker modal */}
       {pendingCards && pendingCards.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setPendingCards(null)}>
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div
             ref={collectionPickerSwipe.sheetRef}
             className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm overflow-hidden"

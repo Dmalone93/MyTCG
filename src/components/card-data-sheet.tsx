@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import { useRegion } from "@/components/region-selector";
+import { addCard as addCardAction } from "@/app/actions/collections";
 
 type ExtCard = {
   cid: string;
@@ -173,7 +174,7 @@ export function CardDataSheet({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
         className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg min-h-[60vh] max-h-[85vh] flex flex-col"
@@ -261,6 +262,9 @@ export function CardDataSheet({
             </div>
           )}
 
+          {/* Add to collection */}
+          <AddToCollectionButton cardCode={cardCode} cardName={cardName} imageUrl={imageUrl} marketPrice={marketPrice} />
+
           {/* Buy links */}
           <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
             <div className="text-xs text-text-dim uppercase tracking-wider mb-3">Buy this card</div>
@@ -273,7 +277,7 @@ export function CardDataSheet({
               <a href={`https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(cardCode)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors">
-                <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[20px]" />
+                <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[24px]" />
               </a>
               <a href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(cardCode)}`}
                 target="_blank" rel="noopener noreferrer"
@@ -305,6 +309,92 @@ export function CardDataSheet({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Inline add-to-collection button that fetches collections on demand */
+function AddToCollectionButton({ cardCode, cardName, imageUrl, marketPrice }: {
+  cardCode: string; cardName: string; imageUrl: string; marketPrice?: number | null;
+}) {
+  const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
+  const [showPicker, setShowPicker] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState<string | null>(null);
+
+  async function loadCollections() {
+    if (collections.length > 0) { setShowPicker(true); return; }
+    try {
+      const res = await fetch("/api/collections");
+      if (res.ok) {
+        const data = await res.json();
+        setCollections(data);
+        setShowPicker(true);
+      }
+    } catch { /* */ }
+  }
+
+  async function addToCollection(collectionId: string) {
+    setAdding(true);
+    try {
+      await addCardAction({
+        collectionId,
+        cardCode,
+        cardName,
+        quantity: 1,
+        condition: "NM",
+        isGraded: false,
+        grade: null,
+        gradedCompany: null,
+        acquiredPrice: null,
+        notes: null,
+        imageUrl,
+        marketPrice: marketPrice ?? null,
+      });
+      const col = collections.find((c) => c.id === collectionId);
+      setAdded(col?.name ?? "collection");
+      setShowPicker(false);
+      setTimeout(() => setAdded(null), 2000);
+    } catch { /* */ }
+    setAdding(false);
+  }
+
+  return (
+    <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
+      {added ? (
+        <div className="text-sm font-medium text-[#059669] text-center py-2">
+          Added to {added}
+        </div>
+      ) : !showPicker ? (
+        <button
+          onClick={loadCollections}
+          className="w-full bg-text text-bg font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
+        >
+          + Add to collection
+        </button>
+      ) : (
+        <div>
+          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Choose collection</div>
+          <div className="space-y-1.5">
+            {collections.map((col) => (
+              <button
+                key={col.id}
+                onClick={() => addToCollection(col.id)}
+                disabled={adding}
+                className="w-full text-left px-3 py-2.5 text-sm font-medium text-text bg-bg-surface rounded-xl hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 disabled:opacity-40 transition-colors"
+              >
+                {col.name}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowPicker(false)}
+            className="w-full text-sm text-text-muted mt-2 py-1 active:opacity-70"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 }
