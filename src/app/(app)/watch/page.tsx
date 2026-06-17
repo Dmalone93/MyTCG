@@ -164,6 +164,24 @@ export default function WatchPage() {
         // Move the widget container into PiP window
         if (widgetContainerRef.current) {
           pip.document.body.appendChild(widgetContainerRef.current);
+
+          // Re-attach native click handlers — React events don't work in PiP document
+          const reattachHandlers = () => {
+            const buttons = widgetContainerRef.current?.querySelectorAll("[data-remove-ts]");
+            buttons?.forEach((btn) => {
+              const ts = btn.getAttribute("data-remove-ts");
+              if (ts) {
+                (btn as HTMLElement).onclick = () => {
+                  setDetected((prev) => prev.filter((d) => String(d.detectedAt) !== ts));
+                };
+              }
+            });
+          };
+          reattachHandlers();
+          // Re-attach whenever detected list changes
+          const observer = new MutationObserver(reattachHandlers);
+          observer.observe(widgetContainerRef.current, { childList: true, subtree: true });
+          pip.addEventListener("pagehide", () => observer.disconnect());
         }
 
         pip.addEventListener("pagehide", () => {
@@ -463,13 +481,14 @@ export default function WatchPage() {
                     </div>
                     {/* Remove button — completely separate from card click area */}
                     <button
+                      data-remove-ts={String(card.detectedAt)}
                       onClick={() => {
                         const ts = card.detectedAt;
                         setDetected((prev) => prev.filter((d) => d.detectedAt !== ts));
                       }}
                       style={isPopped ? {
-                        background: "rgba(0,0,0,0.05)", border: "none", color: "#71717A", cursor: "pointer",
-                        fontSize: "18px", width: "28px", height: "28px", flexShrink: 0, lineHeight: 1,
+                        background: "rgba(0,0,0,0.08)", border: "none", color: "#52525B", cursor: "pointer",
+                        fontSize: "18px", width: "32px", height: "32px", flexShrink: 0, lineHeight: 1,
                         borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center",
                       } : undefined}
                       className={isPopped ? "" : "w-8 h-8 flex items-center justify-center bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] rounded-lg text-text-dim hover:text-text text-lg flex-none active:opacity-70 transition-colors"}
