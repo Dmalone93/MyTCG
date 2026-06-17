@@ -9,15 +9,8 @@ import { CardDetailModal } from "./card-detail-modal";
 import { ContextMenu } from "./context-menu";
 import { useLongPress } from "@/hooks/use-long-press";
 import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
+import { useRegion } from "@/components/region-selector";
 import type { CatalogCard } from "@/lib/catalog/types";
-
-function fmt(n: number): string {
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(n);
-}
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -71,6 +64,8 @@ export function CardGrid({
   onMoveCard: (id: string, targetCollectionId: string) => Promise<void>;
   onRefreshPrices?: () => Promise<void>;
 }) {
+  const { formatPrice } = useRegion();
+  const fmt = formatPrice;
   const [showPicker, setShowPicker] = useState(false);
   const [showScan, setShowScan] = useState(false);
   const [showQuickScan, setShowQuickScan] = useState(false);
@@ -446,6 +441,7 @@ function CardTableRow({
   onClick: () => void;
   onContextMenu: (x: number, y: number) => void;
 }) {
+  const { formatPrice: fmt } = useRegion();
   const longPress = useLongPress(
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
@@ -548,6 +544,7 @@ function CardMobileRow({
   onClick: () => void;
   onContextMenu: (x: number, y: number) => void;
 }) {
+  const { formatPrice: fmt } = useRegion();
   const longPress = useLongPress(
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
@@ -615,6 +612,7 @@ function CardGridTile({
   onClick: () => void;
   onContextMenu: (x: number, y: number) => void;
 }) {
+  const { formatPrice: fmt } = useRegion();
   const longPress = useLongPress(
     useCallback((x: number, y: number) => onContextMenu(x, y), [onContextMenu])
   );
