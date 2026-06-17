@@ -479,12 +479,11 @@ export function ScanModal({
     >
       <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
       <div
-        ref={swipe.ref}
+        ref={swipe.sheetRef}
         className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
-        {...swipe.handlers}
       >
-        <div className="sm:hidden flex justify-center pt-2 pb-1">
+        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">

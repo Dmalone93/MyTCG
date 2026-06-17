@@ -96,13 +96,12 @@ export function CardDetailModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
-        ref={swipe.ref}
+        ref={swipe.sheetRef}
         className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
-        {...swipe.handlers}
       >
-        {/* Drag handle (mobile) */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1">
+        {/* Drag handle (mobile) — swipe down to dismiss */}
+        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 

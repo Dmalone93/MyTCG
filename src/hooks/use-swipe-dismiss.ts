@@ -1,83 +1,81 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 
 /**
  * Hook for swipe-down-to-dismiss on mobile bottom sheets.
- * Returns pointer event handlers to attach to the modal content div.
- * When the user swipes down past the threshold, onDismiss is called.
+ * Attach `handleRef` to the drag handle element (the little bar at the top).
+ * Attach `sheetRef` to the modal content div (for transform animation).
  */
-export function useSwipeDismiss(onDismiss: () => void, threshold = 80) {
+export function useSwipeDismiss(onDismiss: () => void, threshold = 60) {
   const startY = useRef(0);
   const currentY = useRef(0);
   const isDragging = useRef(false);
-  const elementRef = useRef<HTMLDivElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const handleRef = useRef<HTMLDivElement | null>(null);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only handle touch
-    if (e.pointerType !== "touch") return;
-    // Only start drag if at the top of scroll (not mid-scroll)
-    const el = elementRef.current;
-    if (el && el.scrollTop > 0) return;
-
+  const onTouchStart = useCallback((e: TouchEvent) => {
     isDragging.current = true;
-    startY.current = e.clientY;
-    currentY.current = e.clientY;
+    startY.current = e.touches[0].clientY;
+    currentY.current = e.touches[0].clientY;
   }, []);
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
+  const onTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging.current) return;
-    currentY.current = e.clientY;
+    currentY.current = e.touches[0].clientY;
     const dy = currentY.current - startY.current;
 
-    // Only allow downward drag
     if (dy < 0) {
+      // Swiping up — cancel
       isDragging.current = false;
-      if (elementRef.current) elementRef.current.style.transform = "";
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = "";
+        sheetRef.current.style.transition = "";
+      }
       return;
     }
 
-    // Apply visual feedback — translate the modal down
-    if (elementRef.current) {
-      elementRef.current.style.transform = `translateY(${dy}px)`;
-      elementRef.current.style.transition = "none";
+    // Prevent page scroll while dragging
+    e.preventDefault();
+
+    if (sheetRef.current) {
+      sheetRef.current.style.transform = `translateY(${dy}px)`;
+      sheetRef.current.style.transition = "none";
     }
   }, []);
 
-  const onPointerUp = useCallback(() => {
+  const onTouchEnd = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
 
     const dy = currentY.current - startY.current;
 
-    if (elementRef.current) {
-      elementRef.current.style.transition = "transform 0.2s ease-out";
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = "transform 0.2s ease-out";
       if (dy > threshold) {
-        // Dismiss — slide out
-        elementRef.current.style.transform = "translateY(100%)";
+        sheetRef.current.style.transform = "translateY(100%)";
         setTimeout(onDismiss, 200);
       } else {
-        // Snap back
-        elementRef.current.style.transform = "";
+        sheetRef.current.style.transform = "";
       }
     }
   }, [onDismiss, threshold]);
 
-  const onPointerCancel = useCallback(() => {
-    isDragging.current = false;
-    if (elementRef.current) {
-      elementRef.current.style.transition = "transform 0.2s ease-out";
-      elementRef.current.style.transform = "";
-    }
-  }, []);
+  // Attach touch listeners to the drag handle
+  useEffect(() => {
+    const el = handleRef.current;
+    if (!el) return;
 
-  return {
-    ref: elementRef,
-    handlers: {
-      onPointerDown,
-      onPointerMove,
-      onPointerUp,
-      onPointerCancel,
-    },
-  };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [onTouchStart, onTouchMove, onTouchEnd]);
+
+  return { sheetRef, handleRef };
 }

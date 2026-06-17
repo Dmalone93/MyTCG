@@ -383,12 +383,11 @@ export function CardGrid({
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setPendingCards(null)}>
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
           <div
-            ref={collectionPickerSwipe.ref}
+            ref={collectionPickerSwipe.sheetRef}
             className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-            {...collectionPickerSwipe.handlers}
           >
-            <div className="sm:hidden flex justify-center pt-2 pb-1">
+            <div ref={collectionPickerSwipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
               <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
             </div>
             <div className="px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
