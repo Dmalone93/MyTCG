@@ -31,6 +31,9 @@ export function CardDataSheet({
   rarity,
   cardColor,
   cardType,
+  cardCost,
+  cardPower,
+  setName,
   onClose,
 }: {
   cardCode: string;
@@ -40,6 +43,9 @@ export function CardDataSheet({
   rarity?: string;
   cardColor?: string;
   cardType?: string;
+  cardCost?: string;
+  cardPower?: string;
+  setName?: string;
   onClose: () => void;
 }) {
   const swipe = useSwipeDismiss(onClose);
@@ -59,10 +65,17 @@ export function CardDataSheet({
 
   const c = ext?.card;
 
-  // Use extended data if available, otherwise fall back to props
+  // Use extended data if available, otherwise fall back to catalog props
   const displayType = c?.type ?? cardType ?? null;
   const displayColor = c?.color ?? cardColor ?? null;
   const displayRarity = c?.rarity ?? rarity ?? null;
+  const displayCost = c?.cost ?? (cardCost ? Number(cardCost) : null);
+  const displayPower = c?.power ?? (cardPower ? Number(cardPower) : null);
+  const displayLife = c?.life ?? null;
+  const displayCounter = c?.counterPower ?? null;
+  const displayTraits = c?.traits ?? null;
+  const displaySetName = c?.setName ?? setName ?? null;
+  const displayEffect = c?.effect ?? null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
@@ -99,8 +112,8 @@ export function CardDataSheet({
               className="w-[100px] sm:w-[120px] rounded-lg aspect-[2.5/3.5] object-cover flex-none"
             />
             <div className="flex-1 min-w-0">
-              {/* Quick stat pills — always show from props or extended */}
               <div className="space-y-2">
+                {/* Type / Color / Rarity pills */}
                 <div className="flex flex-wrap gap-1.5">
                   {displayType && (
                     <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{displayType}</span>
@@ -113,63 +126,55 @@ export function CardDataSheet({
                   )}
                 </div>
 
-                {/* Numeric stats — only from extended data */}
-                {c && (
+                {/* Numeric stats */}
+                {(displayCost != null || displayPower != null || displayLife != null || displayCounter != null) && (
                   <div className="flex gap-3">
-                    {c.cost != null && (
+                    {displayCost != null && (
                       <div>
                         <div className="text-xs text-text-dim">Cost</div>
-                        <div className="font-mono text-sm font-semibold text-text">{c.cost}</div>
+                        <div className="font-mono text-sm font-semibold text-text">{displayCost}</div>
                       </div>
                     )}
-                    {c.power != null && (
+                    {displayPower != null && (
                       <div>
                         <div className="text-xs text-text-dim">Power</div>
-                        <div className="font-mono text-sm font-semibold text-text">{c.power}</div>
+                        <div className="font-mono text-sm font-semibold text-text">{displayPower}</div>
                       </div>
                     )}
-                    {c.life != null && (
+                    {displayLife != null && (
                       <div>
                         <div className="text-xs text-text-dim">Life</div>
-                        <div className="font-mono text-sm font-semibold text-text">{c.life}</div>
+                        <div className="font-mono text-sm font-semibold text-text">{displayLife}</div>
                       </div>
                     )}
-                    {c.counterPower != null && (
+                    {displayCounter != null && (
                       <div>
                         <div className="text-xs text-text-dim">Counter</div>
-                        <div className="font-mono text-sm font-semibold text-text">{c.counterPower}</div>
+                        <div className="font-mono text-sm font-semibold text-text">{displayCounter}</div>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Traits */}
-                {c?.traits && (
-                  <div className="text-sm text-text-dim">{c.traits}</div>
+                {displayTraits && (
+                  <div className="text-sm text-text-dim">{displayTraits}</div>
                 )}
 
                 {/* Set */}
-                {c?.setName && (
-                  <div className="text-xs text-text-dim">{c.setName}</div>
-                )}
-
-                {/* Loading — only show if not failed */}
-                {!c && !extFailed && (
-                  <div className="space-y-2 animate-pulse mt-1">
-                    <div className="h-3 w-20 bg-[#E4E4E7] rounded" />
-                    <div className="h-3 w-32 bg-[#E4E4E7] rounded" />
-                  </div>
+                {displaySetName && (
+                  <div className="text-xs text-text-dim">{displaySetName}</div>
                 )}
               </div>
             </div>
           </div>
 
           {/* Effect text */}
-          {c?.effect && (
+          {displayEffect && (
             <div className="px-4 pb-4">
               <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">Effect</div>
               <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3">
-                {c.effect}
+                {displayEffect}
               </div>
             </div>
           )}
