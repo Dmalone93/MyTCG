@@ -98,6 +98,12 @@ export function ScanModal({
   const wasRescannedRef = useRef(false); // After rescan, don't auto-lock — show candidate list
   const { formatPrice } = useRegion();
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   // Load card index for local matching
   useEffect(() => {
     fetch("/api/card-index")
