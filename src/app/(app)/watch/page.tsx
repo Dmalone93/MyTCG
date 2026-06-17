@@ -402,70 +402,73 @@ export default function WatchPage() {
                 </div>
               )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: isPopped ? "8px" : undefined }} className={isPopped ? "" : "space-y-1.5"}>
+              <div className={isPopped ? "" : "space-y-1.5"} style={isPopped ? { display: "flex", flexDirection: "column", gap: "8px" } : undefined}>
                 {detected.map((card) => (
                   <div
                     key={card.code + card.detectedAt}
-                    onClick={() => openDetail(card)}
+                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-2.5"}
                     style={isPopped ? {
                       display: "flex", alignItems: "center", gap: "10px",
                       background: "#F4F4F5", border: "1px solid rgba(0,0,0,0.06)",
-                      borderRadius: "10px", padding: "10px", cursor: "pointer",
+                      borderRadius: "10px", padding: "10px",
                     } : undefined}
-                    className={isPopped ? "" : "flex items-center gap-2.5 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl p-2.5 cursor-pointer hover:border-[rgba(0,0,0,0.1)] active:opacity-80 transition-colors"}
                   >
+                    {/* Clickable card area — opens detail */}
                     <div
-                      style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#E4E4E7" } : undefined}
-                      className={isPopped ? "" : "w-10 h-[56px] rounded-md overflow-hidden bg-[#E4E4E7] flex-none"}
+                      onClick={() => openDetail(card)}
+                      className={isPopped ? "" : "flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer active:opacity-80"}
+                      style={isPopped ? { display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0, cursor: "pointer" } : undefined}
                     >
-                      <img src={card.imageUrl} alt="" style={isPopped ? { width: "100%", height: "100%", objectFit: "cover" } : undefined} className={isPopped ? "" : "w-full h-full object-cover"} />
-                    </div>
-                    <div style={isPopped ? { flex: 1, minWidth: 0 } : undefined} className={isPopped ? "" : "flex-1 min-w-0"}>
                       <div
-                        style={isPopped ? { fontSize: "13px", fontWeight: 600, color: "#18181B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } : undefined}
-                        className={isPopped ? "" : "font-medium text-sm text-text truncate"}
+                        style={isPopped ? { width: "40px", height: "56px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#E4E4E7" } : undefined}
+                        className={isPopped ? "" : "w-10 aspect-[63/88] rounded-md overflow-hidden bg-[#E4E4E7] flex-none"}
                       >
-                        {card.name}
+                        <img src={card.imageUrl} alt="" style={isPopped ? { width: "100%", height: "100%", objectFit: "cover" } : undefined} className={isPopped ? "" : "w-full h-full object-cover"} />
                       </div>
-                      <div
-                        style={isPopped ? { fontSize: "10px", color: "#A1A1AA", fontFamily: "monospace", marginTop: "2px" } : undefined}
-                        className={isPopped ? "" : "font-mono text-[10px] text-text-dim mt-0.5"}
-                      >
-                        {card.code} · {card.rarity}
+                      <div style={isPopped ? { flex: 1, minWidth: 0 } : undefined} className={isPopped ? "" : "flex-1 min-w-0"}>
+                        <div
+                          style={isPopped ? { fontSize: "13px", fontWeight: 600, color: "#18181B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } : undefined}
+                          className={isPopped ? "" : "font-medium text-sm text-text truncate"}
+                        >
+                          {card.name}
+                        </div>
+                        <div
+                          style={isPopped ? { fontSize: "10px", color: "#A1A1AA", fontFamily: "monospace", marginTop: "2px" } : undefined}
+                          className={isPopped ? "" : "font-mono text-xs text-text-dim mt-0.5"}
+                        >
+                          {card.code} · {card.rarity}
+                        </div>
+                      </div>
+                      <div style={isPopped ? { textAlign: "right", flexShrink: 0 } : undefined} className={isPopped ? "" : "text-right flex-none"}>
+                        {card.marketPrice != null && card.marketPrice > 0 ? (
+                          <div
+                            style={isPopped ? { fontFamily: "monospace", fontSize: "14px", fontWeight: 600, color: "#059669" } : undefined}
+                            className={isPopped ? "" : "font-mono text-sm font-semibold text-[#059669]"}
+                          >
+                            {fmt(card.marketPrice)}
+                          </div>
+                        ) : (
+                          <div
+                            style={isPopped ? { fontFamily: "monospace", fontSize: "12px", color: "#A1A1AA" } : undefined}
+                            className={isPopped ? "" : "font-mono text-xs text-text-dim"}
+                          >
+                            —
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div style={isPopped ? { textAlign: "right", flexShrink: 0 } : undefined} className={isPopped ? "" : "text-right flex-none"}>
-                      {card.marketPrice != null && card.marketPrice > 0 ? (
-                        <div
-                          style={isPopped ? { fontFamily: "monospace", fontSize: "14px", fontWeight: 600, color: "#059669" } : undefined}
-                          className={isPopped ? "" : "font-mono text-sm font-semibold text-[#059669]"}
-                        >
-                          {fmt(card.marketPrice)}
-                        </div>
-                      ) : (
-                        <div
-                          style={isPopped ? { fontFamily: "monospace", fontSize: "12px", color: "#A1A1AA" } : undefined}
-                          className={isPopped ? "" : "font-mono text-xs text-text-dim"}
-                        >
-                          —
-                        </div>
-                      )}
-                    </div>
-                    {/* Remove button */}
+                    {/* Remove button — completely separate from card click area */}
                     <button
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                      onClick={() => {
                         const ts = card.detectedAt;
                         setDetected((prev) => prev.filter((d) => d.detectedAt !== ts));
                       }}
                       style={isPopped ? {
-                        background: "none", border: "1px solid rgba(0,0,0,0.15)", color: "#71717A", cursor: "pointer",
-                        fontSize: "16px", padding: "4px 10px", flexShrink: 0, lineHeight: 1, borderRadius: "8px",
+                        background: "rgba(0,0,0,0.05)", border: "none", color: "#71717A", cursor: "pointer",
+                        fontSize: "18px", width: "28px", height: "28px", flexShrink: 0, lineHeight: 1,
+                        borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center",
                       } : undefined}
-                      className={isPopped ? "" : "text-text-dim hover:text-text border border-[rgba(0,0,0,0.1)] rounded-lg text-base px-2.5 py-1 flex-none active:opacity-70 transition-colors"}
-                      title="Remove"
+                      className={isPopped ? "" : "w-8 h-8 flex items-center justify-center bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] rounded-lg text-text-dim hover:text-text text-lg flex-none active:opacity-70 transition-colors"}
                     >
                       ×
                     </button>
