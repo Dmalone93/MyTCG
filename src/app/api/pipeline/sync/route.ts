@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     stats.catalogCards = catalog.length;
 
     // Batch upsert in chunks of 100
-    const BATCH_SIZE = 100;
+    const BATCH_SIZE = 20; // Neon param limit ~32K, 20 cards × 16 fields = 320 params
     for (let i = 0; i < catalog.length; i += BATCH_SIZE) {
       const batch = catalog.slice(i, i + BATCH_SIZE).filter((c) => c.cardSetId && c.cardName);
 
