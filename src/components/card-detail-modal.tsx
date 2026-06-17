@@ -249,7 +249,7 @@ export function CardDetailModal({
               )}
 
               {/* Buy links with logos */}
-              <div className="px-4 sm:px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
+              <div className="px-4 sm:px-5 py-4">
                 <div className="text-xs text-text-dim uppercase tracking-wider mb-3">Buy this card</div>
                 <div className="flex gap-2">
                   <a
