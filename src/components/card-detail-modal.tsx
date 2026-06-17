@@ -45,20 +45,34 @@ export function CardDetailModal({
   const [notes, setNotes] = useState(card.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [ext, setExt] = useState<ExtData | null>(null);
+  const [catalogData, setCatalogData] = useState<{ rarity: string; cardColor: string; cardType: string; cardCost: string; cardPower: string; setName: string } | null>(null);
 
   useEffect(() => {
     setExt(null);
+    setCatalogData(null);
+
+    // Try extended data first
     fetch(`/api/card-info?code=${encodeURIComponent(card.cardCode)}`)
       .then((r) => { if (!r.ok) throw new Error("not found"); return r.json(); })
       .then((data) => { if (data?.card) setExt(data); })
       .catch(() => {
-        const alt = card.cardCode.toUpperCase().replace(/\s/g, "");
-        if (alt !== card.cardCode) {
-          fetch(`/api/card-info?code=${encodeURIComponent(alt)}`)
-            .then((r) => r.ok ? r.json() : null)
-            .then((data) => { if (data?.card) setExt(data); })
-            .catch(() => {});
-        }
+        // Fallback: get basic data from catalog search
+        fetch(`/api/search-cards?q=${encodeURIComponent(card.cardCode)}`)
+          .then((r) => r.ok ? r.json() : [])
+          .then((cards: Array<Record<string, string>>) => {
+            const match = cards.find((c: Record<string, string>) => c.cardSetId === card.cardCode);
+            if (match) {
+              setCatalogData({
+                rarity: match.rarity ?? "",
+                cardColor: match.cardColor ?? "",
+                cardType: match.cardType ?? "",
+                cardCost: match.cardCost ?? "",
+                cardPower: match.cardPower ?? "",
+                setName: match.setName ?? "",
+              });
+            }
+          })
+          .catch(() => {});
       });
   }, [card.cardCode]);
 
@@ -79,14 +93,15 @@ export function CardDetailModal({
 
   const inputClass = "bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-lg px-3 py-2.5 text-sm text-text focus:outline-2 focus:outline-accent";
 
+  const cat = catalogData;
   const dataRows: Array<{ label: string; value: string | null | undefined }> = [
-    { label: "Type", value: c?.traits },
-    { label: "Category", value: c?.type },
-    { label: "Product", value: c?.setName },
-    { label: "Color", value: c?.color },
-    { label: "Rarity", value: c?.rarity },
-    { label: "Cost", value: c?.cost != null ? String(c.cost) : null },
-    { label: "Power", value: c?.power != null ? String(c.power) : null },
+    { label: "Type", value: c?.traits || null },
+    { label: "Category", value: (c?.type ?? cat?.cardType) || null },
+    { label: "Product", value: (c?.setName ?? cat?.setName) || null },
+    { label: "Color", value: (c?.color ?? cat?.cardColor) || null },
+    { label: "Rarity", value: (c?.rarity ?? cat?.rarity) || null },
+    { label: "Cost", value: c?.cost != null ? String(c.cost) : (cat?.cardCost || null) },
+    { label: "Power", value: c?.power != null ? String(c.power) : (cat?.cardPower || null) },
     { label: "Counter", value: c?.counterPower != null ? String(c.counterPower) : null },
     { label: "Life", value: c?.life != null ? String(c.life) : null },
   ];
@@ -176,7 +191,7 @@ export function CardDetailModal({
                     <div className="text-sm text-text leading-relaxed">{c.effect}</div>
                   </div>
                 )}
-                {!ext && (
+                {!ext && !catalogData && (
                   <div className="px-4 py-4 space-y-3 animate-pulse">
                     <div className="h-4 w-24 bg-[#E4E4E7] rounded" />
                     <div className="h-4 w-full bg-[#E4E4E7] rounded" />
