@@ -238,18 +238,6 @@ export function CollectionShell({
           >
             +
           </button>
-          <div className="flex-1" />
-          {activeId && (
-            <button
-              onClick={() => setShowQR(true)}
-              className="px-2 py-2 text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
-              title="Share collection"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
-            </button>
-          )}
         </div>
       </div>
 
@@ -298,7 +286,7 @@ export function CollectionShell({
 
       {/* Collection value hero — same pattern as portfolio on home */}
       {active && (
-        <CollectionValueHero cards={cards} prices={prices} cardCount={cards.length} createdAt={active.createdAt} />
+        <CollectionValueHero cards={cards} prices={prices} cardCount={cards.length} createdAt={active.createdAt} onShare={() => setShowQR(true)} />
       )}
 
       {active ? (
@@ -333,11 +321,12 @@ export function CollectionShell({
 }
 
 /** Portfolio-style value display for a single collection */
-function CollectionValueHero({ cards, prices, cardCount, createdAt }: {
+function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare }: {
   cards: CollectionCard[];
   prices: Record<string, CardPrice>;
   cardCount: number;
   createdAt: Date | null;
+  onShare?: () => void;
 }) {
   const { formatPrice } = useRegion();
 
@@ -355,8 +344,21 @@ function CollectionValueHero({ cards, prices, cardCount, createdAt }: {
   const plPct = totalSpent > 0 ? (pl / totalSpent) * 100 : 0;
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-[rgba(0,0,0,0.06)] mt-3 mb-4">
-      <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Collection value</div>
+    <div className="bg-white rounded-2xl p-5 border border-[rgba(0,0,0,0.06)] mt-3 mb-4 relative">
+      <div className="flex items-start justify-between mb-2">
+        <div className="text-xs text-text-dim uppercase tracking-wider">Collection value</div>
+        {onShare && (
+          <button
+            onClick={onShare}
+            className="text-text-dim hover:text-text active:opacity-70 transition-colors p-1 -mt-1 -mr-1"
+            title="Share collection"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+          </button>
+        )}
+      </div>
       <div className="font-mono text-3xl font-bold text-text leading-tight">
         {totalValue > 0 ? formatPrice(totalValue) : "—"}
       </div>
