@@ -312,7 +312,8 @@ export default function SearchPage() {
           </button>
         </div>
 
-        {/* Filter chips */}
+        {/* Browse filters */}
+        <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Browse by</div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {(["set", "color", "rarity", "type"] as FilterKey[]).map((key) => {
             const isActive = filters[key] !== null;
@@ -327,7 +328,7 @@ export default function SearchPage() {
                     ? "bg-text text-bg font-medium"
                     : isParsed
                     ? "bg-bg-surface text-text font-medium border border-text/20"
-                    : "bg-bg-surface text-text-dim hover:text-text border border-transparent"
+                    : "bg-white text-text border border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.2)]"
                 }`}
               >
                 {key === "color" && (isActive || isParsed) && (
@@ -467,12 +468,12 @@ export default function SearchPage() {
       )}
 
       {!dataLoading && !hasAnyInput && (
-        <div className="py-10 flex flex-col items-center text-center">
-          <img src="/op-search.svg" alt="" className="w-40 h-40 mb-4 opacity-80" />
-          <div className="text-text-dim text-base mb-2">Find any card</div>
-          <div className="text-sm text-text-muted max-w-[280px] mx-auto">
-            Type a name, set code, color, or rarity — or use the filters above to browse
+        <div className="flex flex-col items-center text-center pt-8 pb-4">
+          <div className="text-text-dim text-base mb-1">Search or browse</div>
+          <div className="text-sm text-text-muted max-w-[280px] mx-auto mb-8">
+            Type a card name or code above, or tap a filter to start browsing
           </div>
+          <img src="/op-search.svg" alt="" className="w-32 h-32 opacity-40" />
         </div>
       )}
 

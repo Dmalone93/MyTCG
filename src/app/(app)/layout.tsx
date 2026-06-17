@@ -14,10 +14,11 @@ export default function AppLayout({
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3">
           {/* Mobile: browse left, logo center, search right */}
-          <Link href="/browse" className="sm:hidden p-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Link href="/browse" className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
             </svg>
+            <span className="text-xs font-medium">Browse</span>
           </Link>
 
           {/* Desktop: logo left */}
@@ -35,15 +36,16 @@ export default function AppLayout({
           <span className="hidden sm:contents"><NavLinks /></span>
           <div className="hidden sm:block flex-1" />
 
-          {/* Mobile search icon */}
+          {/* Mobile search */}
           <Link
             href="/search"
-            className="sm:hidden p-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
+            className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
+            <span className="text-xs font-medium">Search</span>
           </Link>
 
           {/* Desktop search */}
