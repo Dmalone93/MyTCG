@@ -18,6 +18,10 @@ function normalize(raw: Record<string, unknown>): CatalogCard | null {
     cardType: String(raw.card_type ?? ""),
     cardCost: String(raw.card_cost ?? ""),
     cardPower: String(raw.card_power ?? ""),
+    cardText: String(raw.card_text ?? ""),
+    subTypes: String(raw.sub_types ?? ""),
+    life: String(raw.life ?? ""),
+    counterAmount: String(raw.counter_amount ?? ""),
     imageUrl: raw.card_image
       ? String(raw.card_image)
       : `https://optcgapi.com/media/static/Card_Images/${id}.jpg`,

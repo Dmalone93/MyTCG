@@ -408,6 +408,10 @@ export function ScanModal({
       cardType: "",
       cardCost: "",
       cardPower: "",
+      cardText: "",
+      subTypes: "",
+      life: "",
+      counterAmount: "",
       imageUrl: s.variant.img,
       marketPrice: null,
       inventoryPrice: null,
@@ -431,7 +435,7 @@ export function ScanModal({
           const localCards = local.map((c) => ({
             cardSetId: c.id, cardName: c.n, setName: "", setId: "",
             rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
-            cardPower: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+            cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
           }));
           setMatchedCards(localCards);
           setStatus(`Matched: ${local[0].n}`);
@@ -464,7 +468,7 @@ export function ScanModal({
       setMatchedCards(local.slice(0, 5).map((c) => ({
         cardSetId: c.id, cardName: c.n, setName: "", setId: "",
         rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
-        cardPower: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+        cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
       })));
     }
   }

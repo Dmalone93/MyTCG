@@ -35,6 +35,10 @@ export function CardDataSheet({
   cardType: initialType,
   cardCost: initialCost,
   cardPower: initialPower,
+  cardText: initialCardText,
+  subTypes: initialSubTypes,
+  life: initialLife,
+  counterAmount: initialCounter,
   setName: initialSet,
   onClose,
 }: {
@@ -47,6 +51,10 @@ export function CardDataSheet({
   cardType?: string;
   cardCost?: string;
   cardPower?: string;
+  cardText?: string;
+  subTypes?: string;
+  life?: string;
+  counterAmount?: string;
   setName?: string;
   onClose: () => void;
 }) {
@@ -61,6 +69,8 @@ export function CardDataSheet({
   const [catalogProps, setCatalogProps] = useState({
     rarity: initialRarity, color: initialColor, type: initialType,
     cost: initialCost, power: initialPower, setName: initialSet,
+    cardText: initialCardText, subTypes: initialSubTypes,
+    life: initialLife, counterAmount: initialCounter,
   });
 
   const [ext, setExt] = useState<ExtData | null>(null);
@@ -96,11 +106,11 @@ export function CardDataSheet({
   const dRarity = c?.rarity ?? catalogProps.rarity ?? null;
   const dCost = c?.cost ?? (catalogProps.cost ? Number(catalogProps.cost) : null);
   const dPower = c?.power ?? (catalogProps.power ? Number(catalogProps.power) : null);
-  const dLife = c?.life ?? null;
-  const dCounter = c?.counterPower ?? null;
-  const dTraits = c?.traits ?? null;
+  const dLife = c?.life ?? (catalogProps.life ? Number(catalogProps.life) : null);
+  const dCounter = c?.counterPower ?? (catalogProps.counterAmount ? Number(catalogProps.counterAmount) : null);
+  const dTraits = c?.traits ?? catalogProps.subTypes ?? null;
   const dSetName = c?.setName ?? catalogProps.setName ?? null;
-  const dEffect = c?.effect ?? null;
+  const dEffect = c?.effect ?? catalogProps.cardText ?? null;
   const dAltArt = c?.altArt ?? null;
 
   // Navigate to a synergy card
@@ -110,7 +120,7 @@ export function CardDataSheet({
     setCardName(syn.name);
     setImageUrl(syn.imageUrl);
     setMarketPrice(null);
-    setCatalogProps({ rarity: undefined, color: undefined, type: undefined, cost: undefined, power: undefined, setName: undefined });
+    setCatalogProps({ rarity: undefined, color: undefined, type: undefined, cost: undefined, power: undefined, setName: undefined, cardText: undefined, subTypes: undefined, life: undefined, counterAmount: undefined });
   }
 
   function goBack() {

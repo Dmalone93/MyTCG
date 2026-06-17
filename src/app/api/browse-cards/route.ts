@@ -49,6 +49,10 @@ export async function GET() {
       cardType,
       cardCost: ext?.cost != null ? String(ext.cost) : c.cardCost,
       cardPower: ext?.power != null ? String(ext.power) : c.cardPower,
+      cardText: ext?.effect ?? c.cardText,
+      subTypes: ext?.traits ?? c.subTypes,
+      life: ext?.life != null ? String(ext.life) : c.life,
+      counterAmount: ext?.counterPower != null ? String(ext.counterPower) : c.counterAmount,
       imageUrl: ext?.imageUrl ?? c.imageUrl,
       marketPrice: priceMap.get(c.cardSetId.toUpperCase()) ?? c.marketPrice ?? null,
     };

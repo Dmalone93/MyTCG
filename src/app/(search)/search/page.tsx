@@ -452,6 +452,10 @@ export default function SearchPage() {
           cardType={selectedCard.cardType}
           cardCost={selectedCard.cardCost}
           cardPower={selectedCard.cardPower}
+          cardText={selectedCard.cardText}
+          subTypes={selectedCard.subTypes}
+          life={selectedCard.life}
+          counterAmount={selectedCard.counterAmount}
           setName={selectedCard.setName}
           onClose={() => setSelectedCard(null)}
         />
