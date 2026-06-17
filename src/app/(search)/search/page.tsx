@@ -521,7 +521,77 @@ export default function SearchPage() {
         <div className="py-12 text-center text-text-dim text-sm animate-pulse">Loading cards...</div>
       )}
 
-      {!dataLoading && !hasAnyInput && (
+      {!dataLoading && !hasAnyInput && allCards.length > 0 && (() => {
+        const highValue = [...allCards]
+          .filter((c) => c.marketPrice != null && c.marketPrice > 0)
+          .sort((a, b) => (b.marketPrice ?? 0) - (a.marketPrice ?? 0))
+          .slice(0, 15);
+
+        // "Trending" = cards from the latest set with highest prices
+        const latestSet = filterMeta?.sets?.length ? filterMeta.sets[filterMeta.sets.length - 1]?.id : null;
+        const trending = latestSet
+          ? [...allCards]
+              .filter((c) => c.setId === latestSet && c.marketPrice != null && c.marketPrice > 0)
+              .sort((a, b) => (b.marketPrice ?? 0) - (a.marketPrice ?? 0))
+              .slice(0, 15)
+          : [];
+
+        return (
+          <div className="space-y-6 mt-2">
+            {/* Highest value */}
+            {highValue.length > 0 && (
+              <div>
+                <div className="text-xs text-text-dim uppercase tracking-wider mb-3">Highest value</div>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                  {highValue.map((card, i) => (
+                    <button
+                      key={card.cardSetId + i}
+                      onClick={() => setSelectedCard(card)}
+                      className="flex-none w-[100px] text-left active:opacity-80 transition-opacity"
+                    >
+                      <div className="aspect-[63/88] rounded-xl overflow-hidden bg-[#E4E4E7] mb-1.5">
+                        <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                      <div className="text-xs font-medium text-text truncate">{card.cardName}</div>
+                      <div className="font-mono text-xs text-[#059669]">{formatPrice(card.marketPrice!)}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trending — latest set */}
+            {trending.length > 0 && (
+              <div>
+                <div className="text-xs text-text-dim uppercase tracking-wider mb-3">
+                  Trending · {latestSet}
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+                  {trending.map((card, i) => (
+                    <button
+                      key={card.cardSetId + i}
+                      onClick={() => setSelectedCard(card)}
+                      className="flex-none w-[100px] text-left active:opacity-80 transition-opacity"
+                    >
+                      <div className="aspect-[63/88] rounded-xl overflow-hidden bg-[#E4E4E7] mb-1.5">
+                        <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                      <div className="text-xs font-medium text-text truncate">{card.cardName}</div>
+                      <div className="font-mono text-xs text-[#059669]">{formatPrice(card.marketPrice!)}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-center pb-4">
+              <img src="/op-search.svg" alt="" className="w-24 h-24 opacity-30" />
+            </div>
+          </div>
+        );
+      })()}
+
+      {!dataLoading && !hasAnyInput && allCards.length === 0 && (
         <div className="flex flex-col items-center text-center pt-8 pb-4">
           <div className="text-text-dim text-base mb-1">Search or browse</div>
           <div className="text-sm text-text-muted max-w-[280px] mx-auto mb-8">
