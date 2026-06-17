@@ -10,13 +10,20 @@ import type { Listing } from "@/lib/listings/types";
 
 const listingProvider = new MockListingProvider();
 
-const SOURCE_BADGE: Record<string, { label: string; color: string }> = {
-  ebay: { label: "eBay", color: "#E53238" },
-  cardmarket: { label: "CM", color: "#1A1A6C" },
-  tcgplayer: { label: "TCP", color: "#3B82F6" },
+const SOURCE_INFO: Record<string, { logo: string; alt: string; height: number }> = {
+  ebay: { logo: "/logos/ebay.svg", alt: "eBay", height: 16 },
+  cardmarket: { logo: "/logos/cardmarket.svg", alt: "Cardmarket", height: 14 },
+  tcgplayer: { logo: "/logos/tcgplayer.svg", alt: "TCGplayer", height: 14 },
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "£", EUR: "€", USD: "$" };
+
+function daysAgo(dateStr: string): string {
+  const days = Math.round((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "1d ago";
+  return `${days}d ago`;
+}
 
 type PriceData = {
   market: number | null;
@@ -107,34 +114,59 @@ export function ScanResultScreen({
   const activeListings = listings.filter((l) => !l.soldDate);
   const soldListings = listings.filter((l) => l.soldDate);
 
-  function renderListing(listing: Listing, i: number) {
-    const badge = SOURCE_BADGE[listing.source];
+  function renderListing(listing: Listing, i: number, isCheapest: boolean = false) {
+    const info = SOURCE_INFO[listing.source];
     const sym = CURRENCY_SYMBOLS[listing.currency] ?? listing.currency;
+    const total = listing.price + (listing.shipping ?? 0);
+    const freeShipping = listing.shipping == null || listing.shipping === 0;
+
     return (
       <a
         key={i}
         href={listing.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2.5 bg-bg-surface rounded-xl px-3 py-2.5 active:opacity-80 transition-colors"
+        className={`flex items-center gap-3 rounded-xl px-3 py-3 active:opacity-80 transition-colors ${
+          isCheapest ? "bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.15)]" : "bg-bg-surface"
+        }`}
       >
-        <span
-          className="text-xs font-bold text-white px-1.5 py-0.5 rounded flex-none"
-          style={{ backgroundColor: badge.color }}
-        >
-          {badge.label}
-        </span>
-        <span className="text-sm text-text-dim flex-1 truncate">{listing.condition}</span>
+        {/* Source logo */}
+        <img
+          src={info.logo}
+          alt={info.alt}
+          style={{ height: info.height }}
+          className="flex-none w-[60px] object-contain object-left"
+        />
+
+        {/* Condition + shipping */}
+        <div className="flex-1 min-w-0">
+          <div className="text-sm text-text">{listing.condition}</div>
+          <div className="text-xs text-text-dim">
+            {freeShipping ? (
+              <span className="text-[#059669]">Free shipping</span>
+            ) : (
+              <span>+{sym}{listing.shipping!.toFixed(2)} shipping</span>
+            )}
+          </div>
+        </div>
+
+        {/* Price + total */}
         <div className="text-right flex-none">
-          <span className="font-mono text-sm font-semibold text-text">
-            {sym}{listing.price.toFixed(2)}
-          </span>
-          {listing.shipping != null && listing.shipping > 0 && (
-            <span className="text-xs text-text-dim ml-1">+{sym}{listing.shipping.toFixed(2)}</span>
+          <div className="font-mono text-sm font-semibold text-text">
+            {sym}{total.toFixed(2)}
+          </div>
+          {!freeShipping && (
+            <div className="font-mono text-xs text-text-dim">
+              {sym}{listing.price.toFixed(2)} + ship
+            </div>
           )}
         </div>
+
+        {/* Sold date */}
         {listing.soldDate && (
-          <span className="text-xs text-text-dim flex-none">{listing.soldDate}</span>
+          <span className="text-xs text-text-dim flex-none w-[40px] text-right">
+            {daysAgo(listing.soldDate)}
+          </span>
         )}
       </a>
     );
@@ -199,28 +231,41 @@ export function ScanResultScreen({
       </div>
 
       {/* 3. Active listings */}
-      {activeListings.length > 0 && (
-        <div>
-          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Active listings</div>
-          <div className="space-y-1.5">
-            {activeListings
-              .sort((a, b) => a.price - b.price)
-              .map((l, i) => renderListing(l, i))}
+      {activeListings.length > 0 && (() => {
+        const sorted = [...activeListings].sort((a, b) =>
+          (a.price + (a.shipping ?? 0)) - (b.price + (b.shipping ?? 0))
+        );
+        const cheapestTotal = sorted[0] ? sorted[0].price + (sorted[0].shipping ?? 0) : 0;
+        return (
+          <div>
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Active listings</div>
+            <div className="space-y-1.5">
+              {sorted.map((l, i) => {
+                const total = l.price + (l.shipping ?? 0);
+                return renderListing(l, i, total === cheapestTotal);
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 4. Sold listings */}
-      {soldListings.length > 0 && (
-        <div>
-          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Recently sold</div>
-          <div className="space-y-1.5">
-            {soldListings
-              .sort((a, b) => (b.soldDate ?? "").localeCompare(a.soldDate ?? ""))
-              .map((l, i) => renderListing(l, i + 100))}
+      {soldListings.length > 0 && (() => {
+        const sorted = [...soldListings].sort((a, b) => (b.soldDate ?? "").localeCompare(a.soldDate ?? ""));
+        const avgSold = soldListings.reduce((s, l) => s + l.price + (l.shipping ?? 0), 0) / soldListings.length;
+        const sym = CURRENCY_SYMBOLS[soldListings[0].currency] ?? soldListings[0].currency;
+        return (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-text-dim uppercase tracking-wider">Recently sold</span>
+              <span className="font-mono text-xs text-text-dim">Avg {sym}{avgSold.toFixed(2)}</span>
+            </div>
+            <div className="space-y-1.5">
+              {sorted.map((l, i) => renderListing(l, i + 100))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 5. Recent market price chart */}
       {history && history.points.length >= 2 && (
