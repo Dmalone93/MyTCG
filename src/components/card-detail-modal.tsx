@@ -8,6 +8,20 @@ import { GradingROI } from "@/components/grading-roi";
 import { useRegion } from "@/components/region-selector";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
+function renderEffect(text: string) {
+  const parts = text.split(/(\[[^\]]+\])/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("[") && part.endsWith("]")) {
+      return (
+        <span key={i} className="inline-flex items-center bg-[rgba(0,0,0,0.06)] text-text font-medium text-xs px-1.5 py-0.5 rounded mx-0.5 align-middle">
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
   const n = typeof v === "string" ? parseFloat(v) : v;
@@ -214,7 +228,7 @@ export function CardDetailModal({
               {dEffect && (
                 <div className="px-4 sm:px-5 py-4">
                   <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">Effect</div>
-                  <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3 whitespace-pre-line">{dEffect}</div>
+                  <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3 whitespace-pre-line">{renderEffect(dEffect)}</div>
                 </div>
               )}
 

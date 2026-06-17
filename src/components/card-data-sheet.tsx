@@ -25,6 +25,21 @@ type ExtData = {
   synergies: Array<{ cid: string; name: string; imageUrl: string }>;
 };
 
+/** Render effect text with [bracketed values] as pills */
+function renderEffect(text: string) {
+  const parts = text.split(/(\[[^\]]+\])/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("[") && part.endsWith("]")) {
+      return (
+        <span key={i} className="inline-flex items-center bg-[rgba(0,0,0,0.06)] text-text font-medium text-xs px-1.5 py-0.5 rounded mx-0.5 align-middle">
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 export function CardDataSheet({
   cardCode: initialCode,
   cardName: initialName,
@@ -224,7 +239,7 @@ export function CardDataSheet({
             <div className="px-4 py-4">
               <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">Effect</div>
               <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3 whitespace-pre-line">
-                {dEffect}
+                {renderEffect(dEffect)}
               </div>
             </div>
           )}
