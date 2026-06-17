@@ -584,8 +584,12 @@ export default function SearchPage() {
               </div>
             )}
 
-            <div className="flex justify-center pb-4">
-              <img src="/op-search.svg" alt="" className="w-24 h-24 opacity-30" />
+            <div className="flex flex-col items-center pb-4">
+              <img src="/op-search.svg" alt="" className="w-24 h-24 opacity-30 mb-3" />
+              <p className="text-sm text-text-dim/50 italic max-w-[300px] text-center leading-relaxed">
+                &ldquo;Dreams are immortal. We carry them with us and even pass them on, intangible but impervious.&rdquo;
+              </p>
+              <p className="text-xs text-text-dim/40 mt-1">— Blackbeard</p>
             </div>
           </div>
         );
