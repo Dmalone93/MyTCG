@@ -68,10 +68,18 @@ export default function BrowsePage() {
         setAllCards(data.cards ?? []);
         const meta = data.filters ?? null;
         setFilterMeta(meta);
-        // Auto-select the latest set so there's something to see
+        // Auto-select the latest OP-XX booster set
         if (meta?.sets?.length > 0) {
-          const latestSet = meta.sets[meta.sets.length - 1];
-          setFilters((prev) => ({ ...prev, set: latestSet.id }));
+          const opSets = meta.sets
+            .filter((s: { id: string }) => /^OP-\d+$/i.test(s.id))
+            .sort((a: { id: string }, b: { id: string }) => {
+              const numA = parseInt(a.id.match(/\d+/)?.[0] ?? "0");
+              const numB = parseInt(b.id.match(/\d+/)?.[0] ?? "0");
+              return numB - numA;
+            });
+          if (opSets.length > 0) {
+            setFilters((prev) => ({ ...prev, set: opSets[0].id }));
+          }
         }
       })
       .catch(() => {})
