@@ -68,20 +68,33 @@ export default async function HomePage() {
     }
   }
 
-  // Get card thumbnails per collection
-  const thumbCards = userCards.length > 0
-    ? await db.select({ collectionId: collectionCards.collectionId, imageUrl: collectionCards.imageUrl })
+  // Get card thumbnails + per-collection value
+  let priceMap = new Map<string, number>();
+  if (userCards.length > 0) {
+    const codes = [...new Set(userCards.map((c) => c.cardCode))];
+    const prices = await db.select().from(cardPrices).where(inArray(cardPrices.cardCode, codes));
+    priceMap = new Map(prices.map((p) => [p.cardCode, Number(p.rawMarket ?? 0)]));
+  }
+
+  const allCards = userCards.length > 0
+    ? await db.select({ collectionId: collectionCards.collectionId, cardCode: collectionCards.cardCode, quantity: collectionCards.quantity, imageUrl: collectionCards.imageUrl })
         .from(collectionCards)
         .where(eq(collectionCards.userId, user.id))
-        .limit(100)
     : [];
 
   const thumbMap = new Map<string, string[]>();
-  for (const tc of thumbCards) {
-    if (!tc.imageUrl) continue;
-    const arr = thumbMap.get(tc.collectionId) ?? [];
-    if (arr.length < 3) arr.push(tc.imageUrl);
-    thumbMap.set(tc.collectionId, arr);
+  const valueMap = new Map<string, number>();
+  for (const tc of allCards) {
+    // Thumbnails
+    if (tc.imageUrl) {
+      const arr = thumbMap.get(tc.collectionId) ?? [];
+      if (arr.length < 3) arr.push(tc.imageUrl);
+      thumbMap.set(tc.collectionId, arr);
+    }
+    // Value
+    const price = priceMap.get(tc.cardCode) ?? 0;
+    const qty = tc.quantity ?? 1;
+    valueMap.set(tc.collectionId, (valueMap.get(tc.collectionId) ?? 0) + price * qty);
   }
 
   const countMap = new Map(cardCounts.map((c) => [c.collectionId, c.count]));
@@ -91,6 +104,7 @@ export default async function HomePage() {
     createdAt: col.createdAt,
     cardCount: countMap.get(col.id) ?? 0,
     thumbnails: thumbMap.get(col.id) ?? [],
+    totalValue: valueMap.get(col.id) ?? 0,
   }));
 
   return (
