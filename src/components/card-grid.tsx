@@ -8,6 +8,7 @@ import { ScanModal } from "./scan-modal";
 import { CardDetailModal } from "./card-detail-modal";
 import { ContextMenu } from "./context-menu";
 import { useLongPress } from "@/hooks/use-long-press";
+import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import type { CatalogCard } from "@/lib/catalog/types";
 
 function fmt(n: number): string {
@@ -83,6 +84,7 @@ export function CardGrid({
     x: number;
     y: number;
   } | null>(null);
+  const collectionPickerSwipe = useSwipeDismiss(() => setPendingCards(null));
   const [pendingCards, setPendingCards] = useState<CatalogCard[] | null>(null);
 
   async function addCardsToCollection(cards: CatalogCard[]) {
@@ -381,8 +383,10 @@ export function CardGrid({
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setPendingCards(null)}>
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
           <div
+            ref={collectionPickerSwipe.ref}
             className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
+            {...collectionPickerSwipe.handlers}
           >
             <div className="sm:hidden flex justify-center pt-2 pb-1">
               <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />

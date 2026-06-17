@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import type { CollectionCard, CardPrice } from "./collection-shell";
 import { PriceChart } from "@/lib/charts/price-chart";
 import { LivePriceBadge } from "@/components/live-price-badge";
@@ -34,6 +35,7 @@ export function CardDetailModal({
   onDelete: (id: string) => Promise<void>;
 }) {
   const { formatPrice } = useRegion();
+  const swipe = useSwipeDismiss(onClose);
   const [editing, setEditing] = useState(false);
   const [quantity, setQuantity] = useState(card.quantity ?? 1);
   const [condition, setCondition] = useState(card.condition ?? "NM");
@@ -94,8 +96,10 @@ export function CardDetailModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
+        ref={swipe.ref}
         className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
+        {...swipe.handlers}
       >
         {/* Drag handle (mobile) */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">

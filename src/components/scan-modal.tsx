@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CatalogCard } from "@/lib/catalog/types";
+import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import { ScanResultScreen } from "./scan-result-screen";
 import { CardPicker } from "./card-picker";
 import { useRegion } from "./region-selector";
@@ -95,8 +96,9 @@ export function ScanModal({
   const [matchedCards, setMatchedCards] = useState<CatalogCard[]>([]);
   const [resultCard, setResultCard] = useState<CatalogCard | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
-  const wasRescannedRef = useRef(false); // After rescan, don't auto-lock — show candidate list
+  const wasRescannedRef = useRef(false);
   const { formatPrice } = useRegion();
+  const swipe = useSwipeDismiss(onClose);
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -477,8 +479,10 @@ export function ScanModal({
     >
       <div className="absolute inset-0 bg-white/70 backdrop-blur-sm" />
       <div
+        ref={swipe.ref}
         className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
+        {...swipe.handlers}
       >
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />

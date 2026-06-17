@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import { PriceChart } from "@/lib/charts/price-chart";
 import { LivePriceBadge } from "@/components/live-price-badge";
 
@@ -40,6 +41,7 @@ export function CardDataSheet({
   marketPrice?: number | null;
   onClose: () => void;
 }) {
+  const swipe = useSwipeDismiss(onClose);
   const [ext, setExt] = useState<ExtData | null>(null);
 
   useEffect(() => {
@@ -71,8 +73,10 @@ export function CardDataSheet({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
+        ref={swipe.ref}
         className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
+        {...swipe.handlers}
       >
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
