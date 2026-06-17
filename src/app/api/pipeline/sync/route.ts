@@ -34,7 +34,11 @@ export async function POST(request: Request) {
 
       if (batch.length === 0) continue;
 
-      const values = batch.map((card) => ({
+      // Deduplicate by ID within batch (alt arts share same cardSetId)
+      const deduped = new Map<string, typeof batch[0]>();
+      for (const card of batch) deduped.set(card.cardSetId, card);
+
+      const values = [...deduped.values()].map((card) => ({
         id: card.cardSetId,
         name: card.cardName,
         setId: card.setId || null,
@@ -74,7 +78,7 @@ export async function POST(request: Request) {
             updatedAt: sql`now()`,
           },
         });
-        stats.upserted += batch.length;
+        stats.upserted += deduped.size;
       } catch (e) {
         stats.errors.push(`Batch ${i}: ${e instanceof Error ? e.message : "unknown"}`);
       }
