@@ -1,21 +1,20 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { collections, collectionCards, intelItems, dealAlerts } from "@/lib/db/schema";
-import { eq, desc, count } from "drizzle-orm";
+import { collections, collectionCards, cardPrices, intelItems, dealAlerts } from "@/lib/db/schema";
+import { eq, desc, count, inArray } from "drizzle-orm";
 import { HomeDashboard } from "@/components/home-dashboard";
 
 export default async function HomePage() {
   const user = await currentUser();
   if (!user) redirect("/login");
 
-  const [userCollections, cardCounts, recentIntel, recentDeals] = await Promise.all([
+  const [userCollections, cardCounts, userCards, recentIntel, recentDeals] = await Promise.all([
     db.select()
       .from(collections)
       .where(eq(collections.userId, user.id))
       .orderBy(collections.sortOrder, collections.createdAt),
 
-    // Card counts per collection
     db.select({
       collectionId: collectionCards.collectionId,
       count: count(),
@@ -23,6 +22,15 @@ export default async function HomePage() {
       .from(collectionCards)
       .where(eq(collectionCards.userId, user.id))
       .groupBy(collectionCards.collectionId),
+
+    // All user's cards for portfolio calculation
+    db.select({
+      cardCode: collectionCards.cardCode,
+      quantity: collectionCards.quantity,
+      acquiredPrice: collectionCards.acquiredPrice,
+    })
+      .from(collectionCards)
+      .where(eq(collectionCards.userId, user.id)),
 
     db.select({
       id: intelItems.id,
@@ -40,7 +48,22 @@ export default async function HomePage() {
       .limit(3),
   ]);
 
-  // Merge card counts into collections
+  // Calculate portfolio value from card_prices
+  let totalValue = 0;
+  let totalSpent = 0;
+  if (userCards.length > 0) {
+    const codes = [...new Set(userCards.map((c) => c.cardCode))];
+    const prices = await db.select().from(cardPrices).where(inArray(cardPrices.cardCode, codes));
+    const priceMap = new Map(prices.map((p) => [p.cardCode, Number(p.rawMarket ?? 0)]));
+
+    for (const card of userCards) {
+      const qty = card.quantity ?? 1;
+      const price = priceMap.get(card.cardCode) ?? 0;
+      totalValue += price * qty;
+      totalSpent += Number(card.acquiredPrice ?? 0) * qty;
+    }
+  }
+
   const countMap = new Map(cardCounts.map((c) => [c.collectionId, c.count]));
   const collectionsWithCounts = userCollections.map((col) => ({
     id: col.id,
@@ -52,6 +75,8 @@ export default async function HomePage() {
   return (
     <HomeDashboard
       collections={collectionsWithCounts}
+      portfolioValue={totalValue}
+      portfolioSpent={totalSpent}
       recentIntel={recentIntel}
       recentDeals={recentDeals}
     />

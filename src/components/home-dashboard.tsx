@@ -37,10 +37,14 @@ type PortfolioData = {
 
 export function HomeDashboard({
   collections,
+  portfolioValue,
+  portfolioSpent,
   recentIntel,
   recentDeals,
 }: {
   collections: CollectionSummary[];
+  portfolioValue: number;
+  portfolioSpent: number;
   recentIntel: IntelItem[];
   recentDeals: Deal[];
 }) {
@@ -55,33 +59,29 @@ export function HomeDashboard({
   }, []);
 
   const totalCards = collections.reduce((s, c) => s + (c.cardCount ?? 0), 0);
-  const portfolioValue = portfolio?.points?.length ? portfolio.points[portfolio.points.length - 1].value : null;
-  const prevValue = portfolio?.points?.length && portfolio.points.length > 1 ? portfolio.points[portfolio.points.length - 2].value : null;
-  const dayChange = portfolioValue != null && prevValue != null ? portfolioValue - prevValue : null;
-  const dayPct = dayChange != null && prevValue ? (dayChange / prevValue) * 100 : null;
-  const isUp = dayChange != null ? dayChange >= 0 : true;
+  const pl = portfolioValue - portfolioSpent;
+  const plPct = portfolioSpent > 0 ? (pl / portfolioSpent) * 100 : 0;
 
   return (
     <div className="space-y-6">
       {/* Portfolio hero */}
       <div>
         <div className="text-xs text-text-dim uppercase tracking-wider mb-1">Portfolio value</div>
-        {portfolioValue != null ? (
-          <div>
-            <div className="font-mono text-3xl font-bold text-text">{formatPrice(portfolioValue)}</div>
-            {dayChange != null && (
-              <div className={`font-mono text-sm font-semibold mt-0.5 ${isUp ? "text-[#059669]" : "text-[#DC2626]"}`}>
-                {isUp ? "+" : ""}{formatPrice(dayChange)} ({isUp ? "+" : ""}{dayPct?.toFixed(1)}%)
-              </div>
-            )}
-            {portfolio && portfolio.points.length > 2 && (
-              <div className="mt-3">
-                <Sparkline data={portfolio.points.map((p) => p.value)} height={60} />
-              </div>
-            )}
+        <div className="font-mono text-3xl font-bold text-text">
+          {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
+        </div>
+        {portfolioSpent > 0 && portfolioValue > 0 && (
+          <div className="flex items-center gap-3 mt-1">
+            <span className="text-sm text-text-dim">Spent {formatPrice(portfolioSpent)}</span>
+            <span className={`font-mono text-sm font-semibold ${pl >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
+              {pl >= 0 ? "+" : ""}{formatPrice(pl)} ({pl >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
+            </span>
           </div>
-        ) : (
-          <div className="font-mono text-3xl font-bold text-text-dim">—</div>
+        )}
+        {portfolio && portfolio.points.length > 2 && (
+          <div className="mt-3">
+            <Sparkline data={portfolio.points.map((p) => p.value)} height={60} />
+          </div>
         )}
       </div>
 
