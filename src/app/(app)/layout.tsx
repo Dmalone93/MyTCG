@@ -20,12 +20,20 @@ export default function AppLayout({
           <span className="hidden sm:contents"><NavLinks /></span>
           <div className="hidden sm:block flex-1" />
 
-          {/* Mobile: logo centered */}
-          <div className="sm:hidden flex-1 flex justify-center">
-            <Link href="/">
-              <img src="/logo.svg" alt="MyTCG" className="h-8" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
-            </Link>
-          </div>
+          {/* Mobile: logo left, search pill right */}
+          <Link href="/" className="sm:hidden flex-none">
+            <img src="/logo.svg" alt="MyTCG" className="h-7" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
+          </Link>
+          <div className="sm:hidden flex-1" />
+          <Link
+            href="/search"
+            className="sm:hidden flex items-center gap-2 bg-white rounded-full px-3.5 py-2 text-text-dim text-sm border border-[rgba(0,0,0,0.06)] active:opacity-70 transition-all flex-none"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Search
+          </Link>
 
           {/* Desktop search */}
           <Link

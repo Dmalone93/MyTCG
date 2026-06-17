@@ -78,36 +78,45 @@ export function HomeDashboard({
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
       {/* ═══ PORTFOLIO HERO ═══ */}
-      <section className="bg-white rounded-2xl p-5 border border-[rgba(0,0,0,0.06)]">
-        <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Portfolio value</div>
-        <div className="font-mono text-4xl font-bold text-text leading-tight">
-          {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
-        </div>
-        {portfolioSpent > 0 && portfolioValue > 0 && (
-          <div className="flex items-center gap-4 mt-2">
-            <div>
-              <div className="text-xs text-text-dim">Spent</div>
-              <div className="font-mono text-sm text-text">{formatPrice(portfolioSpent)}</div>
+      <section className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="p-5 pb-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs text-text-dim uppercase tracking-wider">Portfolio value</div>
+            <div className="text-xs text-text-dim">
+              {totalCards} cards · {collections.length} collection{collections.length !== 1 ? "s" : ""}
             </div>
-            <div className="w-px h-8 bg-[rgba(0,0,0,0.08)]" />
-            <div>
-              <div className="text-xs text-text-dim">P/L</div>
-              <div className={`font-mono text-sm font-semibold ${pl >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
-                {pl >= 0 ? "+" : ""}{formatPrice(pl)} ({pl >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
+          </div>
+          <div className="font-mono text-4xl font-bold text-text leading-tight">
+            {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
+          </div>
+          {portfolioSpent > 0 && portfolioValue > 0 && (
+            <div className="flex items-center gap-4 mt-3">
+              <div>
+                <div className="text-xs text-text-dim">Spent</div>
+                <div className="font-mono text-sm text-text">{formatPrice(portfolioSpent)}</div>
+              </div>
+              <div className="w-px h-8 bg-[rgba(0,0,0,0.08)]" />
+              <div>
+                <div className="text-xs text-text-dim">P/L</div>
+                <div className={`font-mono text-sm font-semibold ${pl >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
+                  {pl >= 0 ? "+" : ""}{formatPrice(pl)} ({pl >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        {portfolio && portfolio.points.length > 2 && (
-          <div className="mt-4">
-            <Sparkline data={portfolio.points.map((p) => p.value)} height={60} />
-          </div>
-        )}
-        <div className="text-xs text-text-dim mt-3">
-          {totalCards} cards across {collections.length} collection{collections.length !== 1 ? "s" : ""}
+          )}
+        </div>
+        {/* Chart — always show area, sparkline if data available */}
+        <div className="px-5 pb-4">
+          {portfolio && portfolio.points.length > 2 ? (
+            <Sparkline data={portfolio.points.map((p) => p.value)} height={80} />
+          ) : (
+            <div className="h-[80px] bg-bg-surface rounded-lg flex items-center justify-center">
+              <span className="text-xs text-text-dim">Chart updates daily</span>
+            </div>
+          )}
         </div>
       </section>
 
