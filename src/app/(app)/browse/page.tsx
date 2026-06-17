@@ -66,7 +66,13 @@ export default function BrowsePage() {
       .then((r) => r.json())
       .then((data) => {
         setAllCards(data.cards ?? []);
-        setFilterMeta(data.filters ?? null);
+        const meta = data.filters ?? null;
+        setFilterMeta(meta);
+        // Auto-select the latest set so there's something to see
+        if (meta?.sets?.length > 0) {
+          const latestSet = meta.sets[meta.sets.length - 1];
+          setFilters((prev) => ({ ...prev, set: latestSet.id }));
+        }
       })
       .catch(() => {})
       .finally(() => setDataLoading(false));
