@@ -107,6 +107,65 @@ export const dealAlerts = pgTable("deal_alerts", {
   detectedAt: timestamp("detected_at", { mode: "date" }).defaultNow(),
 });
 
+// ═══ CARD CATALOG — variant-aware master registry ═══
+
+/** Base cards — one row per unique gameplay card (OP01-047, ST01-001, P-001 etc.) */
+export const cardCatalog = pgTable("card_catalog", {
+  id: text("id").primaryKey(), // collector number: OP01-047, P-001
+  name: text("name").notNull(),
+  setId: text("set_id"), // OP-01, ST-01, P (promos)
+  setName: text("set_name"),
+  cardType: text("card_type"), // Leader, Character, Event, Stage
+  color: text("color"),
+  rarity: text("rarity"),
+  cost: integer("cost"),
+  power: integer("power"),
+  life: integer("life"),
+  counterPower: integer("counter_power"),
+  traits: text("traits"),
+  effect: text("effect"),
+  imageUrl: text("image_url"),
+  // Source tracking
+  sources: text("sources").array().default([]), // ["optcgapi", "bandai", "tcgplayer", "manual"]
+  lastVerifiedAt: timestamp("last_verified_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/** Card variants — alternate printings of a base card (alt art, promo stamp, foil etc.) */
+export const cardVariants = pgTable("card_variants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  baseCardId: text("base_card_id").notNull().references(() => cardCatalog.id),
+  variantType: text("variant_type").notNull(), // "standard", "alt-art", "promo-stamped", "pre-release", "winner", "manga-art", "parallel", "foil"
+  variantName: text("variant_name"), // e.g. "Alternate Art", "Tournament Pack", "Winner"
+  imageUrl: text("image_url"),
+  // Variant-specific pricing
+  marketPrice: numeric("market_price"),
+  currency: text("currency").default("GBP"),
+  priceFetchedAt: timestamp("price_fetched_at"),
+  // Source tracking
+  source: text("source"), // "tcgplayer", "cardmarket", "manual", "justtcg"
+  sourceUrl: text("source_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_variant_base").on(table.baseCardId),
+  index("idx_variant_type").on(table.variantType),
+]);
+
+/** Missing card alerts — flagged by pipeline when pricing data references unknown cards */
+export const missingCardAlerts = pgTable("missing_card_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardCode: text("card_code").notNull(),
+  cardName: text("card_name"),
+  detectedIn: text("detected_in").notNull(), // "justtcg", "tcgplayer", "scan"
+  detectedPrice: numeric("detected_price"),
+  resolved: boolean("resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("missing_alert_code_source").on(table.cardCode, table.detectedIn),
+]);
+
 export const preorderItems = pgTable("preorder_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   productName: text("product_name").notNull(),
