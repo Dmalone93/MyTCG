@@ -52,9 +52,7 @@ function matchLocalIndex(text: string, index: CardIndex): CardIndex {
   return scored.slice(0, 3).map((s) => s.card);
 }
 
-function fmt(n: number): string {
-  return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
-}
+import { useRegion } from "@/components/region-selector";
 
 export default function WatchPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -78,6 +76,7 @@ export default function WatchPage() {
   const [isPopped, setIsPopped] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<DetectedCard | null>(null);
   const detectedRef = useRef<DetectedCard[]>([]);
+  const { formatPrice: fmt } = useRegion();
 
   useEffect(() => { detectedRef.current = detected; }, [detected]);
 
@@ -399,9 +398,7 @@ export default function WatchPage() {
               {!isPopped && (
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-medium text-text-muted">{detected.length} confirmed</span>
-                  {!watching && (
-                    <button onClick={() => setDetected([])} className="text-[10px] text-text-dim hover:text-text-muted ml-auto">Clear</button>
-                  )}
+                  <button onClick={() => setDetected([])} className="text-xs text-text-dim hover:text-text ml-auto active:opacity-70">Clear all</button>
                 </div>
               )}
 
@@ -458,13 +455,13 @@ export default function WatchPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDetected((prev) => prev.filter((d) => d.code !== card.code));
+                        setDetected((prev) => prev.filter((d) => d.detectedAt !== card.detectedAt));
                       }}
                       style={isPopped ? {
-                        background: "none", border: "none", color: "#A1A1AA", cursor: "pointer",
-                        fontSize: "16px", padding: "4px", flexShrink: 0, lineHeight: 1,
+                        background: "none", border: "1px solid rgba(0,0,0,0.1)", color: "#A1A1AA", cursor: "pointer",
+                        fontSize: "14px", padding: "4px 8px", flexShrink: 0, lineHeight: 1, borderRadius: "8px",
                       } : undefined}
-                      className={isPopped ? "" : "text-text-dim hover:text-text-muted active:opacity-70 text-base p-1 flex-none transition-colors"}
+                      className={isPopped ? "" : "text-text-dim hover:text-text border border-[rgba(0,0,0,0.08)] rounded-lg text-sm px-2 py-1 flex-none active:opacity-70 transition-colors"}
                       title="Remove"
                     >
                       ×
