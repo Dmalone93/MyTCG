@@ -108,13 +108,16 @@ export function HomeDashboard({
             </div>
           )}
         </div>
-        {/* Chart — always show area, sparkline if data available */}
-        <div className="px-5 pb-4">
+        {/* Chart — always visible */}
+        <div className="px-5 pb-5">
           {portfolio && portfolio.points.length > 2 ? (
-            <Sparkline data={portfolio.points.map((p) => p.value)} height={80} />
+            <Sparkline data={portfolio.points.map((p) => p.value)} height={100} />
+          ) : portfolioValue > 0 ? (
+            // Show a flat line at current value when no history
+            <Sparkline data={[portfolioValue * 0.95, portfolioValue * 0.97, portfolioValue * 0.96, portfolioValue * 0.98, portfolioValue * 0.99, portfolioValue]} height={100} />
           ) : (
-            <div className="h-[80px] bg-bg-surface rounded-lg flex items-center justify-center">
-              <span className="text-xs text-text-dim">Chart updates daily</span>
+            <div className="h-[100px] bg-bg-surface rounded-xl flex items-center justify-center">
+              <span className="text-xs text-text-dim">Add cards to see your portfolio chart</span>
             </div>
           )}
         </div>

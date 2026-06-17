@@ -326,7 +326,6 @@ export function CollectionShell({
           cardCount={cards.length}
           createdAt={active.createdAt}
           onShare={() => setShowQR(true)}
-          onDelete={() => setShowDeleteConfirm(true)}
         />
       )}
 
@@ -345,6 +344,15 @@ export function CollectionShell({
             onMoveCard={handleMoveCard}
             onRefreshPrices={refreshPrices}
           />
+          {/* Delete collection — at the very bottom */}
+          <div className="mt-8 mb-4 pt-6 border-t border-[rgba(0,0,0,0.06)]">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full text-sm font-medium text-red-400 hover:text-red-500 py-2.5 active:opacity-70 transition-colors"
+            >
+              Delete this collection
+            </button>
+          </div>
         </>
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -362,13 +370,12 @@ export function CollectionShell({
 }
 
 /** Portfolio-style value display for a single collection */
-function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare, onDelete }: {
+function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare }: {
   cards: CollectionCard[];
   prices: Record<string, CardPrice>;
   cardCount: number;
   createdAt: Date | null;
   onShare?: () => void;
-  onDelete?: () => void;
 }) {
   const { formatPrice } = useRegion();
 
@@ -398,17 +405,6 @@ function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare, onD
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h0"/>
-              </svg>
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={onDelete}
-              className="text-text-dim hover:text-red-400 active:opacity-70 transition-colors p-1.5"
-              title="Delete collection"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
               </svg>
             </button>
           )}
