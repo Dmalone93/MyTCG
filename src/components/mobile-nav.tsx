@@ -51,8 +51,8 @@ export function MobileNav() {
 
   return (
     <>
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-end justify-around px-2 h-16 relative">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 w-full z-50 bg-white border-t border-[rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-end justify-around h-16 relative">
           {tabs.map((tab, i) => {
             if (!tab) {
               // Center scan button
