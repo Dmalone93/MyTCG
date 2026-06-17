@@ -467,10 +467,11 @@ export default function SearchPage() {
       )}
 
       {!dataLoading && !hasAnyInput && (
-        <div className="py-16 text-center">
+        <div className="py-10 flex flex-col items-center text-center">
+          <img src="/op-search.svg" alt="" className="w-40 h-40 mb-4 opacity-80" />
           <div className="text-text-dim text-base mb-2">Find any card</div>
           <div className="text-sm text-text-muted max-w-[280px] mx-auto">
-            Type a name, set code, color, or rarity — or use the filters above to narrow down
+            Type a name, set code, color, or rarity — or use the filters above to browse
           </div>
         </div>
       )}

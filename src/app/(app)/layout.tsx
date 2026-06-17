@@ -22,13 +22,13 @@ export default function AppLayout({
 
           {/* Desktop: logo left */}
           <Link href="/" className="hidden sm:block flex-none">
-            <img src="/logo.svg" alt="MyTCG" className="h-5" />
+            <img src="/logo.svg" alt="MyTCG" className="h-7" />
           </Link>
 
           {/* Mobile: logo centered */}
           <div className="sm:hidden flex-1 flex justify-center">
             <Link href="/">
-              <img src="/logo.svg" alt="MyTCG" className="h-5" />
+              <img src="/logo.svg" alt="MyTCG" className="h-7 text-accent" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
             </Link>
           </div>
 
