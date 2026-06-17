@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import type { CollectionCard, CardPrice } from "./collection-shell";
 import { PriceChart } from "@/lib/charts/price-chart";
-import { LivePriceBadge } from "@/components/live-price-badge";
 import { GradingROI } from "@/components/grading-roi";
 import { useRegion } from "@/components/region-selector";
 
@@ -202,9 +201,8 @@ export function CardDetailModal({
                 </div>
               </div>
 
-              {/* Price chart + live price */}
-              <div className="px-4 sm:px-5 py-3 space-y-3">
-                <LivePriceBadge cardCode={card.cardCode} cardName={card.cardName} />
+              {/* Price chart */}
+              <div className="px-4 sm:px-5 py-3">
                 <PriceChart cardCode={card.cardCode} />
               </div>
 

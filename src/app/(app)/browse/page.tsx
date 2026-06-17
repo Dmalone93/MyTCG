@@ -313,6 +313,9 @@ export default function BrowsePage() {
           cardName={selectedCard.cardName}
           imageUrl={selectedCard.imageUrl}
           marketPrice={selectedCard.marketPrice}
+          rarity={selectedCard.rarity}
+          cardColor={selectedCard.cardColor}
+          cardType={selectedCard.cardType}
           onClose={() => setSelectedCard(null)}
         />
       )}
