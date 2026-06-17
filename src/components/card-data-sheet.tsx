@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
-import { PriceChart } from "@/lib/charts/price-chart";
-import { LivePriceBadge } from "@/components/live-price-badge";
+import { useRegion } from "@/components/region-selector";
 
 type ExtData = {
   card: {
@@ -24,10 +23,6 @@ type ExtData = {
   synergies: Array<{ cid: string; name: string; imageUrl: string }>;
 };
 
-function fmt(n: number): string {
-  return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2 }).format(n);
-}
-
 export function CardDataSheet({
   cardCode,
   cardName,
@@ -42,6 +37,7 @@ export function CardDataSheet({
   onClose: () => void;
 }) {
   const swipe = useSwipeDismiss(onClose);
+  const { formatPrice } = useRegion();
   const [ext, setExt] = useState<ExtData | null>(null);
 
   useEffect(() => {
@@ -53,130 +49,130 @@ export function CardDataSheet({
 
   const c = ext?.card;
 
-  const rows: Array<{ label: string; value: string | null | undefined }> = [
-    { label: "Name", value: c?.name ?? cardName },
-    { label: "Card ID", value: c?.cid ?? cardCode },
-    { label: "Type", value: c?.traits },
-    { label: "Card Category", value: c?.type },
-    { label: "Effect", value: c?.effect },
-    { label: "Product", value: c?.setName },
-    { label: "Color", value: c?.color },
-    { label: "Rarity", value: c?.rarity },
-    { label: "Cost", value: c?.cost != null ? String(c.cost) : null },
-    { label: "Power", value: c?.power != null ? String(c.power) : null },
-    { label: "Counter Power", value: c?.counterPower != null ? String(c.counterPower) : null },
-    { label: "Life", value: c?.life != null ? String(c.life) : null },
-    { label: "Alternate Art", value: c?.altArt },
-  ];
-
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
-        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile drag handle — swipe down to dismiss */}
+        {/* Drag handle */}
         <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
-          <h2 className="font-semibold text-base sm:text-lg text-text truncate">{cardName}</h2>
-          <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none">×</button>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
+          <div className="flex-1 min-w-0 mr-3">
+            <h2 className="font-semibold text-base text-text truncate">{cardName}</h2>
+            <div className="font-mono text-sm text-text-dim">{cardCode}</div>
+          </div>
+          {marketPrice != null && marketPrice > 0 && (
+            <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(marketPrice)}</span>
+          )}
+          <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none ml-2">×</button>
         </div>
 
-        {/* Content — image + table side by side on desktop, stacked on mobile */}
-        <div className="flex flex-col sm:flex-row">
-          {/* Card image */}
-          <div className="sm:w-[180px] flex-none p-4 sm:p-4 flex justify-center sm:justify-start sm:items-start">
-            <img
-              src={imageUrl}
-              alt={cardName}
-              className="w-[140px] sm:w-full rounded-lg aspect-[2.5/3.5] object-cover"
-            />
-          </div>
+        {/* Card image + key stats */}
+        <div className="flex gap-4 p-4">
+          <img
+            src={imageUrl}
+            alt={cardName}
+            className="w-[100px] sm:w-[120px] rounded-lg aspect-[2.5/3.5] object-cover flex-none"
+          />
+          <div className="flex-1 min-w-0">
+            {/* Quick stats */}
+            {c ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {c.type && (
+                    <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{c.type}</span>
+                  )}
+                  {c.color && (
+                    <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{c.color}</span>
+                  )}
+                  {c.rarity && (
+                    <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{c.rarity}</span>
+                  )}
+                </div>
 
-          {/* Data table */}
-          <div className="flex-1 min-w-0 sm:border-l border-[rgba(0,0,0,0.04)]">
-            {/* Market price banner */}
-            {marketPrice != null && marketPrice > 0 && (
-              <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)]">
-                <span className="text-sm text-text-dim">Market Price</span>
-                <span className="font-mono text-lg font-semibold text-[#059669]">{fmt(marketPrice)}</span>
+                {/* Numeric stats */}
+                <div className="flex gap-3">
+                  {c.cost != null && (
+                    <div>
+                      <div className="text-xs text-text-dim">Cost</div>
+                      <div className="font-mono text-sm font-semibold text-text">{c.cost}</div>
+                    </div>
+                  )}
+                  {c.power != null && (
+                    <div>
+                      <div className="text-xs text-text-dim">Power</div>
+                      <div className="font-mono text-sm font-semibold text-text">{c.power}</div>
+                    </div>
+                  )}
+                  {c.life != null && (
+                    <div>
+                      <div className="text-xs text-text-dim">Life</div>
+                      <div className="font-mono text-sm font-semibold text-text">{c.life}</div>
+                    </div>
+                  )}
+                  {c.counterPower != null && (
+                    <div>
+                      <div className="text-xs text-text-dim">Counter</div>
+                      <div className="font-mono text-sm font-semibold text-text">{c.counterPower}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Traits */}
+                {c.traits && (
+                  <div className="text-sm text-text-dim">{c.traits}</div>
+                )}
+
+                {/* Set */}
+                {c.setName && (
+                  <div className="text-xs text-text-dim">{c.setName}</div>
+                )}
               </div>
-            )}
-
-            {/* Property rows */}
-            <div>
-              {rows.map((row) => {
-                if (!row.value) return null;
-                const isEffect = row.label === "Effect";
-                return (
-                  <div
-                    key={row.label}
-                    className="flex border-b border-[rgba(0,0,0,0.04)] last:border-0"
-                  >
-                    <div className="w-[120px] sm:w-[140px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">
-                      {row.label}
-                    </div>
-                    <div className={`flex-1 px-4 sm:px-5 py-2.5 text-sm text-text ${isEffect ? "whitespace-pre-line leading-relaxed" : "text-right"}`}>
-                      {row.value}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Loading state */}
-            {!ext && (
-              <div className="px-4 py-4 space-y-3 animate-pulse">
+            ) : (
+              <div className="space-y-2 animate-pulse">
+                <div className="h-4 w-20 bg-[#E4E4E7] rounded" />
+                <div className="h-4 w-32 bg-[#E4E4E7] rounded" />
                 <div className="h-4 w-24 bg-[#E4E4E7] rounded" />
-                <div className="h-4 w-full bg-[#E4E4E7] rounded" />
-                <div className="h-4 w-3/4 bg-[#E4E4E7] rounded" />
               </div>
             )}
           </div>
         </div>
 
-        {/* Buy links */}
-        <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
-          <div className="text-sm font-medium text-text mb-2">Buy this card</div>
-          <div className="flex gap-2 flex-wrap">
-            <a href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(cardName)}`} target="_blank" rel="noopener noreferrer"
-              className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
-              TCGPlayer
-            </a>
-            <a href={`https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(cardName)}`} target="_blank" rel="noopener noreferrer"
-              className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
-              Cardmarket
-            </a>
-            <a href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${cardCode} ${cardName}`)}`} target="_blank" rel="noopener noreferrer"
-              className="text-sm px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
-              eBay UK
-            </a>
+        {/* Effect text */}
+        {c?.effect && (
+          <div className="px-4 pb-4">
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">Effect</div>
+            <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3">
+              {c.effect}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Live market price + price chart */}
-        <div className="px-4 sm:px-5 py-3 space-y-3">
-          <LivePriceBadge cardCode={cardCode} cardName={cardName} />
-          <PriceChart cardCode={cardCode} />
-        </div>
+        {/* Alt art credit */}
+        {c?.altArt && (
+          <div className="px-4 pb-3">
+            <span className="text-xs text-text-dim">Art by {c.altArt}</span>
+          </div>
+        )}
 
         {/* Synergies */}
         {ext && ext.synergies.length > 0 && (
-          <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-4">
-            <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Synergies</div>
+            <div className="flex gap-2.5 overflow-x-auto pb-1">
               {ext.synergies.map((s) => (
-                <div key={s.cid} className="flex-none w-[60px]">
-                  <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#E4E4E7] mb-1">
+                <div key={s.cid} className="flex-none w-[56px]">
+                  <div className="aspect-[2.5/3.5] rounded-lg overflow-hidden bg-[#E4E4E7] mb-1">
                     <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
-                  <div className="text-[9px] text-text-dim truncate">{s.name}</div>
+                  <div className="text-xs text-text-dim truncate">{s.name}</div>
                 </div>
               ))}
             </div>
