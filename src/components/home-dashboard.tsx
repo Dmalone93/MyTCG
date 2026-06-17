@@ -163,18 +163,6 @@ export function HomeDashboard({
                   </div>
                 )}
 
-                {/* Share button */}
-                <div className="border-t border-[rgba(0,0,0,0.04)] px-4 py-2 flex justify-end">
-                  <button
-                    onClick={() => setShowQR(col.id)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-text-dim hover:text-text active:opacity-70 transition-colors"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h0"/>
-                    </svg>
-                    Share
-                  </button>
-                </div>
               </div>
             ))}
           </div>
