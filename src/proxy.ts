@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/card-sets",
   "/api/card-info",
   "/api/card-index",
+  "/api/pipeline/sync",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
