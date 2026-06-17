@@ -206,7 +206,7 @@ export function CardDataSheet({
             <img
               src={imageUrl}
               alt={cardName}
-              className="w-[100px] sm:w-[120px] rounded-lg aspect-[2.5/3.5] object-cover flex-none"
+              className="w-[100px] sm:w-[120px] rounded-lg aspect-[63/88] object-contain flex-none"
             />
             <div className="flex-1 min-w-0 space-y-2">
               {/* Pills */}

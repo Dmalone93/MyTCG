@@ -155,23 +155,10 @@ export function CardDetailModal({
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 
-        {/* Sticky header with actions */}
+        {/* Header — name + close only */}
         <div className="flex-none flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
           <h2 className="font-semibold text-base text-text truncate flex-1">{card.cardName}</h2>
-          {!editing && (
-            <>
-              <button onClick={() => setEditing(true)} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-bg-surface transition-colors">
-                Edit
-              </button>
-              <button
-                onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }}
-                className="text-sm font-medium text-red-400 hover:text-red-500 active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                Delete
-              </button>
-            </>
-          )}
-          <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none ml-1">×</button>
+          <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none">×</button>
         </div>
 
         {/* Scrollable content */}
@@ -181,7 +168,9 @@ export function CardDetailModal({
               {/* Image + prices */}
               <div className="flex gap-4 p-4 sm:p-5">
                 {card.imageUrl && (
-                  <img src={card.imageUrl} alt={card.cardName} className="w-[100px] sm:w-[140px] rounded-lg aspect-[2.5/3.5] object-cover flex-none" />
+                  <div className="w-[100px] sm:w-[140px] flex-none">
+                    <img src={card.imageUrl} alt={card.cardName} className="w-full rounded-lg aspect-[63/88] object-contain" />
+                  </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="font-mono text-xs text-text-dim mb-1">{card.cardCode}</div>
@@ -197,7 +186,7 @@ export function CardDetailModal({
                   )}
                   <div className="mb-1">
                     <span className="text-xs text-text-dim uppercase tracking-wider">Paid</span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-text-dim text-sm">{config.symbol}</span>
                       <input
                         type="number"
@@ -208,7 +197,7 @@ export function CardDetailModal({
                         value={acquiredPrice}
                         onChange={(e) => setAcquiredPrice(e.target.value)}
                         onBlur={() => onUpdate(card.id, { acquiredPrice: acquiredPrice || null })}
-                        className="font-mono text-sm text-text bg-transparent border-b border-[rgba(0,0,0,0.1)] focus:border-text outline-none w-24 py-0.5"
+                        className="font-mono text-sm text-text bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-lg px-3 py-2 w-28 outline-none focus:border-text/20"
                       />
                     </div>
                   </div>
@@ -340,6 +329,19 @@ export function CardDetailModal({
                   </div>
                 </div>
               )}
+
+              {/* Edit / Delete actions at bottom */}
+              <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-4 flex gap-2">
+                <button onClick={() => setEditing(true)} className="flex-1 border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-bg-surface active:opacity-70 transition-colors">
+                  Edit card
+                </button>
+                <button
+                  onClick={async () => { if (confirm(`Delete "${card.cardName}"?`)) { await onDelete(card.id); onClose(); } }}
+                  className="border border-[rgba(0,0,0,0.06)] text-red-400 font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-red-50 active:opacity-70 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             </>
           ) : (
             /* Edit form */
