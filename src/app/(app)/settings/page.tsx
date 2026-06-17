@@ -15,8 +15,7 @@ export default function SettingsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const { config, setRegion } = useRegion();
-  const [defaultView, setDefaultView] = useState<"list" | "grid">("grid");
-  const [saved, setSaved] = useState(false);
+  const [defaultView, setDefaultViewState] = useState<"list" | "grid">("grid");
 
   useEffect(() => {
     // Load collections
@@ -28,7 +27,7 @@ export default function SettingsPage() {
 
     // Load preferences
     const view = localStorage.getItem("mytcg-default-view");
-    if (view === "list" || view === "grid") setDefaultView(view);
+    if (view === "list" || view === "grid") setDefaultViewState(view);
   }, []);
 
   async function createCollection() {
@@ -72,10 +71,9 @@ export default function SettingsPage() {
     } catch { /* */ }
   }
 
-  function savePreferences() {
-    localStorage.setItem("mytcg-default-view", defaultView);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  function setDefaultView(view: "list" | "grid") {
+    setDefaultViewState(view);
+    localStorage.setItem("mytcg-default-view", view);
   }
 
   return (
@@ -137,12 +135,6 @@ export default function SettingsPage() {
             <span className="text-sm font-medium text-text">Grid</span>
           </button>
         </div>
-        <button
-          onClick={savePreferences}
-          className="mt-3 text-sm text-text-muted hover:text-text active:opacity-70 transition-colors"
-        >
-          {saved ? "✓ Saved" : "Save preference"}
-        </button>
       </section>
 
       {/* Collections */}
