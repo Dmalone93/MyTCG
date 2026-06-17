@@ -174,6 +174,17 @@ export function HomeDashboard({
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
                 </Link>
+                {/* Desktop: card preview row */}
+                {col.thumbnails.length > 0 && (
+                  <div className="hidden sm:flex gap-1.5 px-4 pb-3 overflow-x-auto">
+                    {col.thumbnails.map((img, i) => (
+                      <div key={i} className="w-[52px] aspect-[63/88] rounded-lg overflow-hidden bg-[#E4E4E7] flex-none">
+                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Share button */}
                 <div className="border-t border-[rgba(0,0,0,0.04)] px-4 py-2 flex justify-end">
                   <button
@@ -267,15 +278,15 @@ export function HomeDashboard({
             <h2 className="text-sm font-bold text-text uppercase tracking-wide">Latest news</h2>
             <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
           </div>
-          <div className="space-y-3">
-            {filteredIntel.map((item, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {filteredIntel.map((item) => (
               <Link
                 key={item.id}
                 href="/intel"
                 className="block bg-bg-surface rounded-2xl overflow-hidden hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors border border-[rgba(0,0,0,0.04)]"
               >
                 {item.imageUrl && (
-                  <div className={`w-full bg-[#E4E4E7] overflow-hidden ${i === 0 ? "aspect-[16/9]" : "aspect-[3/1]"}`}>
+                  <div className="w-full bg-[#E4E4E7] overflow-hidden aspect-[16/9]">
                     <img
                       src={item.imageUrl}
                       alt=""
@@ -290,7 +301,7 @@ export function HomeDashboard({
                     <div className="text-xs text-text-dim uppercase tracking-wider mb-1">{item.category}</div>
                   )}
                   <div className="text-sm font-semibold text-text mb-1 line-clamp-2">{item.title}</div>
-                  {item.summary && i === 0 && (
+                  {item.summary && (
                     <div className="text-sm text-text-muted line-clamp-2 mb-2">{item.summary}</div>
                   )}
                   {(item.source || item.author) && (

@@ -88,7 +88,7 @@ export default async function HomePage() {
     // Thumbnails
     if (tc.imageUrl) {
       const arr = thumbMap.get(tc.collectionId) ?? [];
-      if (arr.length < 3) arr.push(tc.imageUrl);
+      if (arr.length < 10) arr.push(tc.imageUrl);
       thumbMap.set(tc.collectionId, arr);
     }
     // Value

@@ -1,3 +1,5 @@
+import { MobileNav } from "@/components/mobile-nav";
+
 export default function SearchLayout({
   children,
 }: {
@@ -5,9 +7,10 @@ export default function SearchLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 px-4 sm:px-6 pb-8 max-w-[1280px] mx-auto w-full">
+      <main className="flex-1 px-4 sm:px-6 pb-24 sm:pb-8 max-w-[1280px] mx-auto w-full">
         {children}
       </main>
+      <MobileNav />
     </div>
   );
 }
