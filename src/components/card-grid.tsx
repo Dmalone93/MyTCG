@@ -155,7 +155,7 @@ export function CardGrid({
       <div className="flex items-center gap-2 mb-4">
         <button
           onClick={() => { setShowPicker(true); setPickedCard(null); }}
-          className="text-sm text-text-muted hover:text-text active:opacity-70 transition-colors"
+          className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 border border-[rgba(0,0,0,0.1)] px-3 py-1.5 rounded-lg hover:border-[rgba(0,0,0,0.2)] transition-colors"
         >
           + Add card
         </button>
@@ -240,7 +240,7 @@ export function CardGrid({
           <div className="text-text-dim text-base mb-2">No cards yet</div>
           <button
             onClick={() => { setShowPicker(true); setPickedCard(null); }}
-            className="text-sm text-text-muted hover:text-text transition-colors"
+            className="text-sm font-medium text-text-muted hover:text-text border border-[rgba(0,0,0,0.1)] px-3 py-1.5 rounded-lg hover:border-[rgba(0,0,0,0.2)] transition-colors"
           >
             + Add your first card
           </button>
