@@ -60,9 +60,9 @@ export function CardDetailModal({
   onUpdate: (id: string, updates: Partial<CollectionCard>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
-  const { formatPrice } = useRegion();
+  const { formatPrice, config } = useRegion();
   const swipe = useSwipeDismiss(onClose);
-  const [editing, setEditing] = useState(true);
+  const [editing, setEditing] = useState(false);
   const [quantity, setQuantity] = useState(card.quantity ?? 1);
   const [condition, setCondition] = useState(card.condition ?? "NM");
   const [isGraded, setIsGraded] = useState(card.isGraded ?? false);
@@ -158,11 +158,7 @@ export function CardDetailModal({
         {/* Sticky header with actions */}
         <div className="flex-none flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
           <h2 className="font-semibold text-base text-text truncate flex-1">{card.cardName}</h2>
-          {editing ? (
-            <button onClick={() => setEditing(false)} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-bg-surface transition-colors">
-              View details
-            </button>
-          ) : (
+          {!editing && (
             <>
               <button onClick={() => setEditing(true)} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 px-2.5 py-1.5 rounded-lg hover:bg-bg-surface transition-colors">
                 Edit
@@ -199,12 +195,23 @@ export function CardDetailModal({
                       <div className="font-mono text-lg font-semibold text-[#059669]">{formatPrice(market)}</div>
                     </div>
                   )}
-                  {paid > 0 && (
-                    <div className="mb-1">
-                      <span className="text-xs text-text-dim uppercase tracking-wider">Paid</span>
-                      <div className="font-mono text-sm text-text">{formatPrice(paid)}</div>
+                  <div className="mb-1">
+                    <span className="text-xs text-text-dim uppercase tracking-wider">Paid</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-text-dim text-sm">{config.symbol}</span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={acquiredPrice}
+                        onChange={(e) => setAcquiredPrice(e.target.value)}
+                        onBlur={() => onUpdate(card.id, { acquiredPrice: acquiredPrice || null })}
+                        className="font-mono text-sm text-text bg-transparent border-b border-[rgba(0,0,0,0.1)] focus:border-text outline-none w-24 py-0.5"
+                      />
                     </div>
-                  )}
+                  </div>
                   {pl != null && (
                     <div>
                       <span className="text-xs text-text-dim uppercase tracking-wider">P/L</span>
