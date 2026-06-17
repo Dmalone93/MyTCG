@@ -1,14 +1,7 @@
 "use client";
 
 import type { CollectionCard, CardPrice } from "./collection-shell";
-
-function fmt(n: number): string {
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(n);
-}
+import { useRegion } from "@/components/region-selector";
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -20,9 +13,11 @@ export function MetricStrip({
   cards,
   prices,
 }: {
+
   cards: CollectionCard[];
   prices: Record<string, CardPrice>;
 }) {
+  const { formatPrice: fmt } = useRegion();
   const totalSpent = cards.reduce(
     (s, c) => s + num(c.acquiredPrice) * (c.quantity ?? 1),
     0

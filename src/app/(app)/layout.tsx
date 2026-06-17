@@ -13,22 +13,37 @@ export default function AppLayout({
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex-none">
+          {/* Mobile: browse left, logo center, search right */}
+          <Link href="/browse" className="sm:hidden p-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+          </Link>
+
+          {/* Desktop: logo left */}
+          <Link href="/" className="hidden sm:block flex-none">
             <img src="/logo.svg" alt="MyTCG" className="h-5" />
           </Link>
+
+          {/* Mobile: logo centered */}
+          <div className="sm:hidden flex-1 flex justify-center">
+            <Link href="/">
+              <img src="/logo.svg" alt="MyTCG" className="h-5" />
+            </Link>
+          </div>
+
           <span className="hidden sm:contents"><NavLinks /></span>
           <div className="hidden sm:block flex-1" />
 
-          {/* Mobile search — full width with personality */}
+          {/* Mobile search icon */}
           <Link
             href="/search"
-            className="sm:hidden flex-1 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 text-text-dim text-sm shadow-sm active:shadow-none active:scale-[0.98] transition-all"
+            className="sm:hidden p-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-40">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            What are you looking for?
           </Link>
 
           {/* Desktop search */}

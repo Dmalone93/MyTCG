@@ -35,13 +35,16 @@ export default async function HomePage() {
     db.select({
       id: intelItems.id,
       title: intelItems.title,
+      summary: intelItems.summary,
       category: intelItems.category,
+      source: intelItems.source,
+      author: intelItems.author,
       imageUrl: intelItems.imageUrl,
       fetchedAt: intelItems.fetchedAt,
     })
       .from(intelItems)
       .orderBy(desc(intelItems.fetchedAt))
-      .limit(3),
+      .limit(6),
 
     db.select()
       .from(dealAlerts)
@@ -65,12 +68,29 @@ export default async function HomePage() {
     }
   }
 
+  // Get card thumbnails per collection
+  const thumbCards = userCards.length > 0
+    ? await db.select({ collectionId: collectionCards.collectionId, imageUrl: collectionCards.imageUrl })
+        .from(collectionCards)
+        .where(eq(collectionCards.userId, user.id))
+        .limit(100)
+    : [];
+
+  const thumbMap = new Map<string, string[]>();
+  for (const tc of thumbCards) {
+    if (!tc.imageUrl) continue;
+    const arr = thumbMap.get(tc.collectionId) ?? [];
+    if (arr.length < 3) arr.push(tc.imageUrl);
+    thumbMap.set(tc.collectionId, arr);
+  }
+
   const countMap = new Map(cardCounts.map((c) => [c.collectionId, c.count]));
   const collectionsWithCounts = userCollections.map((col) => ({
     id: col.id,
     name: col.name,
     createdAt: col.createdAt,
     cardCount: countMap.get(col.id) ?? 0,
+    thumbnails: thumbMap.get(col.id) ?? [],
   }));
 
   return (

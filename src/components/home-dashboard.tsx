@@ -10,12 +10,16 @@ type CollectionSummary = {
   name: string;
   createdAt: Date | null;
   cardCount: number;
+  thumbnails: string[];
 };
 
 type IntelItem = {
   id: string;
   title: string | null;
+  summary: string | null;
   category: string | null;
+  source: string | null;
+  author: string | null;
   imageUrl: string | null;
   fetchedAt: Date | null;
 };
@@ -35,6 +39,9 @@ type PortfolioData = {
   winners: Array<{ cardCode: string; current: number; change: number }>;
   losers: Array<{ cardCode: string; current: number; change: number }>;
 };
+
+// Categories that should show even without an image (new drops, promos, products)
+const DROP_CATEGORIES = ["new releases", "products", "promos", "sets", "pre-orders"];
 
 export function HomeDashboard({
   collections,
@@ -63,6 +70,13 @@ export function HomeDashboard({
   const pl = portfolioValue - portfolioSpent;
   const plPct = portfolioSpent > 0 ? (pl / portfolioSpent) * 100 : 0;
 
+  // Filter intel: must have image OR be a drop/promo category
+  const filteredIntel = recentIntel.filter((item) => {
+    if (item.imageUrl) return true;
+    const cat = (item.category ?? "").toLowerCase();
+    return DROP_CATEGORIES.some((dc) => cat.includes(dc));
+  });
+
   return (
     <div className="space-y-6">
       {/* Portfolio hero */}
@@ -86,12 +100,6 @@ export function HomeDashboard({
         )}
       </div>
 
-      {/* Quick action */}
-      <Link href="/browse" className="flex items-center justify-center gap-2 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl py-3 text-sm font-medium text-text hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Browse all cards
-      </Link>
-
       {/* Your collections */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -106,10 +114,21 @@ export function HomeDashboard({
                 href="/collections"
                 className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl px-4 py-3.5 hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
               >
-                <div className="w-10 h-10 rounded-xl bg-bg-elevated border border-[rgba(0,0,0,0.06)] flex items-center justify-center flex-none">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
-                  </svg>
+                {/* Card thumbnails — stacked/overlapping */}
+                <div className="flex -space-x-2 flex-none">
+                  {col.thumbnails.length > 0 ? (
+                    col.thumbnails.map((img, i) => (
+                      <div key={i} className="w-8 aspect-[2.5/3.5] rounded-md overflow-hidden bg-[#E4E4E7] border-2 border-bg-surface" style={{ zIndex: 3 - i }}>
+                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-bg-elevated border border-[rgba(0,0,0,0.06)] flex items-center justify-center">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3v4M8 3v4"/>
+                      </svg>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-text truncate">{col.name}</div>
@@ -189,34 +208,40 @@ export function HomeDashboard({
         </div>
       )}
 
-      {/* News headlines */}
-      {recentIntel.length > 0 && (
+      {/* Latest news — rich cards */}
+      {filteredIntel.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-text-dim uppercase tracking-wider">Latest news</span>
             <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
           </div>
-          <div className="space-y-2">
-            {recentIntel.map((item) => (
+          <div className="space-y-3">
+            {filteredIntel.map((item, i) => (
               <Link
                 key={item.id}
                 href="/intel"
-                className="flex items-center gap-3 bg-bg-surface rounded-2xl overflow-hidden hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
+                className="block bg-bg-surface rounded-2xl overflow-hidden hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors border border-[rgba(0,0,0,0.04)]"
               >
+                {/* Hero image — first item gets large, rest get compact */}
                 {item.imageUrl && (
-                  <div className="w-20 h-16 flex-none bg-[#E4E4E7]">
+                  <div className={`w-full bg-[#E4E4E7] ${i === 0 ? "aspect-[16/9]" : "aspect-[3/1]"}`}>
                     <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 )}
-                <div className={`flex-1 min-w-0 ${item.imageUrl ? "py-2 pr-3" : "px-3 py-2.5"}`}>
-                  <div className="text-sm font-medium text-text line-clamp-2">{item.title}</div>
-                  {item.category && <div className="text-xs text-text-dim uppercase mt-0.5">{item.category}</div>}
+                <div className="px-4 py-3">
+                  {item.category && (
+                    <div className="text-xs text-text-dim uppercase tracking-wider mb-1">{item.category}</div>
+                  )}
+                  <div className="text-sm font-semibold text-text mb-1 line-clamp-2">{item.title}</div>
+                  {item.summary && (
+                    <div className="text-sm text-text-muted line-clamp-2 mb-2">{item.summary}</div>
+                  )}
+                  {(item.source || item.author) && (
+                    <div className="text-xs text-text-dim">
+                      {item.source}{item.author ? ` · ${item.author}` : ""}
+                    </div>
+                  )}
                 </div>
-                {!item.imageUrl && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none mr-3">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                )}
               </Link>
             ))}
           </div>
