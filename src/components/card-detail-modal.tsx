@@ -331,7 +331,7 @@ export function CardDetailModal({
               )}
 
               {/* Edit / Delete actions at bottom */}
-              <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-4 flex gap-2">
+              <div className="px-4 sm:px-5 py-4 flex gap-2">
                 <button onClick={() => setEditing(true)} className="flex-1 border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 px-4 rounded-xl hover:bg-bg-surface active:opacity-70 transition-colors">
                   Edit card
                 </button>
