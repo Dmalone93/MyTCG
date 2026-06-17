@@ -73,6 +73,7 @@ export default function WatchPage() {
   const [pending, setPending] = useState<Array<{ code: string; name: string; count: number; needed: number }>>([]);
   const [status, setStatus] = useState("");
   const [scanCount, setScanCount] = useState(0);
+  const scanCountRef = useRef(0);
   const [isPopped, setIsPopped] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<DetectedCard | null>(null);
   const detectedRef = useRef<DetectedCard[]>([]);
@@ -208,13 +209,16 @@ export default function WatchPage() {
     canvas.getContext("2d")!.drawImage(video, 0, 0, w, h);
     const base64 = canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
 
-    setScanCount((c) => c + 1);
+    scanCountRef.current++;
+    setScanCount(scanCountRef.current);
 
     try {
+      // Every 3rd scan uses full detection (artwork matching) for better accuracy
+      const currentScanCount = scanCountRef.current;
       const res = await fetch("/api/scan-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, fast: true }),
+        body: JSON.stringify({ image: base64, fast: currentScanCount % 3 !== 0 }),
       });
       const data = await res.json();
 
