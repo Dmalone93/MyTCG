@@ -8,6 +8,18 @@ import { GradingROI } from "@/components/grading-roi";
 import { useRegion } from "@/components/region-selector";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
+const COLOR_HEX: Record<string, string> = {
+  Red: "#DC2626", Blue: "#2563EB", Green: "#16A34A",
+  Purple: "#9333EA", Black: "#18181B", Yellow: "#CA8A04",
+};
+
+function colorDot(color: string) {
+  const first = color.split(/[\/\s]/)[0];
+  const hex = COLOR_HEX[first];
+  if (!hex) return null;
+  return <span className="w-2.5 h-2.5 rounded-full flex-none inline-block" style={{ backgroundColor: hex }} />;
+}
+
 function renderEffect(text: string) {
   const parts = text.split(/(\[[^\]]+\])/g);
   return parts.map((part, i) => {
@@ -163,7 +175,7 @@ export function CardDetailModal({
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-4">
           {!editing ? (
             <>
               {/* Image + prices */}
@@ -209,10 +221,14 @@ export function CardDetailModal({
               <div className="border-t border-[rgba(0,0,0,0.06)]">
                 {dataRows.map((row) => {
                   if (row.value == null) return null;
+                  const isColor = row.label === "Color";
                   return (
                     <div key={row.label} className="flex border-b border-[rgba(0,0,0,0.04)]">
                       <div className="w-[80px] sm:w-[100px] flex-none px-4 py-2 text-sm text-text-dim">{row.label}</div>
-                      <div className="flex-1 px-4 py-2 text-sm text-text text-right font-mono">{row.value}</div>
+                      <div className="flex-1 px-4 py-2 text-sm text-text text-right font-mono flex items-center justify-end gap-1.5">
+                        {isColor && colorDot(String(row.value))}
+                        {row.value}
+                      </div>
                     </div>
                   );
                 })}

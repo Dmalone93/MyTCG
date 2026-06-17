@@ -25,6 +25,19 @@ type ExtData = {
   synergies: Array<{ cid: string; name: string; imageUrl: string }>;
 };
 
+const COLOR_HEX: Record<string, string> = {
+  Red: "#DC2626", Blue: "#2563EB", Green: "#16A34A",
+  Purple: "#9333EA", Black: "#18181B", Yellow: "#CA8A04",
+};
+
+function colorDot(color: string) {
+  // Handle multi-color like "Red/Blue" — show first color
+  const first = color.split(/[\/\s]/)[0];
+  const hex = COLOR_HEX[first];
+  if (!hex) return null;
+  return <span className="w-2.5 h-2.5 rounded-full flex-none inline-block" style={{ backgroundColor: hex }} />;
+}
+
 /** Render effect text with [bracketed values] as pills */
 function renderEffect(text: string) {
   const parts = text.split(/(\[[^\]]+\])/g);
@@ -186,8 +199,8 @@ export function CardDataSheet({
           <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none ml-2">×</button>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain">
+        {/* Scrollable content — extra bottom padding for mobile nav */}
+        <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-4">
           {/* Card image + stat pills */}
           <div className="flex gap-4 p-4">
             <img
@@ -199,7 +212,7 @@ export function CardDataSheet({
               {/* Pills */}
               <div className="flex flex-wrap gap-1.5">
                 {dType && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{dType}</span>}
-                {dColor && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{dColor}</span>}
+                {dColor && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg inline-flex items-center gap-1.5">{colorDot(dColor)}{dColor}</span>}
                 {dRarity && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{dRarity}</span>}
               </div>
 
@@ -225,10 +238,14 @@ export function CardDataSheet({
           <div className="border-t border-[rgba(0,0,0,0.06)]">
             {rows.map((row) => {
               if (row.value == null) return null;
+              const isColor = row.label === "Color";
               return (
                 <div key={row.label} className="flex border-b border-[rgba(0,0,0,0.04)]">
                   <div className="w-[80px] sm:w-[100px] flex-none px-4 py-2 text-sm text-text-dim">{row.label}</div>
-                  <div className="flex-1 px-4 py-2 text-sm text-text text-right font-mono">{row.value}</div>
+                  <div className="flex-1 px-4 py-2 text-sm text-text text-right font-mono flex items-center justify-end gap-1.5">
+                    {isColor && colorDot(String(row.value))}
+                    {row.value}
+                  </div>
                 </div>
               );
             })}
