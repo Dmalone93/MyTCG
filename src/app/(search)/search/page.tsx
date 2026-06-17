@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
 import { useRegion } from "@/components/region-selector";
+import { addCard as addCardAction } from "@/app/actions/collections";
 
 /* ── Types ── */
 type SortKey = "code" | "name" | "price";
@@ -112,6 +113,15 @@ export default function SearchPage() {
   const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
   const [view, setView] = useState<"list" | "grid">("grid");
   const [sortKey, setSortKey] = useState<SortKey>("code");
+
+  // Multi-select state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
+  const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+  const [addingCards, setAddingCards] = useState(false);
+  const [addedMsg, setAddedMsg] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   // Load all cards on mount
@@ -280,6 +290,70 @@ export default function SearchPage() {
   const MAX_DISPLAY = 200;
   const displayed = sorted.slice(0, MAX_DISPLAY);
   const hasMore = sorted.length > MAX_DISPLAY;
+
+  // Multi-select functions
+  function toggleSelect(idx: number) {
+    setSelectedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }
+
+  function handleCardTap(idx: number) {
+    if (selectMode) {
+      toggleSelect(idx);
+    } else {
+      setSelectedCard(displayed[idx]);
+    }
+  }
+
+  function handleLongPress(idx: number) {
+    if (!selectMode) {
+      setSelectMode(true);
+      setSelectedIndices(new Set([idx]));
+    }
+  }
+
+  function cancelSelect() {
+    setSelectMode(false);
+    setSelectedIndices(new Set());
+    setShowCollectionPicker(false);
+  }
+
+  async function addSelectedToCollection(collectionId: string) {
+    setAddingCards(true);
+    const cards = [...selectedIndices].map((i) => displayed[i]).filter(Boolean);
+    for (const card of cards) {
+      await addCardAction({
+        collectionId,
+        cardCode: card.cardSetId,
+        cardName: card.cardName,
+        quantity: 1,
+        condition: "NM",
+        isGraded: false,
+        grade: null,
+        gradedCompany: null,
+        acquiredPrice: null,
+        notes: null,
+        imageUrl: card.imageUrl ?? null,
+        marketPrice: card.marketPrice ?? null,
+      });
+    }
+    const col = collections.find((c) => c.id === collectionId);
+    setAddedMsg(`Added ${cards.length} card${cards.length !== 1 ? "s" : ""} to ${col?.name ?? "collection"}`);
+    cancelSelect();
+    setAddingCards(false);
+    setTimeout(() => setAddedMsg(null), 2500);
+  }
+
+  async function showAddPicker() {
+    if (collections.length === 0) {
+      const res = await fetch("/api/collections");
+      if (res.ok) setCollections(await res.json());
+    }
+    setShowCollectionPicker(true);
+  }
 
   // Typing placeholder animation
   const EXAMPLES = [
@@ -646,52 +720,104 @@ export default function SearchPage() {
           {/* List view */}
           {view === "list" && (
             <div>
-              {displayed.map((card, i) => (
-                <button
-                  key={card.cardSetId + i}
-                  onClick={() => setSelectedCard(card)}
-                  className="flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors"
-                >
-                  <div className="w-10 h-[56px] sm:w-8 sm:h-[44px] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
-                    <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+              {displayed.map((card, i) => {
+                const isChecked = selectedIndices.has(i);
+                return (
+                  <div
+                    key={card.cardSetId + i}
+                    onClick={() => {
+                      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+                      handleCardTap(i);
+                    }}
+                    onPointerDown={(e) => {
+                      if (e.pointerType === "touch" && !selectMode) {
+                        longPressTimer.current = setTimeout(() => handleLongPress(i), 400);
+                      }
+                    }}
+                    onPointerMove={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors cursor-pointer select-none ${
+                      isChecked ? "bg-accent/10" : ""
+                    }`}
+                  >
+                    {selectMode && (
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-none transition-colors ${
+                        isChecked ? "bg-accent border-accent" : "border-[rgba(0,0,0,0.15)]"
+                      }`}>
+                        {isChecked && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                    <div className="w-10 aspect-[63/88] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
+                      <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                    <span className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
+                      <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}{card.cardColor ? ` · ${card.cardColor}` : ""}</span>
+                    </span>
+                    {card.marketPrice != null && card.marketPrice > 0 ? (
+                      <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.marketPrice)}</span>
+                    ) : (
+                      <span className="text-xs text-text-dim flex-none">—</span>
+                    )}
                   </div>
-                  <span className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
-                    <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}{card.cardColor ? ` · ${card.cardColor}` : ""}</span>
-                  </span>
-                  {card.marketPrice != null && card.marketPrice > 0 ? (
-                    <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.marketPrice)}</span>
-                  ) : (
-                    <span className="text-xs text-text-dim flex-none">—</span>
-                  )}
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
           {/* Grid view */}
           {view === "grid" && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {displayed.map((card, i) => (
-                <button
-                  key={card.cardSetId + i}
-                  onClick={() => setSelectedCard(card)}
-                  className="bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden active:opacity-80 transition-colors text-left"
-                >
-                  <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
-                    <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <div className="px-2.5 py-2">
-                    <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
-                    <div className="text-xs font-mono text-text-dim mt-0.5">{card.cardSetId}</div>
-                    {card.marketPrice != null && card.marketPrice > 0 ? (
-                      <div className="font-mono text-xs font-semibold text-[#059669] mt-1">{formatPrice(card.marketPrice)}</div>
-                    ) : (
-                      <div className="text-xs text-text-dim mt-1">—</div>
+              {displayed.map((card, i) => {
+                const isChecked = selectedIndices.has(i);
+                return (
+                  <div
+                    key={card.cardSetId + i}
+                    onClick={() => {
+                      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+                      handleCardTap(i);
+                    }}
+                    onPointerDown={(e) => {
+                      if (e.pointerType === "touch" && !selectMode) {
+                        longPressTimer.current = setTimeout(() => handleLongPress(i), 400);
+                      }
+                    }}
+                    onPointerMove={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    className={`bg-bg-surface border rounded-2xl overflow-hidden active:opacity-80 transition-colors text-left cursor-pointer select-none relative ${
+                      isChecked ? "border-accent bg-accent/5" : "border-[rgba(0,0,0,0.06)]"
+                    }`}
+                  >
+                    {selectMode && (
+                      <div className={`absolute top-2 left-2 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                        isChecked ? "bg-accent border-accent" : "border-white/80 bg-black/20"
+                      }`}>
+                        {isChecked && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </div>
                     )}
+                    <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
+                      <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                    <div className="px-2.5 py-2">
+                      <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
+                      <div className="text-xs font-mono text-text-dim mt-0.5">{card.cardSetId}</div>
+                      {card.marketPrice != null && card.marketPrice > 0 ? (
+                        <div className="font-mono text-xs font-semibold text-[#059669] mt-1">{formatPrice(card.marketPrice)}</div>
+                      ) : (
+                        <div className="text-xs text-text-dim mt-1">—</div>
+                      )}
+                    </div>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -701,6 +827,73 @@ export default function SearchPage() {
               Showing {MAX_DISPLAY} of {sorted.length} results — narrow your filters to see more
             </div>
           )}
+        </div>
+      )}
+      {/* Multi-select bottom bar */}
+      {selectMode && (
+        <div className="fixed bottom-20 sm:bottom-4 left-0 right-0 z-40 px-4">
+          <div className="max-w-[1280px] mx-auto bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] shadow-lg px-4 py-3 flex items-center gap-3">
+            <span className="text-sm font-medium text-text">
+              {selectedIndices.size} card{selectedIndices.size !== 1 ? "s" : ""}
+            </span>
+            <div className="flex-1" />
+            <button
+              onClick={cancelSelect}
+              className="text-sm font-medium text-text-dim hover:text-text active:opacity-70 px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={showAddPicker}
+              disabled={selectedIndices.size === 0 || addingCards}
+              className="bg-text text-bg font-medium text-sm py-2.5 px-5 rounded-xl active:opacity-80 disabled:opacity-40 transition-colors"
+            >
+              Add to collection
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Collection picker modal */}
+      {showCollectionPicker && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setShowCollectionPicker(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative bg-bg-elevated rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sm:hidden flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
+            </div>
+            <div className="px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
+              <h3 className="text-base font-semibold text-text">Add to collection</h3>
+              <p className="text-sm text-text-dim mt-0.5">{selectedIndices.size} card{selectedIndices.size !== 1 ? "s" : ""}</p>
+            </div>
+            <div className="py-2 max-h-[50vh] overflow-y-auto">
+              {collections.map((col) => (
+                <button
+                  key={col.id}
+                  onClick={() => addSelectedToCollection(col.id)}
+                  disabled={addingCards}
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-text hover:bg-bg-surface active:opacity-70 disabled:opacity-40 transition-colors"
+                >
+                  {col.name}
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-3 border-t border-[rgba(0,0,0,0.06)]">
+              <button onClick={() => setShowCollectionPicker(false)} className="w-full text-sm font-medium text-text-muted py-2 active:opacity-70">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Added toast */}
+      {addedMsg && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-lg text-sm text-text font-medium">
+          {addedMsg}
         </div>
       )}
     </div>
