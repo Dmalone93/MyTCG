@@ -112,7 +112,7 @@ export function HomeDashboard({
             {collections.map((col) => (
               <Link
                 key={col.id}
-                href="/collections"
+                href={`/collections?id=${col.id}`}
                 className="flex items-center gap-3 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl px-4 py-3.5 hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
               >
                 {/* Card thumbnails — stacked/overlapping */}

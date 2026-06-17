@@ -5,9 +5,15 @@ import { collections, intelItems } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { CollectionShell } from "@/components/collection-shell";
 
-export default async function CollectionsPage() {
+export default async function CollectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
   const user = await currentUser();
   if (!user) redirect("/login");
+
+  const params = await searchParams;
 
   const [userCollections, recentIntel] = await Promise.all([
     db.select().from(collections)
@@ -29,6 +35,7 @@ export default async function CollectionsPage() {
   return (
     <CollectionShell
       initialCollections={userCollections}
+      initialActiveId={params.id}
       intelCardNames={[...intelCardNames]}
     />
   );

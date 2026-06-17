@@ -52,15 +52,19 @@ export type CardPrice = {
 
 export function CollectionShell({
   initialCollections,
+  initialActiveId,
   intelCardNames = [],
 }: {
   initialCollections: Collection[];
+  initialActiveId?: string;
   intelCardNames?: string[];
 }) {
   const intelSet = new Set(intelCardNames);
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [activeId, setActiveId] = useState<string | null>(
-    initialCollections[0]?.id ?? null
+    (initialActiveId && initialCollections.some((c) => c.id === initialActiveId))
+      ? initialActiveId
+      : initialCollections[0]?.id ?? null
   );
   const [cards, setCards] = useState<CollectionCard[]>([]);
   const [prices, setPrices] = useState<Record<string, CardPrice>>({});
