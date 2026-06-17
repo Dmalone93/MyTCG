@@ -13,40 +13,19 @@ export default function AppLayout({
     <div className="min-h-screen flex flex-col">
       <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-3">
-          {/* Mobile: browse left, logo center, search right */}
-          <Link href="/browse" className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-            </svg>
-            <span className="text-xs font-medium">Browse</span>
-          </Link>
-
-          {/* Desktop: logo left */}
+          {/* Desktop: logo left + nav */}
           <Link href="/" className="hidden sm:block flex-none">
             <img src="/logo.svg" alt="MyTCG" className="h-7" />
           </Link>
+          <span className="hidden sm:contents"><NavLinks /></span>
+          <div className="hidden sm:block flex-1" />
 
           {/* Mobile: logo centered */}
           <div className="sm:hidden flex-1 flex justify-center">
             <Link href="/">
-              <img src="/logo.svg" alt="MyTCG" className="h-7 text-accent" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
+              <img src="/logo.svg" alt="MyTCG" className="h-8" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
             </Link>
           </div>
-
-          <span className="hidden sm:contents"><NavLinks /></span>
-          <div className="hidden sm:block flex-1" />
-
-          {/* Mobile search */}
-          <Link
-            href="/search"
-            className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <span className="text-xs font-medium">Search</span>
-          </Link>
 
           {/* Desktop search */}
           <Link
