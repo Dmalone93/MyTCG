@@ -520,8 +520,8 @@ function CardTableRow({
       <td className="py-2.5 px-3 text-right font-mono">
         {card.acquiredPrice != null ? fmt(num(card.acquiredPrice)) : "—"}
       </td>
-      <td className="py-2.5 px-3 text-right font-mono">
-        {market > 0 ? fmt(market) : "—"}
+      <td className="py-2.5 px-3 text-right font-mono text-[#059669]">
+        {market > 0 ? fmt(market) : <span className="text-text-dim">—</span>}
       </td>
       <td className="py-2.5 px-3 text-right font-mono text-[#059669]">
         {gp > 0 ? fmt(gp) : "—"}
@@ -584,8 +584,8 @@ function CardMobileRow({
         </div>
       </div>
       <div className="text-right flex-none">
-        <div className="font-mono text-sm text-text">
-          {market > 0 ? fmt(market) : "—"}
+        <div className="font-mono text-sm text-[#059669]">
+          {market > 0 ? fmt(market) : <span className="text-text-dim">—</span>}
         </div>
         {card.acquiredPrice != null && num(card.acquiredPrice) > 0 && (
           <div className="font-mono text-[11px] text-text-dim">Paid {fmt(num(card.acquiredPrice))}</div>
@@ -652,8 +652,8 @@ function CardGridTile({
         </div>
       )}
       <div className="flex justify-between text-xs">
-        <span className="text-text-muted">
-          {market > 0 ? fmt(market) : "—"}
+        <span className="text-[#059669]">
+          {market > 0 ? fmt(market) : <span className="text-text-dim">—</span>}
         </span>
         {gp > 0 && (
           <span className="text-[#059669] font-mono">{fmt(gp)}</span>

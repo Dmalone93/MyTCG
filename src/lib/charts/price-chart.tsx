@@ -37,11 +37,7 @@ export function PriceChart({ cardCode }: { cardCode: string }) {
   }
 
   if (!data || data.points.length < 2) {
-    return (
-      <div className="h-[80px] flex items-center justify-center text-sm text-text-dim bg-bg-surface rounded-lg">
-        Not enough price data yet
-      </div>
-    );
+    return null;
   }
 
   const prices = data.points.map((p) => p.price);
