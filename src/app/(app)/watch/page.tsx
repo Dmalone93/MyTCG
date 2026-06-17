@@ -66,7 +66,7 @@ export default function WatchPage() {
 
   // Evidence accumulation — card must be seen in N frames before confirmed
   const evidenceRef = useRef<Map<string, { count: number; card: CardIndex[0]; firstSeen: number }>>(new Map());
-  const CONFIRM_THRESHOLD = 3; // Need 3 sightings to confirm
+  const CONFIRM_THRESHOLD = 1; // Instant detect — cards flash on screen briefly
 
   const [watching, setWatching] = useState(false);
   const [detected, setDetected] = useState<DetectedCard[]>([]);
@@ -120,7 +120,7 @@ export default function WatchPage() {
       setScanCount(0);
       evidenceRef.current = new Map();
 
-      scanTimerRef.current = setInterval(scanFrame, 1500);
+      scanTimerRef.current = setInterval(scanFrame, 800);
     } catch {
       setStatus("Screen sharing cancelled");
     }
@@ -405,7 +405,7 @@ export default function WatchPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: isPopped ? "8px" : undefined }} className={isPopped ? "" : "space-y-1.5"}>
                 {detected.map((card) => (
                   <div
-                    key={card.code}
+                    key={card.code + card.detectedAt}
                     onClick={() => openDetail(card)}
                     style={isPopped ? {
                       display: "flex", alignItems: "center", gap: "10px",
@@ -453,15 +453,18 @@ export default function WatchPage() {
                     </div>
                     {/* Remove button */}
                     <button
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
-                        setDetected((prev) => prev.filter((d) => d.detectedAt !== card.detectedAt));
+                        const ts = card.detectedAt;
+                        setDetected((prev) => prev.filter((d) => d.detectedAt !== ts));
                       }}
                       style={isPopped ? {
-                        background: "none", border: "1px solid rgba(0,0,0,0.1)", color: "#A1A1AA", cursor: "pointer",
-                        fontSize: "14px", padding: "4px 8px", flexShrink: 0, lineHeight: 1, borderRadius: "8px",
+                        background: "none", border: "1px solid rgba(0,0,0,0.15)", color: "#71717A", cursor: "pointer",
+                        fontSize: "16px", padding: "4px 10px", flexShrink: 0, lineHeight: 1, borderRadius: "8px",
                       } : undefined}
-                      className={isPopped ? "" : "text-text-dim hover:text-text border border-[rgba(0,0,0,0.08)] rounded-lg text-sm px-2 py-1 flex-none active:opacity-70 transition-colors"}
+                      className={isPopped ? "" : "text-text-dim hover:text-text border border-[rgba(0,0,0,0.1)] rounded-lg text-base px-2.5 py-1 flex-none active:opacity-70 transition-colors"}
                       title="Remove"
                     >
                       ×
