@@ -6,6 +6,7 @@ import type { CollectionCard, CardPrice } from "./collection-shell";
 import { PriceChart } from "@/lib/charts/price-chart";
 import { GradingROI } from "@/components/grading-roi";
 import { useRegion } from "@/components/region-selector";
+import { CardDataSheet } from "@/components/card-data-sheet";
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -94,17 +95,26 @@ export function CardDetailModal({
   const inputClass = "bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-lg px-3 py-2.5 text-sm text-text focus:outline-2 focus:outline-accent";
 
   const cat = catalogData;
-  const dataRows: Array<{ label: string; value: string | null | undefined }> = [
-    { label: "Type", value: c?.traits || null },
-    { label: "Category", value: (c?.type ?? cat?.cardType) || null },
-    { label: "Product", value: (c?.setName ?? cat?.setName) || null },
-    { label: "Color", value: (c?.color ?? cat?.cardColor) || null },
-    { label: "Rarity", value: (c?.rarity ?? cat?.rarity) || null },
-    { label: "Cost", value: c?.cost != null ? String(c.cost) : (cat?.cardCost || null) },
-    { label: "Power", value: c?.power != null ? String(c.power) : (cat?.cardPower || null) },
-    { label: "Counter", value: c?.counterPower != null ? String(c.counterPower) : null },
-    { label: "Life", value: c?.life != null ? String(c.life) : null },
+  const dType = (c?.type ?? cat?.cardType) || null;
+  const dColor = (c?.color ?? cat?.cardColor) || null;
+  const dRarity = (c?.rarity ?? cat?.rarity) || null;
+  const dTraits = c?.traits || null;
+  const dSetName = (c?.setName ?? cat?.setName) || null;
+  const dEffect = c?.effect || null;
+
+  const dataRows: Array<{ label: string; value: string | number | null }> = [
+    { label: "Category", value: dType },
+    { label: "Color", value: dColor },
+    { label: "Rarity", value: dRarity },
+    { label: "Cost", value: c?.cost != null ? c.cost : (cat?.cardCost ? Number(cat.cardCost) : null) },
+    { label: "Power", value: c?.power != null ? c.power : (cat?.cardPower ? Number(cat.cardPower) : null) },
+    { label: "Life", value: c?.life ?? null },
+    { label: "Counter", value: c?.counterPower ?? null },
+    { label: "Set", value: dSetName },
   ];
+
+  // Synergy card viewer state
+  const [viewingSynergy, setViewingSynergy] = useState<{ cid: string; name: string; imageUrl: string } | null>(null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
@@ -174,23 +184,24 @@ export function CardDetailModal({
                 </div>
               </div>
 
+              {/* Traits */}
+              {dTraits && (
+                <div className="px-4 sm:px-5 py-2 border-t border-[rgba(0,0,0,0.06)]">
+                  <div className="text-sm text-text-dim">{dTraits}</div>
+                </div>
+              )}
+
               {/* Data rows */}
               <div className="border-t border-[rgba(0,0,0,0.06)]">
                 {dataRows.map((row) => {
-                  if (!row.value) return null;
+                  if (row.value == null) return null;
                   return (
                     <div key={row.label} className="flex border-b border-[rgba(0,0,0,0.04)]">
-                      <div className="w-[90px] sm:w-[120px] flex-none px-4 sm:px-5 py-2.5 text-sm text-text-dim">{row.label}</div>
-                      <div className="flex-1 px-4 sm:px-5 py-2.5 text-sm text-text text-right">{row.value}</div>
+                      <div className="w-[80px] sm:w-[100px] flex-none px-4 py-2 text-sm text-text-dim">{row.label}</div>
+                      <div className="flex-1 px-4 py-2 text-sm text-text text-right font-mono">{row.value}</div>
                     </div>
                   );
                 })}
-                {c?.effect && (
-                  <div className="px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.04)]">
-                    <div className="text-xs text-text-dim uppercase tracking-wider mb-1">Effect</div>
-                    <div className="text-sm text-text leading-relaxed">{c.effect}</div>
-                  </div>
-                )}
                 {!ext && !catalogData && (
                   <div className="px-4 py-4 space-y-3 animate-pulse">
                     <div className="h-4 w-24 bg-[#E4E4E7] rounded" />
@@ -198,6 +209,14 @@ export function CardDetailModal({
                   </div>
                 )}
               </div>
+
+              {/* Effect */}
+              {dEffect && (
+                <div className="px-4 sm:px-5 py-4">
+                  <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">Effect</div>
+                  <div className="text-sm text-text leading-relaxed bg-bg-surface rounded-xl p-3 whitespace-pre-line">{dEffect}</div>
+                </div>
+              )}
 
               {/* Buy links with logos */}
               <div className="px-4 sm:px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
@@ -260,18 +279,22 @@ export function CardDetailModal({
                 </div>
               )}
 
-              {/* Synergies */}
+              {/* Synergies — tappable */}
               {ext && ext.synergies.length > 0 && (
-                <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-3">
-                  <div className="text-sm font-medium text-text-dim mb-2">Synergies</div>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
+                <div className="border-t border-[rgba(0,0,0,0.06)] px-4 sm:px-5 py-4">
+                  <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Synergies</div>
+                  <div className="flex gap-2.5 overflow-x-auto pb-1">
                     {ext.synergies.map((s) => (
-                      <div key={s.cid} className="flex-none w-[60px]">
-                        <div className="aspect-[2.5/3.5] rounded overflow-hidden bg-[#E4E4E7] mb-1">
+                      <button
+                        key={s.cid}
+                        onClick={() => setViewingSynergy(s)}
+                        className="flex-none w-[60px] text-left active:opacity-70 transition-opacity"
+                      >
+                        <div className="aspect-[2.5/3.5] rounded-lg overflow-hidden bg-[#E4E4E7] mb-1">
                           <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <div className="text-xs text-text-dim truncate">{s.name}</div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -325,6 +348,16 @@ export function CardDetailModal({
           )}
         </div>
       </div>
+
+      {/* Synergy card viewer overlay */}
+      {viewingSynergy && (
+        <CardDataSheet
+          cardCode={viewingSynergy.cid}
+          cardName={viewingSynergy.name}
+          imageUrl={viewingSynergy.imageUrl}
+          onClose={() => setViewingSynergy(null)}
+        />
+      )}
     </div>
   );
 }
