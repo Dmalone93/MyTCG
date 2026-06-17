@@ -16,6 +16,7 @@ type IntelItem = {
   id: string;
   title: string | null;
   category: string | null;
+  imageUrl: string | null;
   fetchedAt: Date | null;
 };
 
@@ -85,17 +86,11 @@ export function HomeDashboard({
         )}
       </div>
 
-      {/* Quick actions */}
-      <div className="flex gap-2">
-        <Link href="/search" className="flex-1 flex items-center justify-center gap-2 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl py-3 text-sm font-medium text-text hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Search
-        </Link>
-        <Link href="/browse" className="flex-1 flex items-center justify-center gap-2 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl py-3 text-sm font-medium text-text hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          Browse
-        </Link>
-      </div>
+      {/* Quick action */}
+      <Link href="/browse" className="flex items-center justify-center gap-2 bg-bg-surface border border-[rgba(0,0,0,0.06)] rounded-2xl py-3 text-sm font-medium text-text hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Browse all cards
+      </Link>
 
       {/* Your collections */}
       <div>
@@ -201,20 +196,27 @@ export function HomeDashboard({
             <span className="text-xs text-text-dim uppercase tracking-wider">Latest news</span>
             <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {recentIntel.map((item) => (
               <Link
                 key={item.id}
                 href="/intel"
-                className="flex items-center gap-3 bg-bg-surface rounded-xl px-3 py-2.5 hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
+                className="flex items-center gap-3 bg-bg-surface rounded-2xl overflow-hidden hover:bg-[rgba(0,0,0,0.03)] active:opacity-80 transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-text truncate">{item.title}</div>
-                  {item.category && <div className="text-xs text-text-dim uppercase">{item.category}</div>}
+                {item.imageUrl && (
+                  <div className="w-20 h-16 flex-none bg-[#E4E4E7]">
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                )}
+                <div className={`flex-1 min-w-0 ${item.imageUrl ? "py-2 pr-3" : "px-3 py-2.5"}`}>
+                  <div className="text-sm font-medium text-text line-clamp-2">{item.title}</div>
+                  {item.category && <div className="text-xs text-text-dim uppercase mt-0.5">{item.category}</div>}
                 </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
+                {!item.imageUrl && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none mr-3">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                )}
               </Link>
             ))}
           </div>

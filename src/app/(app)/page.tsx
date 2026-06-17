@@ -36,6 +36,7 @@ export default async function HomePage() {
       id: intelItems.id,
       title: intelItems.title,
       category: intelItems.category,
+      imageUrl: intelItems.imageUrl,
       fetchedAt: intelItems.fetchedAt,
     })
       .from(intelItems)
