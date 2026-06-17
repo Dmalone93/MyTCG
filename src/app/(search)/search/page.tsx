@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogCard } from "@/lib/catalog/types";
 import { CardDataSheet } from "@/components/card-data-sheet";
@@ -281,6 +281,60 @@ export default function SearchPage() {
   const displayed = sorted.slice(0, MAX_DISPLAY);
   const hasMore = sorted.length > MAX_DISPLAY;
 
+  // Typing placeholder animation
+  const EXAMPLES = [
+    "Monkey D. Luffy",
+    "red leader OP-01",
+    "Roronoa Zoro",
+    "SEC Nami",
+    "OP16-001",
+    "blue Sanji",
+    "Shanks SR",
+    "green Kozuki Oden",
+    "Portgas D. Ace",
+    "purple leader",
+  ];
+  const [placeholder, setPlaceholder] = useState("");
+  const exampleIdx = useRef(0);
+  const charIdx = useRef(0);
+  const isDeleting = useRef(false);
+  const pauseRef = useRef(false);
+
+  useEffect(() => {
+    // Don't animate if user is typing
+    if (query.length > 0) return;
+
+    const tick = () => {
+      const current = EXAMPLES[exampleIdx.current];
+
+      if (pauseRef.current) {
+        pauseRef.current = false;
+        isDeleting.current = true;
+        return;
+      }
+
+      if (isDeleting.current) {
+        charIdx.current--;
+        setPlaceholder(current.slice(0, charIdx.current));
+        if (charIdx.current === 0) {
+          isDeleting.current = false;
+          exampleIdx.current = (exampleIdx.current + 1) % EXAMPLES.length;
+        }
+      } else {
+        charIdx.current++;
+        setPlaceholder(current.slice(0, charIdx.current));
+        if (charIdx.current === current.length) {
+          pauseRef.current = true;
+        }
+      }
+    };
+
+    const interval = setInterval(tick, isDeleting.current ? 40 : 80);
+    return () => clearInterval(interval);
+  }, [query]);
+
+  const displayPlaceholder = query.length > 0 ? "" : (placeholder || EXAMPLES[0].charAt(0));
+
   return (
     <div className="page-slide-up">
       {/* ── Sticky header: search + filters ── */}
@@ -296,7 +350,7 @@ export default function SearchPage() {
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search cards, e.g. &quot;red luffy OP-01&quot;"
+              placeholder={displayPlaceholder}
               enterKeyHint="search"
               autoFocus
               className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder:text-text-muted focus:outline-none"
