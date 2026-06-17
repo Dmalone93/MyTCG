@@ -12,7 +12,7 @@ const listingProvider = new MockListingProvider();
 
 const SOURCE_INFO: Record<string, { logo: string; alt: string; height: number }> = {
   ebay: { logo: "/logos/ebay.svg", alt: "eBay", height: 16 },
-  cardmarket: { logo: "/logos/cardmarket.svg", alt: "Cardmarket", height: 14 },
+  cardmarket: { logo: "/logos/cardmarket.png", alt: "Cardmarket", height: 14 },
   tcgplayer: { logo: "/logos/tcgplayer.svg", alt: "TCGplayer", height: 14 },
 };
 
