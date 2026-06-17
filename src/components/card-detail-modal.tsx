@@ -184,20 +184,31 @@ export function CardDetailModal({
                 )}
               </div>
 
-              {/* Buy links */}
-              <div className="px-4 sm:px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
-                <div className="text-sm font-medium text-text mb-2">Buy this card</div>
-                <div className="flex gap-2 flex-wrap">
-                  {[
-                    { label: "TCGPlayer", url: `https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(card.cardName)}` },
-                    { label: "Cardmarket", url: `https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(card.cardName)}` },
-                    { label: "eBay UK", url: `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${card.cardCode} ${card.cardName}`)}` },
-                  ].map((link) => (
-                    <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
-                      className="text-sm font-medium px-3 py-1.5 rounded-full border border-[rgba(0,0,0,0.1)] text-text-muted hover:text-text hover:border-[rgba(0,0,0,0.2)] transition-colors">
-                      {link.label}
-                    </a>
-                  ))}
+              {/* Buy links with logos */}
+              <div className="px-4 sm:px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
+                <div className="text-xs text-text-dim uppercase tracking-wider mb-3">Buy this card</div>
+                <div className="flex gap-2">
+                  <a
+                    href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(`${card.cardCode} ${card.cardName}`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
+                  >
+                    <img src="/logos/ebay.svg" alt="eBay" className="h-[16px]" />
+                  </a>
+                  <a
+                    href={`https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(card.cardCode)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
+                  >
+                    <img src="/logos/cardmarket.png" alt="Cardmarket" className="h-[14px]" />
+                  </a>
+                  <a
+                    href={`https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(card.cardCode)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-[rgba(0,0,0,0.08)] hover:bg-bg-surface active:opacity-70 transition-colors"
+                  >
+                    <img src="/logos/tcgplayer.svg" alt="TCGplayer" className="h-[14px]" />
+                  </a>
                 </div>
               </div>
 
