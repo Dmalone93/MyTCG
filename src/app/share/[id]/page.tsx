@@ -133,19 +133,38 @@ export default async function SharePage({
         </p>
       )}
 
+      {/* CTA: Sign up */}
+      <div className="mt-12 bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 text-center">
+        <h3 className="text-base font-semibold text-text mb-2">Track your own collection</h3>
+        <p className="text-sm text-text-muted mb-4 max-w-[320px] mx-auto">
+          Scan cards, track prices, find deals, and share your collection with friends.
+        </p>
+        <a
+          href="/sign-up"
+          className="inline-flex items-center justify-center bg-text text-bg font-medium text-sm py-2.5 px-6 rounded-xl hover:opacity-90 active:opacity-80 transition-opacity"
+        >
+          Sign up free
+        </a>
+        <div className="mt-3">
+          <a href="/sign-in" className="text-sm text-text-muted hover:text-text transition-colors">
+            Already have an account? Sign in
+          </a>
+        </div>
+      </div>
+
       {/* Footer */}
-      <div className="mt-12 pt-6 border-t border-black/5 flex items-center justify-between">
+      <div className="mt-8 pt-6 border-t border-black/5 flex items-center justify-between">
         <p className="text-xs text-text-dim">
           Shared via{" "}
           <a
-            href="https://mytcg-dmalone93s-projects.vercel.app"
+            href="/"
             className="text-text-muted underline underline-offset-2 hover:text-text transition-colors"
           >
             MyTCG
           </a>
         </p>
         <a
-          href="https://mytcg-dmalone93s-projects.vercel.app"
+          href="/"
           className="text-xs text-text-dim hover:text-text transition-colors"
         >
           Powered by MyTCG
