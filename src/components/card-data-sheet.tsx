@@ -54,7 +54,7 @@ export function CardDataSheet({
       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
-        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg min-h-[50vh] max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle */}
