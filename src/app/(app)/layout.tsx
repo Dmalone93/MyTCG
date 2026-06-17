@@ -11,7 +11,7 @@ export default function AppLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-3">
+      <header className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-3">
           {/* Mobile: browse left, logo center, search right */}
           <Link href="/browse" className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors flex-none">

@@ -70,6 +70,7 @@ export function CollectionShell({
   const [prices, setPrices] = useState<Record<string, CardPrice>>({});
   const [loadingCards, setLoadingCards] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
 
@@ -284,9 +285,49 @@ export function CollectionShell({
         </div>
       )}
 
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && active && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative bg-bg-elevated rounded-2xl p-6 w-full max-w-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-text mb-2">Delete collection?</h3>
+            <p className="text-sm text-text-muted mb-5">
+              &ldquo;{active.name}&rdquo; and all {cards.length} cards will be permanently deleted. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  await handleDeleteCollection(active.id);
+                  setShowDeleteConfirm(false);
+                }}
+                className="flex-1 bg-[#DC2626] text-white font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 bg-white border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Collection value hero — same pattern as portfolio on home */}
       {active && (
-        <CollectionValueHero cards={cards} prices={prices} cardCount={cards.length} createdAt={active.createdAt} onShare={() => setShowQR(true)} />
+        <CollectionValueHero
+          cards={cards}
+          prices={prices}
+          cardCount={cards.length}
+          createdAt={active.createdAt}
+          onShare={() => setShowQR(true)}
+          onDelete={() => setShowDeleteConfirm(true)}
+        />
       )}
 
       {active ? (
@@ -321,12 +362,13 @@ export function CollectionShell({
 }
 
 /** Portfolio-style value display for a single collection */
-function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare }: {
+function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare, onDelete }: {
   cards: CollectionCard[];
   prices: Record<string, CardPrice>;
   cardCount: number;
   createdAt: Date | null;
   onShare?: () => void;
+  onDelete?: () => void;
 }) {
   const { formatPrice } = useRegion();
 
@@ -347,17 +389,30 @@ function CollectionValueHero({ cards, prices, cardCount, createdAt, onShare }: {
     <div className="bg-white rounded-2xl p-5 border border-[rgba(0,0,0,0.06)] mt-3 mb-4 relative">
       <div className="flex items-start justify-between mb-2">
         <div className="text-xs text-text-dim uppercase tracking-wider">Collection value</div>
-        {onShare && (
-          <button
-            onClick={onShare}
-            className="text-text-dim hover:text-text active:opacity-70 transition-colors p-1 -mt-1 -mr-1"
-            title="Share collection"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
-            </svg>
-          </button>
-        )}
+        <div className="flex items-center gap-1 -mt-1 -mr-1">
+          {onShare && (
+            <button
+              onClick={onShare}
+              className="text-text-dim hover:text-text active:opacity-70 transition-colors p-1.5"
+              title="Share collection"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3"/><path d="M20 14v3h-3"/><path d="M14 20h3"/><path d="M20 20h0"/>
+              </svg>
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="text-text-dim hover:text-red-400 active:opacity-70 transition-colors p-1.5"
+              title="Delete collection"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
       <div className="font-mono text-3xl font-bold text-text leading-tight">
         {totalValue > 0 ? formatPrice(totalValue) : "—"}

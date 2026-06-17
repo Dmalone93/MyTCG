@@ -544,22 +544,40 @@ export function ScanModal({
 
         {/* Result screen — takes over full modal when a card is locked in */}
         {resultCard && !showManualEntry && (
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            <ScanResultScreen
-              card={resultCard}
-              onRescan={() => {
-                setResultCard(null);
-                setMatchedCards([]);
-                setConfidence(0);
-                visionCallCount.current = 0;
-                wasRescannedRef.current = true;
-                startScanning();
-              }}
-              onManualEntry={() => setShowManualEntry(true)}
-              onAddToCollection={() => onResult(resultCard)}
-              onClose={onClose}
-            />
-          </div>
+          <>
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              <ScanResultScreen
+                card={resultCard}
+                onRescan={() => {
+                  setResultCard(null);
+                  setMatchedCards([]);
+                  setConfidence(0);
+                  visionCallCount.current = 0;
+                  wasRescannedRef.current = true;
+                  startScanning();
+                }}
+                onManualEntry={() => setShowManualEntry(true)}
+                onAddToCollection={() => onResult(resultCard)}
+                onClose={onClose}
+              />
+            </div>
+            {/* Sticky rescan bar */}
+            <div className="flex-none flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-bg-elevated">
+              <button
+                onClick={() => {
+                  setResultCard(null);
+                  setMatchedCards([]);
+                  setConfidence(0);
+                  visionCallCount.current = 0;
+                  wasRescannedRef.current = true;
+                  startScanning();
+                }}
+                className="flex-1 bg-white border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70 transition-colors"
+              >
+                Scan another card
+              </button>
+            </div>
+          </>
         )}
 
         {!resultCard && matchedCards.length > 0 && (
