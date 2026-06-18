@@ -85,6 +85,7 @@ export function ScanModal({
   const [matchedCards, setMatchedCards] = useState<CatalogCard[]>([]);
   const [resultCard, setResultCard] = useState<CatalogCard | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const wasRescannedRef = useRef(false);
   const { formatPrice } = useRegion();
   const swipe = useSwipeDismiss(onClose);
@@ -499,11 +500,11 @@ export function ScanModal({
                     acquiredPrice: null, notes: null,
                     imageUrl: resultCard.imageUrl ?? null, marketPrice: resultCard.marketPrice ?? null,
                   });
-                  setStatus(`Added to ${col.name}!`);
                   setShowCollectionPicker(false);
                   setResultCard(null);
                   setMatchedCards([]);
-                  setTimeout(() => { setMode("choose"); }, 1500);
+                  setSuccessMsg(`Added to ${col.name}`);
+                  setTimeout(() => { setSuccessMsg(null); setMode("choose"); }, 2000);
                 }}
                 className="w-full text-left px-3 py-3 text-sm font-medium text-text bg-white border border-[rgba(0,0,0,0.06)] rounded-xl mb-1.5 hover:bg-bg-surface active:opacity-70 transition-colors"
               >
@@ -580,10 +581,11 @@ export function ScanModal({
                       imageUrl: b.card.imageUrl ?? null, marketPrice: b.card.marketPrice ?? null,
                     });
                   }
-                  setStatus(`Added ${batchCards.length} cards to ${col.name}!`);
+                  const count = batchCards.length;
                   setBatchCards([]);
                   setShowCollectionPicker(false);
-                  setTimeout(() => onClose(), 1500);
+                  setSuccessMsg(`${count} card${count !== 1 ? "s" : ""} added to ${col.name}`);
+                  setTimeout(() => { setSuccessMsg(null); onClose(); }, 2500);
                 }}
                 className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl mb-1.5 active:opacity-70 transition-colors text-text bg-white border border-[rgba(0,0,0,0.06)] hover:bg-bg-surface"
               >
@@ -628,6 +630,20 @@ export function ScanModal({
           </div>
         )}
       </div>
+
+      {/* ═══ SUCCESS FEEDBACK ═══ */}
+      {successMsg && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-elevated/95 rounded-t-2xl sm:rounded-2xl">
+          <div className="text-center px-6">
+            <div className="w-16 h-16 rounded-full bg-[#059669] flex items-center justify-center mx-auto mb-4">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div className="text-base font-semibold text-text">{successMsg}</div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ CARD PREVIEW OVERLAY ═══ */}
       {previewCard && (
