@@ -81,11 +81,16 @@ export async function POST(request: Request) {
       }
     }
 
-    // Now insert ALL entries as variants (including the base card as "standard")
+    // Batch insert ALL entries as variants
+    const allVariants: Array<{
+      baseCardId: string; variantType: string; variantName: string | null;
+      imageUrl: string | null; marketPrice: string | null; currency: string;
+      priceFetchedAt: Date; source: string;
+    }> = [];
+
     for (const [code, entries] of grouped) {
       for (let vi = 0; vi < entries.length; vi++) {
         const card = entries[vi];
-        // Determine variant type from name
         const nameLower = card.cardName.toLowerCase();
         let variantType = "standard";
         if (nameLower.includes("alternate art") || nameLower.includes("alt art")) variantType = "alt-art";
@@ -93,21 +98,29 @@ export async function POST(request: Request) {
         else if (nameLower.includes("(sp)") || nameLower.includes("special")) variantType = "parallel";
         else if (nameLower.includes("promo")) variantType = "promo-stamped";
         else if (nameLower.includes("parallel")) variantType = "parallel";
-        else if (vi > 0) variantType = "alt-art"; // Non-first entry with same code = variant
+        else if (vi > 0) variantType = "alt-art";
 
-        try {
-          await db.insert(cardVariants).values({
-            baseCardId: code,
-            variantType,
-            variantName: card.cardName,
-            imageUrl: card.imageUrl || null,
-            marketPrice: card.marketPrice != null ? String(card.marketPrice) : null,
-            currency: "EUR",
-            priceFetchedAt: new Date(),
-            source: "optcgapi",
-          }).onConflictDoNothing();
-          stats.variants++;
-        } catch { /* duplicate — ok */ }
+        allVariants.push({
+          baseCardId: code,
+          variantType,
+          variantName: card.cardName,
+          imageUrl: card.imageUrl || null,
+          marketPrice: card.marketPrice != null ? String(card.marketPrice) : null,
+          currency: "GBP",
+          priceFetchedAt: new Date(),
+          source: "optcgapi",
+        });
+      }
+    }
+
+    // Batch insert variants in chunks of 20
+    for (let i = 0; i < allVariants.length; i += BATCH_SIZE) {
+      const batch = allVariants.slice(i, i + BATCH_SIZE);
+      try {
+        await db.insert(cardVariants).values(batch).onConflictDoNothing();
+        stats.variants += batch.length;
+      } catch (e) {
+        stats.errors.push(`Variant batch ${i}: ${e instanceof Error ? e.message.slice(0, 80) : "unknown"}`);
       }
     }
 
