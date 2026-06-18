@@ -166,6 +166,35 @@ export const missingCardAlerts = pgTable("missing_card_alerts", {
   unique("missing_alert_code_source").on(table.cardCode, table.detectedIn),
 ]);
 
+// ═══ SOCIAL — friends + activity ═══
+
+export const friendships = pgTable("friendships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull(), // who sent the request
+  friendId: text("friend_id").notNull(), // who they want to follow
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("friendship_pair").on(table.userId, table.friendId),
+  index("idx_friendship_user").on(table.userId),
+  index("idx_friendship_friend").on(table.friendId),
+]);
+
+export const activityFeed = pgTable("activity_feed", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull(),
+  action: text("action").notNull(), // "added_card", "created_collection", "batch_scan", "milestone"
+  cardCode: text("card_code"),
+  cardName: text("card_name"),
+  cardImageUrl: text("card_image_url"),
+  collectionName: text("collection_name"),
+  metadata: jsonb("metadata"), // extra data like { count: 5, totalValue: 123.45 }
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_activity_user").on(table.userId),
+  index("idx_activity_date").on(table.createdAt),
+]);
+
 export const preorderItems = pgTable("preorder_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   productName: text("product_name").notNull(),
