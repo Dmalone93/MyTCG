@@ -447,10 +447,10 @@ export function ScanModal({
                       if (mode === "price-check") setResultCard(card);
                       else if (mode === "add-single") { setShowCollectionPicker(true); setResultCard(card); }
                       else if (mode === "add-batch") {
-                        addToCollection(card);
+                        // Stage card locally — NOT added to DB yet
                         setBatchCards((prev) => [...prev, { card, addedAt: Date.now() }]);
                         setMatchedCards([]); setConfidence(0); visionCallCount.current = 0;
-                        setStatus(`Added! ${batchCards.length + 1} cards`);
+                        setStatus(`Staged ${batchCards.length + 1} cards`);
                         setTimeout(() => { attachStream(); startScanning(); }, 300);
                       }
                     }}
@@ -532,47 +532,69 @@ export function ScanModal({
           </>
         )}
 
-        {/* ═══ BATCH SUMMARY BAR — compact ═══ */}
-        {mode === "add-batch" && batchCards.length > 0 && !resultCard && matchedCards.length === 0 && (
-          <div className="flex-none px-4 py-2.5 border-t border-[rgba(0,0,0,0.06)] bg-white">
-            <div className="flex items-center gap-3">
+        {/* ═══ BATCH SUMMARY BAR ═══ */}
+        {mode === "add-batch" && batchCards.length > 0 && !resultCard && matchedCards.length === 0 && !showCollectionPicker && (
+          <div className="flex-none px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-white">
+            <div className="flex items-center gap-3 mb-2">
               <div className="flex -space-x-1.5 flex-none">
-                {batchCards.slice(-3).reverse().map((b) => (
-                  <img key={b.addedAt} src={b.card.imageUrl} alt="" className="w-6 aspect-[63/88] rounded object-cover border border-white" />
+                {batchCards.slice(-4).reverse().map((b) => (
+                  <img key={b.addedAt} src={b.card.imageUrl} alt="" className="w-7 aspect-[63/88] rounded-md object-cover border-2 border-white" />
                 ))}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-text">{batchCards.length} cards</span>
-                <span className="font-mono text-sm text-[#059669] ml-2">{formatPrice(batchTotal)}</span>
+                <div className="text-sm font-semibold text-text">{batchCards.length} card{batchCards.length !== 1 ? "s" : ""} scanned</div>
+                <div className="font-mono text-sm text-[#059669]">{formatPrice(batchTotal)}</div>
               </div>
               <button
-                onClick={onClose}
-                className="bg-text text-bg font-medium text-xs py-1.5 px-3 rounded-lg active:opacity-80"
+                onClick={() => setBatchCards([])}
+                className="text-xs text-text-dim hover:text-text active:opacity-70"
               >
-                Done
+                Clear
               </button>
             </div>
-            <button onClick={() => setShowCollectionPicker(true)} className="text-xs text-text-dim mt-1 active:opacity-70">
-              {selectedColName} <span className="text-text-muted">· Change</span>
+            <button
+              onClick={() => setShowCollectionPicker(true)}
+              className="w-full bg-text text-bg font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
+            >
+              Add {batchCards.length} card{batchCards.length !== 1 ? "s" : ""} to collection
             </button>
           </div>
         )}
 
-        {/* ═══ BATCH COLLECTION PICKER ═══ */}
+        {/* ═══ BATCH COLLECTION PICKER — confirm + add all ═══ */}
         {mode === "add-batch" && showCollectionPicker && (
           <div className="flex-1 overflow-y-auto px-4 py-4">
-            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Choose collection</div>
+            <div className="text-sm font-semibold text-text mb-1">Add {batchCards.length} card{batchCards.length !== 1 ? "s" : ""} to:</div>
+            <div className="text-xs text-text-dim mb-3">Total value: {formatPrice(batchTotal)}</div>
             {collections.map((col) => (
               <button
                 key={col.id}
-                onClick={() => { setSelectedCollection(col.id); setShowCollectionPicker(false); }}
-                className={`w-full text-left px-3 py-3 text-sm font-medium rounded-xl mb-1.5 active:opacity-70 transition-colors ${
-                  col.id === selectedCollection ? "bg-text text-bg" : "text-text bg-white border border-[rgba(0,0,0,0.06)]"
-                }`}
+                onClick={async () => {
+                  // Add ALL staged cards to this collection
+                  setStatus("Adding cards...");
+                  for (const b of batchCards) {
+                    await addCardAction({
+                      collectionId: col.id,
+                      cardCode: b.card.cardSetId,
+                      cardName: b.card.cardName,
+                      quantity: 1, condition: "NM", isGraded: false, grade: null, gradedCompany: null,
+                      acquiredPrice: null, notes: null,
+                      imageUrl: b.card.imageUrl ?? null, marketPrice: b.card.marketPrice ?? null,
+                    });
+                  }
+                  setStatus(`Added ${batchCards.length} cards to ${col.name}!`);
+                  setBatchCards([]);
+                  setShowCollectionPicker(false);
+                  setTimeout(() => onClose(), 1500);
+                }}
+                className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl mb-1.5 active:opacity-70 transition-colors text-text bg-white border border-[rgba(0,0,0,0.06)] hover:bg-bg-surface"
               >
                 {col.name}
               </button>
             ))}
+            <button onClick={() => setShowCollectionPicker(false)} className="w-full text-sm text-text-muted py-2 mt-1 active:opacity-70">
+              Cancel — keep scanning
+            </button>
           </div>
         )}
 
