@@ -341,7 +341,7 @@ export function HomeDashboard({
             <h2 className="text-sm font-bold text-text uppercase tracking-wide">Latest news</h2>
             <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {filteredIntel.map((item) => (
               <Link
                 key={item.id}
