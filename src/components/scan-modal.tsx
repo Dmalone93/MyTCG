@@ -537,23 +537,22 @@ export function ScanModal({
           <div className="flex-none px-4 py-2.5 border-t border-[rgba(0,0,0,0.06)] bg-white">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex -space-x-1.5 flex-none">
-                {batchCards.slice(-3).reverse().map((b) => (
+                {batchCards.slice(-4).reverse().map((b) => (
                   <img key={b.addedAt} src={b.card.imageUrl} alt="" className="w-6 aspect-[63/88] rounded object-cover border-2 border-white" />
                 ))}
               </div>
-              <span className="text-sm font-semibold text-text">{batchCards.length}</span>
-              <span className="font-mono text-sm text-[#059669]">{formatPrice(batchTotal)}</span>
+              <span className="text-sm font-semibold text-text">{batchCards.length} card{batchCards.length !== 1 ? "s" : ""}</span>
               <div className="flex-1" />
-              <button onClick={() => setBatchCards([])} className="text-xs text-text-dim active:opacity-70">Clear</button>
+              <span className="font-mono text-sm font-semibold text-[#059669]">{formatPrice(batchTotal)}</span>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowCollectionPicker(true)}
-                className="flex-1 bg-text text-bg font-medium text-sm py-2 rounded-xl active:opacity-80 transition-colors"
+                className="flex-1 bg-text text-bg font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
               >
-                Add {batchCards.length} to collection
+                Add to collection
               </button>
-              <button onClick={() => setShowManualEntry(true)} className="border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2 px-3 rounded-xl active:opacity-70">
+              <button onClick={() => setShowManualEntry(true)} className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70">
                 Enter code
               </button>
             </div>
