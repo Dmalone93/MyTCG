@@ -725,17 +725,8 @@ export default function SearchPage() {
                 return (
                   <div
                     key={card.cardSetId + i}
-                    onClick={() => {
-                      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-                      handleCardTap(i);
-                    }}
-                    onPointerDown={(e) => {
-                      if (e.pointerType === "touch" && !selectMode) {
-                        longPressTimer.current = setTimeout(() => handleLongPress(i), 400);
-                      }
-                    }}
-                    onPointerMove={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-                    onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    onClick={() => handleCardTap(i)}
+                    onContextMenu={(e) => { e.preventDefault(); handleLongPress(i); }}
                     className={`flex items-center gap-3 w-full text-left border-b border-[rgba(0,0,0,0.04)] px-1 py-3 sm:py-2.5 active:opacity-80 transition-colors cursor-pointer select-none ${
                       isChecked ? "bg-accent/10" : ""
                     }`}
@@ -777,17 +768,8 @@ export default function SearchPage() {
                 return (
                   <div
                     key={card.cardSetId + i}
-                    onClick={() => {
-                      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-                      handleCardTap(i);
-                    }}
-                    onPointerDown={(e) => {
-                      if (e.pointerType === "touch" && !selectMode) {
-                        longPressTimer.current = setTimeout(() => handleLongPress(i), 400);
-                      }
-                    }}
-                    onPointerMove={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-                    onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                    onClick={() => handleCardTap(i)}
+                    onContextMenu={(e) => { e.preventDefault(); handleLongPress(i); }}
                     className={`bg-bg-surface border rounded-2xl overflow-hidden active:opacity-80 transition-colors text-left cursor-pointer select-none relative ${
                       isChecked ? "border-accent bg-accent/5" : "border-[rgba(0,0,0,0.06)]"
                     }`}

@@ -151,7 +151,7 @@ export function CardDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle (mobile) — swipe down to dismiss */}
-        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
+        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-3 pb-2 cursor-grab" style={{ touchAction: "none" }}>
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 

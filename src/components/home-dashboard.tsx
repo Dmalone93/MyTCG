@@ -190,6 +190,13 @@ export function HomeDashboard({
             <div className="text-sm font-medium text-text">Create your first collection</div>
           </Link>
         )}
+        {/* Create collection shortcut */}
+        <Link
+          href="/collections"
+          className="flex items-center justify-center gap-2 mt-2.5 py-2.5 text-sm font-medium text-text-muted hover:text-text active:opacity-70 transition-colors"
+        >
+          <span className="text-lg leading-none">+</span> New collection
+        </Link>
       </section>
 
       {/* ═══ PRICE MOVERS ═══ */}

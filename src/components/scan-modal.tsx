@@ -487,7 +487,7 @@ export function ScanModal({
         className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-2 pb-1 cursor-grab">
+        <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-3 pb-2 cursor-grab" style={{ touchAction: "none" }}>
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">
@@ -587,18 +587,17 @@ export function ScanModal({
             </div>
             {matchedCards.map((card, i) => (
               <div key={card.cardSetId + i} className="border-b border-[rgba(0,0,0,0.04)] px-3 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 aspect-[2.5/3.5] flex-none rounded-md overflow-hidden bg-[#E4E4E7]">
-                    <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <span className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-text block truncate">{card.cardName}</span>
-                    <span className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</span>
-                  </span>
+                {/* Big card image for visual confirmation */}
+                <div className="flex justify-center mb-3">
+                  <img src={card.imageUrl} alt={card.cardName} className="w-[140px] aspect-[63/88] rounded-xl object-contain" />
+                </div>
+                <div className="text-center mb-3">
+                  <div className="text-sm font-semibold text-text">{card.cardName}</div>
+                  <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</div>
                   {card.marketPrice != null && card.marketPrice > 0 && (
-                    <span className="font-mono text-sm font-semibold text-[#059669] flex-none">
+                    <div className="font-mono text-sm font-semibold text-[#059669] mt-1">
                       {formatPrice(card.marketPrice)}
-                    </span>
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2 mt-2.5">
