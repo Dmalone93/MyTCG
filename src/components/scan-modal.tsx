@@ -317,16 +317,16 @@ export function ScanModal({
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-[rgba(0,0,0,0.04)] flex-none">
-          <h2 className="font-semibold text-sm text-text">
-            {mode === "choose" ? "Scan Card" : mode === "price-check" ? "Price Check" : mode === "add-batch" ? `Batch Add · ${batchCards.length} cards` : "Add to Collection"}
-          </h2>
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-[rgba(0,0,0,0.04)] flex-none">
           {mode !== "choose" && (
-            <button onClick={() => { setMode("choose"); setMatchedCards([]); setResultCard(null); stopScanning(); }} className="text-xs text-text-dim hover:text-text mr-2">
-              ← Back
+            <button onClick={() => { setMode("choose"); setMatchedCards([]); setResultCard(null); stopScanning(); }} className="text-sm text-text-muted hover:text-text active:opacity-70 flex-none">
+              ←
             </button>
           )}
-          <button onClick={onClose} className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors">×</button>
+          <h2 className="font-semibold text-sm text-text flex-1">
+            {mode === "choose" ? "Scan Card" : mode === "price-check" ? "Price Check" : mode === "add-batch" ? `Batch Add · ${batchCards.length} cards` : "Add to Collection"}
+          </h2>
+          <button onClick={onClose} className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors flex-none">×</button>
         </div>
 
         {/* Hidden video — always in DOM so camera can attach */}
@@ -364,9 +364,7 @@ export function ScanModal({
 
         {/* ═══ CAMERA ═══ */}
         {mode !== "choose" && !resultCard && (
-          <div className={`relative bg-black overflow-hidden transition-all flex-none ${
-            matchedCards.length > 0 ? "h-[100px]" : "h-[50vh] sm:h-[40vh]"
-          }`}>
+          <div className="relative bg-black overflow-hidden flex-none h-[45vh] sm:h-[40vh]">
             <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
             {scanning && matchedCards.length === 0 && (
               <div className="absolute inset-0 pointer-events-none">
