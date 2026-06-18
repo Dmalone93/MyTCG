@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { collections, collectionCards, cardPrices } from "@/lib/db/schema";
+import { collections, collectionCards, cardPrices, activityFeed } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 
 export async function getCollections() {
@@ -24,6 +24,16 @@ export async function createCollection(name: string, sortOrder: number) {
     .insert(collections)
     .values({ userId, name, sortOrder })
     .returning();
+
+  // Record activity
+  try {
+    await db.insert(activityFeed).values({
+      userId,
+      action: "created_collection",
+      collectionName: name,
+    });
+  } catch { /* */ }
+
   return row;
 }
 
@@ -118,6 +128,19 @@ export async function addCard(data: {
       imageUrl: data.imageUrl,
     })
     .returning();
+
+  // Record activity
+  try {
+    const [col] = await db.select({ name: collections.name }).from(collections).where(eq(collections.id, data.collectionId)).limit(1);
+    await db.insert(activityFeed).values({
+      userId,
+      action: "added_card",
+      cardCode: data.cardCode,
+      cardName: data.cardName,
+      cardImageUrl: data.imageUrl,
+      collectionName: col?.name ?? null,
+    });
+  } catch { /* activity logging should never block card add */ }
 
   // Cache the market price from the catalog if provided
   if (data.marketPrice != null && data.marketPrice > 0) {
