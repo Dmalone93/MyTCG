@@ -263,7 +263,10 @@ export function CardDataSheet({
           )}
 
           {/* Add to collection */}
-          <AddToCollectionButton cardCode={cardCode} cardName={cardName} imageUrl={imageUrl} marketPrice={marketPrice} />
+          <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-3 flex gap-2">
+            <AddToCollectionButton cardCode={cardCode} cardName={cardName} imageUrl={imageUrl} marketPrice={marketPrice} />
+            <AddToWishlistButton cardCode={cardCode} cardName={cardName} imageUrl={imageUrl} />
+          </div>
 
           {/* Buy links */}
           <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
@@ -360,7 +363,7 @@ function AddToCollectionButton({ cardCode, cardName, imageUrl, marketPrice }: {
   }
 
   return (
-    <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
+    <div className="flex-1">
       {added ? (
         <div className="text-sm font-medium text-[#059669] text-center py-2">
           Added to {added}
@@ -394,6 +397,46 @@ function AddToCollectionButton({ cardCode, cardName, imageUrl, marketPrice }: {
             Cancel
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+/** Inline wishlist button */
+function AddToWishlistButton({ cardCode, cardName, imageUrl }: {
+  cardCode: string; cardName: string; imageUrl: string;
+}) {
+  const [added, setAdded] = useState(false);
+  const [adding, setAdding] = useState(false);
+
+  async function addToWishlist() {
+    setAdding(true);
+    try {
+      const res = await fetch("/api/watchlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardCode, cardName, imageUrl }),
+      });
+      if (res.ok) {
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2000);
+      }
+    } catch { /* */ }
+    setAdding(false);
+  }
+
+  return (
+    <div className="flex-1">
+      {added ? (
+        <div className="text-sm font-medium text-[#059669] text-center py-2.5">Added to wishlist</div>
+      ) : (
+        <button
+          onClick={addToWishlist}
+          disabled={adding}
+          className="w-full border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-80 disabled:opacity-40 transition-colors"
+        >
+          + Wishlist
+        </button>
       )}
     </div>
   );

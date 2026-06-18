@@ -108,6 +108,22 @@ export default function SettingsPage() {
       </section>
 
 
+      {/* Wishlist */}
+      <section className="mb-8">
+        <a
+          href="/wishlist"
+          className="flex items-center justify-between bg-bg-surface rounded-2xl px-4 py-3 hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
+        >
+          <div>
+            <div className="text-sm font-medium text-text">Wishlist</div>
+            <div className="text-xs text-text-dim">Cards you want — track prices</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </a>
+      </section>
+
       {/* Collections */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
@@ -164,22 +180,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Social */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold text-text mb-3">Social</h2>
-        <a
-          href="/friends"
-          className="flex items-center justify-between bg-bg-surface rounded-2xl px-4 py-3 hover:bg-[rgba(0,0,0,0.04)] active:opacity-70 transition-colors"
-        >
-          <div>
-            <div className="text-sm font-medium text-text">Friends & Activity</div>
-            <div className="text-xs text-text-dim">See what your friends are collecting</div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </a>
-      </section>
 
       {/* Data */}
       <section className="mb-8">
