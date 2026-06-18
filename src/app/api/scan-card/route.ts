@@ -191,18 +191,18 @@ export async function POST(request: Request) {
     const text =
       resp.textAnnotations?.[0]?.description ?? "";
 
-    // Priority: web detection (artwork matching) first, then text-based codes
-    let codes = extractCodesFromWeb(resp.webDetection);
+    // Priority: OCR text first (most accurate for printed card codes),
+    // then web detection (artwork matching) as fallback
+    let codes = extractAllCodes(text);
 
-    // Fall back to text-based extraction
-    if (codes.length === 0) {
-      codes = extractAllCodes(text);
-    }
-
-    // Single code extraction as last resort
     if (codes.length === 0) {
       const single = extractCode(text);
       if (single) codes = [single];
+    }
+
+    // Fall back to web detection (artwork matching)
+    if (codes.length === 0) {
+      codes = extractCodesFromWeb(resp.webDetection);
     }
 
     // Best guess label from web detection
