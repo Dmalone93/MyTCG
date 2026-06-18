@@ -124,7 +124,18 @@ export default function SearchPage() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  // Load all cards on mount
+  // User's owned cards (for checkmarks)
+  const [ownedCodes, setOwnedCodes] = useState<Set<string>>(new Set());
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+
+  // Load user's owned cards for checkmarks
+  useEffect(() => {
+    fetch("/api/owned-cards")
+      .then((r) => r.ok ? r.json() : [])
+      .then((codes: string[]) => setOwnedCodes(new Set(codes)))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (dataLoadedRef.current) return;
     dataLoadedRef.current = true;
@@ -440,8 +451,8 @@ export default function SearchPage() {
           </button>
         </div>
 
-        {/* Set pills carousel */}
-        {filterMeta && filterMeta.sets.length > 0 && (
+        {/* Set pills carousel — always show */}
+        {filterMeta && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-4 px-4">
             <button
               onClick={() => setFilter("set", null)}
@@ -465,62 +476,70 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Filter chips: color, rarity, type */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {(["color", "rarity", "type"] as FilterKey[]).map((key) => {
-            const isActive = filters[key] !== null;
-            const isParsed = !filters[key] && parsed[key];
-            const label = filterLabel(key);
-            return (
-              <button
-                key={key}
-                onClick={() => togglePicker(key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-all flex-none ${
-                  isActive
-                    ? "bg-text text-bg font-medium"
-                    : isParsed
-                    ? "bg-bg-surface text-text font-medium border border-text/20"
-                    : "text-text-dim hover:text-text"
-                }`}
-              >
-                {key === "color" && (isActive || isParsed) && (
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-none"
-                    style={{ backgroundColor: COLOR_DOT[(filters[key] ?? parsed[key])!] ?? "#999" }}
-                  />
-                )}
-                {isParsed ? (parsed[key] === filters[key] ? label : parsed[key]!) : label}
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-50">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-            );
-          })}
+        {/* Filters toggle + owned counter */}
+        <div className="flex items-center gap-2 pb-1">
+          <button
+            onClick={() => setShowFilterPanel(!showFilterPanel)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              (filters.color || filters.rarity || filters.type) ? "bg-text text-bg font-medium" : "text-text-dim hover:text-text"
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+            </svg>
+            Filters
+            {(filters.color || filters.rarity || filters.type) && (
+              <span className="w-1.5 h-1.5 rounded-full bg-accent flex-none" />
+            )}
+          </button>
+          {filters.set && (
+            <span className="text-xs text-text-dim font-mono">
+              {ownedCodes.size > 0 && `${[...ownedCodes].filter((c) => c.startsWith(filters.set!.replace("-", ""))).length}`} owned
+            </span>
+          )}
         </div>
 
-        {/* Active filter pills — dismissible */}
-        {activeFilterCount > 0 && (
-          <div className="flex gap-1.5 mt-3 flex-wrap">
-            {(["set", "color", "rarity", "type"] as FilterKey[]).map((key) => {
-              const v = effectiveFilters[key];
+        {/* Filter panel */}
+        {showFilterPanel && (
+          <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-4 mb-2">
+            {(["color", "rarity", "type"] as FilterKey[]).map((key) => (
+              <div key={key} className="mb-3 last:mb-0">
+                <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">{key}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {pickerOptions(key).map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setFilter(key, filters[key] === opt.value ? null : opt.value)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
+                        filters[key] === opt.value ? "bg-text text-bg font-medium" : "bg-bg-surface text-text-dim hover:text-text"
+                      }`}
+                    >
+                      {key === "color" && <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />}
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Active filter summary */}
+        {(filters.color || filters.rarity || filters.type) && (
+          <div className="flex gap-1.5 mt-1 flex-wrap">
+            {(["color", "rarity", "type"] as FilterKey[]).map((key) => {
+              const v = filters[key];
               if (!v) return null;
-              const isExplicit = filters[key] !== null;
-              const label = key === "set"
-                ? filterMeta?.sets.find((s) => s.id === v)?.name ?? v
-                : v;
               return (
                 <span
                   key={key}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-bg-surface rounded-lg text-xs font-medium text-text"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-bg-surface rounded-lg text-xs font-medium text-text"
                 >
                   {key === "color" && (
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLOR_DOT[v] ?? "#999" }} />
                   )}
-                  <span className="text-text-dim uppercase tracking-wider text-[10px]">{key}</span>
-                  {label}
-                  {isExplicit && (
-                    <button onClick={() => clearFilter(key)} className="ml-0.5 text-text-dim hover:text-text">×</button>
-                  )}
+                  {v}
+                  <button onClick={() => clearFilter(key)} className="ml-0.5 text-text-dim hover:text-text">×</button>
                 </span>
               );
             })}
@@ -713,6 +732,10 @@ export default function SearchPage() {
           <div className="flex items-center gap-1.5 mb-4 flex-wrap">
             <span className="text-xs text-text-dim font-mono mr-1">
               {sorted.length} card{sorted.length !== 1 ? "s" : ""}
+              {filters.set && ownedCodes.size > 0 && (() => {
+                const ownedInSet = sorted.filter((c) => ownedCodes.has(c.cardSetId)).length;
+                return <span className="text-[#059669] ml-1">· {ownedInSet} owned</span>;
+              })()}
             </span>
             <div className="w-px h-3.5 bg-[rgba(0,0,0,0.1)]" />
             {(["code", "name", "price"] as SortKey[]).map((k) => {
@@ -809,8 +832,15 @@ export default function SearchPage() {
                         )}
                       </div>
                     )}
-                    <div className="aspect-[2.5/3.5] bg-[#E4E4E7]">
+                    <div className="aspect-[2.5/3.5] bg-[#E4E4E7] relative">
                       <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
+                      {!selectMode && ownedCodes.has(card.cardSetId) && (
+                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#059669] flex items-center justify-center">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
+                      )}
                     </div>
                     <div className="px-2.5 py-2">
                       <div className="text-xs font-semibold text-text truncate">{card.cardName}</div>
