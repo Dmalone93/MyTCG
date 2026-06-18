@@ -362,10 +362,10 @@ export function ScanModal({
 
         {/* ═══ CAMERA ═══ */}
         {mode !== "choose" && !resultCard && (
-          <div className={`relative bg-white overflow-hidden transition-all flex-none ${
-            matchedCards.length > 0 ? "h-[100px]" : "aspect-[3/4] sm:aspect-[4/3]"
+          <div className={`relative bg-black overflow-hidden transition-all flex-none ${
+            matchedCards.length > 0 ? "h-[100px]" : "h-[50vh] sm:h-[40vh]"
           }`}>
-            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
             {scanning && matchedCards.length === 0 && (
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
