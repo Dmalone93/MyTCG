@@ -17,7 +17,7 @@ type DetectedCard = {
 
 function extractCodesLocal(text: string): string[] {
   const codes: string[] = [];
-  const up = text.toUpperCase();
+  const up = text.toUpperCase().replace(/E[86]\s*(\d)/g, "EB$1").replace(/PR[86]/g, "PRB");
   const re = /(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*(\d{2,3})/g;
   let m;
   while ((m = re.exec(up)) !== null) {

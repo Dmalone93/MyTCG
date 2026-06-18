@@ -3,7 +3,9 @@ import { getExtendedCards } from "@/lib/catalog/extended-cards";
 
 function extractCode(text: string): string {
   const up = text.toUpperCase().replace(/[^A-Z0-9-]/g, " ");
-  let m = up.match(/(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*([\dO]{2,3})/);
+  // Also match E8/E6 as EB (OCR misread of B)
+  const normalized = up.replace(/E[86]\s*(\d)/g, "EB$1");
+  let m = normalized.match(/(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*([\dO]{2,3})/);
   if (m) {
     return (
       m[1] +
@@ -21,7 +23,8 @@ function extractCode(text: string): string {
 
 function extractAllCodes(text: string): string[] {
   const codes: string[] = [];
-  const up = text.toUpperCase();
+  // Normalize OCR misreads: E8/E6 → EB, PR8 → PRB
+  const up = text.toUpperCase().replace(/E[86]\s*(\d)/g, "EB$1").replace(/PR[86]/g, "PRB");
   const re = /(OP|ST|EB|PRB)\s*[O0]?(\d{1,2})\s*[-\s.]\s*(\d{2,3})/g;
   let m;
   while ((m = re.exec(up)) !== null) {
