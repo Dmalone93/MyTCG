@@ -47,12 +47,18 @@ export function HomeDashboard({
   collections,
   portfolioValue,
   portfolioSpent,
+  topCards,
+  recentlyAdded,
+  setCompletion,
   recentIntel,
   recentDeals,
 }: {
   collections: CollectionSummary[];
   portfolioValue: number;
   portfolioSpent: number;
+  topCards: Array<{ code: string; name: string; imageUrl: string | null; value: number }>;
+  recentlyAdded: Array<{ code: string; name: string; imageUrl: string | null; price: number }>;
+  setCompletion: Array<{ setId: string; owned: number; total: number }>;
   recentIntel: IntelItem[];
   recentDeals: Deal[];
 }) {
@@ -198,6 +204,78 @@ export function HomeDashboard({
           <span className="text-lg leading-none">+</span> New collection
         </Link>
       </section>
+
+      {/* ═══ TOP VALUABLE CARDS ═══ */}
+      {topCards.length > 0 && (
+        <section>
+          <h2 className="text-sm font-bold text-text uppercase tracking-wide mb-3">Most valuable</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            {topCards.map((card) => (
+              <div key={card.code} className="flex-none w-[90px]">
+                <div className="aspect-[63/88] rounded-xl overflow-hidden bg-[#E4E4E7] mb-1.5">
+                  {card.imageUrl && <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" loading="lazy" />}
+                </div>
+                <div className="text-xs font-medium text-text truncate">{card.name}</div>
+                <div className="font-mono text-xs text-[#059669]">{formatPrice(card.value)}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ RECENTLY ADDED ═══ */}
+      {recentlyAdded.length > 0 && (
+        <section>
+          <h2 className="text-sm font-bold text-text uppercase tracking-wide mb-3">Recently added</h2>
+          <div className="space-y-1.5">
+            {recentlyAdded.map((card, i) => (
+              <div key={card.code + i} className="flex items-center gap-3 bg-white border border-[rgba(0,0,0,0.06)] rounded-xl px-3 py-2.5">
+                {card.imageUrl && (
+                  <div className="w-8 aspect-[63/88] rounded overflow-hidden bg-[#E4E4E7] flex-none">
+                    <img src={card.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-text truncate">{card.name}</div>
+                  <div className="text-xs text-text-dim font-mono">{card.code}</div>
+                </div>
+                {card.price > 0 && (
+                  <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.price)}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ SET COMPLETION ═══ */}
+      {setCompletion.length > 0 && (
+        <section>
+          <h2 className="text-sm font-bold text-text uppercase tracking-wide mb-3">Set completion</h2>
+          <div className="space-y-2">
+            {setCompletion.map((s) => {
+              const pct = Math.round((s.owned / s.total) * 100);
+              return (
+                <div key={s.setId} className="bg-white border border-[rgba(0,0,0,0.06)] rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm font-medium text-text">{s.setId}</span>
+                    <span className="text-xs text-text-dim">{s.owned}/{s.total} · {pct}%</span>
+                  </div>
+                  <div className="h-1.5 bg-[rgba(0,0,0,0.06)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: pct >= 75 ? "#059669" : pct >= 40 ? "#CA8A04" : "#9CA3AF",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ═══ PRICE MOVERS ═══ */}
       {portfolio && (portfolio.winners.length > 0 || portfolio.losers.length > 0) && (
