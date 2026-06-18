@@ -521,7 +521,6 @@ export function ScanModal({
                 card={resultCard}
                 onRescan={resetScan}
                 onManualEntry={() => setShowManualEntry(true)}
-                onAddToCollection={() => onResult(resultCard)}
                 onClose={onClose}
               />
             </div>
@@ -533,26 +532,29 @@ export function ScanModal({
           </>
         )}
 
-        {/* ═══ BATCH SUMMARY BAR ═══ */}
-        {mode === "add-batch" && batchCards.length > 0 && !resultCard && (
-          <div className="flex-none px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-text">{batchCards.length} card{batchCards.length !== 1 ? "s" : ""} added</span>
-              <span className="font-mono text-sm font-semibold text-[#059669]">{formatPrice(batchTotal)}</span>
+        {/* ═══ BATCH SUMMARY BAR — compact ═══ */}
+        {mode === "add-batch" && batchCards.length > 0 && !resultCard && matchedCards.length === 0 && (
+          <div className="flex-none px-4 py-2.5 border-t border-[rgba(0,0,0,0.06)] bg-white">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-1.5 flex-none">
+                {batchCards.slice(-3).reverse().map((b) => (
+                  <img key={b.addedAt} src={b.card.imageUrl} alt="" className="w-6 aspect-[63/88] rounded object-cover border border-white" />
+                ))}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-text">{batchCards.length} cards</span>
+                <span className="font-mono text-sm text-[#059669] ml-2">{formatPrice(batchTotal)}</span>
+              </div>
+              <button
+                onClick={onClose}
+                className="bg-text text-bg font-medium text-xs py-1.5 px-3 rounded-lg active:opacity-80"
+              >
+                Done
+              </button>
             </div>
-            {/* Last 3 added */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
-              {batchCards.slice(-5).reverse().map((b, i) => (
-                <div key={b.addedAt} className="flex items-center gap-1.5 bg-bg-surface rounded-lg px-2 py-1 flex-none">
-                  <img src={b.card.imageUrl} alt="" className="w-5 aspect-[63/88] rounded object-cover" />
-                  <span className="text-xs text-text-dim truncate max-w-[80px]">{b.card.cardName}</span>
-                </div>
-              ))}
-            </div>
-            <div className="text-xs text-text-dim mt-1">
-              Adding to: {selectedColName}
-              <button onClick={() => setShowCollectionPicker(true)} className="text-text-muted hover:text-text ml-2">Change</button>
-            </div>
+            <button onClick={() => setShowCollectionPicker(true)} className="text-xs text-text-dim mt-1 active:opacity-70">
+              {selectedColName} <span className="text-text-muted">· Change</span>
+            </button>
           </div>
         )}
 
