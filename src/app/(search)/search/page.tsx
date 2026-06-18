@@ -987,11 +987,11 @@ export default function SearchPage() {
               {(["color", "rarity", "type"] as FilterKey[]).map((key) => (
                 <div key={key}>
                   <div className="text-xs text-text-dim uppercase tracking-wider mb-2">{key}</div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="space-y-1">
                     <button
                       onClick={() => setFilter(key, null)}
-                      className={`px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
-                        !filters[key] ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-xl transition-colors text-left ${
+                        !filters[key] ? "bg-text text-bg font-medium" : "text-text hover:bg-bg-surface"
                       }`}
                     >
                       All
@@ -1000,11 +1000,11 @@ export default function SearchPage() {
                       <button
                         key={opt.value}
                         onClick={() => setFilter(key, filters[key] === opt.value ? null : opt.value)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
-                          filters[key] === opt.value ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-xl transition-colors text-left ${
+                          filters[key] === opt.value ? "bg-text text-bg font-medium" : "text-text hover:bg-bg-surface"
                         }`}
                       >
-                        {key === "color" && <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />}
+                        {key === "color" && <span className="w-3 h-3 rounded-full flex-none" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />}
                         {opt.label}
                       </button>
                     ))}
