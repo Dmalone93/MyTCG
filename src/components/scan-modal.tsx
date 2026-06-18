@@ -132,9 +132,11 @@ export function ScanModal({
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
-        width: isMobile ? { ideal: 720 } : { ideal: 1280 },
-        height: isMobile ? { ideal: 1280 } : { ideal: 960 },
-      },
+        // Don't force high resolution — lets phone use widest lens without zoom
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        zoom: { ideal: 1 },
+      } as MediaTrackConstraints,
       audio: false,
     }).then((stream) => {
       streamRef.current = stream;
