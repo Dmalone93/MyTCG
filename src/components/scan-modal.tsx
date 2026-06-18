@@ -132,11 +132,7 @@ export function ScanModal({
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
-        // Don't force high resolution — lets phone use widest lens without zoom
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-        zoom: { ideal: 1 },
-      } as MediaTrackConstraints,
+      },
       audio: false,
     }).then((stream) => {
       streamRef.current = stream;
@@ -198,7 +194,8 @@ export function ScanModal({
       const base64 = captureFrame();
       if (!base64) { pendingScanRef.current = false; return; }
 
-      const useFullDetection = visionCallCount.current <= 1 || visionCallCount.current % 3 === 0;
+      // First 2 frames are fast (text-only) for quick feedback, then every 4th is full
+      const useFullDetection = visionCallCount.current > 2 && visionCallCount.current % 4 === 0;
       const res = await fetch("/api/scan-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -364,8 +361,8 @@ export function ScanModal({
 
         {/* ═══ CAMERA ═══ */}
         {mode !== "choose" && !resultCard && (
-          <div className="relative bg-black overflow-hidden flex-none h-[45vh] sm:h-[40vh]">
-            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
+          <div className="relative bg-white overflow-hidden flex-none h-[45vh] sm:h-[40vh]">
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
             {scanning && matchedCards.length === 0 && (
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
@@ -382,11 +379,19 @@ export function ScanModal({
           </div>
         )}
 
-        {/* Status */}
+        {/* Status + scanning indicator */}
         {mode !== "choose" && !resultCard && matchedCards.length === 0 && (
-          <div className="px-4 py-2 flex items-center justify-between flex-none">
-            <span className="text-sm text-text-muted">{status}</span>
-            {scanning && confidence > 0 && <span className="text-xs font-mono" style={{ color: confidenceColor }}>{confidence}%</span>}
+          <div className="flex-none">
+            {/* Animated scanning bar */}
+            {scanning && (
+              <div className="h-1 bg-[rgba(0,0,0,0.06)] overflow-hidden">
+                <div className="h-full bg-accent rounded-full animate-pulse" style={{ width: `${Math.max(confidence, 15)}%`, transition: "width 0.3s ease-out" }} />
+              </div>
+            )}
+            <div className="px-4 py-2 flex items-center justify-between">
+              <span className="text-sm text-text-muted">{status}</span>
+              {scanning && <span className="text-xs text-text-dim animate-pulse">Scanning...</span>}
+            </div>
           </div>
         )}
 
