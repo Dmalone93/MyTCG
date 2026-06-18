@@ -6,6 +6,7 @@ import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import { ScanResultScreen } from "./scan-result-screen";
 import { CardPicker } from "./card-picker";
 import { useRegion } from "./region-selector";
+import { addCard as addCardAction } from "@/app/actions/collections";
 
 type ScanResult = {
   codes: string[];
@@ -20,8 +21,9 @@ type ScanResult = {
 };
 
 type CardIndex = Array<{ id: string; n: string; r: string; c: string; img: string; alt?: string }>;
+type ScanMode = "choose" | "price-check" | "add-single" | "add-batch";
+type BatchCard = { card: CatalogCard; addedAt: number };
 
-/** Extract card codes from text using regex (runs instantly, no API) */
 function extractCodesLocal(text: string): string[] {
   const codes: string[] = [];
   const up = text.toUpperCase().replace(/E[86]\s*(\d)/g, "EB$1").replace(/PR[86]/g, "PRB");
@@ -35,39 +37,25 @@ function extractCodesLocal(text: string): string[] {
   return [...new Set(codes)];
 }
 
-/** Match text against card index locally */
 function matchLocalIndex(text: string, index: CardIndex): CardIndex {
   if (!text || text.length < 3) return [];
   const textUp = text.toUpperCase();
-
-  // First try code match
   const codes = extractCodesLocal(text);
   if (codes.length > 0) {
-    const codeMatches = index.filter((c) =>
-      codes.some((code) => c.id.toUpperCase() === code)
-    );
-    if (codeMatches.length > 0) return codeMatches;
+    const matches = index.filter((c) => codes.some((code) => c.id.toUpperCase() === code));
+    if (matches.length > 0) return matches;
   }
-
-  // Then try name match — score each card
   const scored = index
     .map((card) => {
       let score = 0;
       const nameUp = card.n.toUpperCase();
       const words = nameUp.split(/\s+/).filter((w) => w.length > 2);
-
-      for (const word of words) {
-        if (textUp.includes(word)) score += word.length;
-      }
-
-      // Full name match is very strong
+      for (const word of words) { if (textUp.includes(word)) score += word.length; }
       if (textUp.includes(nameUp)) score += 100;
-
       return { card, score };
     })
     .filter((s) => s.score > 8)
     .sort((a, b) => b.score - a.score);
-
   return scored.slice(0, 5).map((s) => s.card);
 }
 
@@ -89,6 +77,7 @@ export function ScanModal({
   const cardIndexRef = useRef<CardIndex>([]);
   const visionCallCount = useRef(0);
 
+  const [mode, setMode] = useState<ScanMode>("choose");
   const [status, setStatus] = useState("Starting camera...");
   const [confidence, setConfidence] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
@@ -100,13 +89,19 @@ export function ScanModal({
   const { formatPrice } = useRegion();
   const swipe = useSwipeDismiss(onClose);
 
-  // Lock body scroll while modal is open
+  // Batch mode state
+  const [batchCards, setBatchCards] = useState<BatchCard[]>([]);
+  const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+
+  // Lock body scroll
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  // Load card index for local matching
+  // Load card index
   useEffect(() => {
     fetch("/api/card-index")
       .then((r) => r.json())
@@ -114,52 +109,45 @@ export function ScanModal({
       .catch(() => {});
   }, []);
 
-  // Start camera — portrait on mobile
+  // Load collections for add modes
+  useEffect(() => {
+    if (mode === "add-single" || mode === "add-batch") {
+      fetch("/api/collections")
+        .then((r) => r.ok ? r.json() : [])
+        .then((data) => {
+          setCollections(data);
+          if (data.length > 0 && !selectedCollection) setSelectedCollection(data[0].id);
+        })
+        .catch(() => {});
+    }
+  }, [mode]);
+
+  // Start camera
   useEffect(() => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus("Camera not available on this device");
+      setStatus("Camera not available");
       return;
     }
-
     const isMobile = window.innerWidth < 640;
-
-    navigator.mediaDevices
-      .getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: isMobile ? { ideal: 720 } : { ideal: 1280 },
-          height: isMobile ? { ideal: 1280 } : { ideal: 960 },
-          aspectRatio: isMobile ? { ideal: 3 / 4 } : { ideal: 4 / 3 },
-        },
-        audio: false,
-      })
-      .then((stream) => {
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
-        }
-        setCameraReady(true);
-        setStatus("Point camera at a card");
-      })
-      .catch(() => {
-        setStatus("Camera access denied — use file upload instead");
-      });
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: isMobile ? { ideal: 720 } : { ideal: 1280 },
+        height: isMobile ? { ideal: 1280 } : { ideal: 960 },
+      },
+      audio: false,
+    }).then((stream) => {
+      streamRef.current = stream;
+      if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play().catch(() => {}); }
+      setCameraReady(true);
+      setStatus("Point camera at a card");
+    }).catch(() => { setStatus("Camera access denied"); });
 
     return () => {
       stopScanning();
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-      }
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (cameraReady) startScanning();
-    return () => stopScanning();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraReady]);
 
   function startScanning() {
     stopScanning();
@@ -168,30 +156,23 @@ export function ScanModal({
     pendingScanRef.current = false;
     visionCallCount.current = 0;
     setConfidence(0);
-
+    setMatchedCards([]);
     scanFrame();
-    // Fast interval — most work is local, only occasional Vision API calls
-    scanTimerRef.current = setInterval(scanFrame, 400);
+    scanTimerRef.current = setInterval(scanFrame, 800);
   }
 
   function stopScanning() {
-    if (scanTimerRef.current) {
-      clearInterval(scanTimerRef.current);
-      scanTimerRef.current = null;
-    }
+    if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null; }
     setScanning(false);
   }
 
   function captureFrame(): string | null {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return null;
-
     const canvas = document.createElement("canvas");
-    // Smaller image = faster upload when we do need Vision API
     const w = Math.min(480, video.videoWidth);
     const h = Math.round((w * video.videoHeight) / video.videoWidth);
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = w; canvas.height = h;
     canvas.getContext("2d")!.drawImage(video, 0, 0, w, h);
     return canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
   }
@@ -199,499 +180,381 @@ export function ScanModal({
   const scanFrame = useCallback(async () => {
     if (pendingScanRef.current) return;
     pendingScanRef.current = true;
-
     const gen = scanGenRef.current;
-
     try {
       visionCallCount.current++;
       const base64 = captureFrame();
       if (!base64) { pendingScanRef.current = false; return; }
 
-      // First frame uses full detection (artwork + text), subsequent use fast text-only
       const useFullDetection = visionCallCount.current <= 1 || visionCallCount.current % 3 === 0;
       const res = await fetch("/api/scan-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64, fast: !useFullDetection }),
       });
-
       if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
-
       const data: ScanResult = await res.json();
 
-      // Try local index match with OCR text
       const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
       const localMatches = matchLocalIndex(allText, cardIndexRef.current);
 
       if (data.codes && data.codes.length > 0) {
         const code = data.codes[0];
-        // Check if this code has multiple art variants
-        const variantCount = cardIndexRef.current.filter(
-          (c) => c.id.toUpperCase() === code.toUpperCase()
-        ).length;
-
-        if (variantCount <= 1) {
-          // Single variant — done!
-          stopScanning();
-          setConfidence(100);
-          setStatus(`Found: ${code}`);
-          await lookupCard(code);
-        } else {
-          // Multiple variants — need PASS 2 with full detection for artwork matching
-          setConfidence(70);
-          setStatus(`Found ${code} — identifying artwork...`);
-
-          const res2 = await fetch("/api/scan-card", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: base64, fast: false }),
-          });
-
-          if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
-
-          const fullData: ScanResult = await res2.json();
-          stopScanning();
-          setConfidence(100);
-          setStatus(`Found: ${code} (${variantCount} variants)`);
-
-          // Use web detection image URLs + labels to rank variants
-          await lookupCardWithVariants(code, fullData);
-        }
+        stopScanning();
+        setConfidence(100);
+        setStatus(`Found: ${code}`);
+        await lookupCard(code);
       } else if (localMatches.length > 0) {
         stopScanning();
         setConfidence(90);
         setStatus(`Matched: ${localMatches[0].n}`);
         await lookupCards(localMatches.map((m) => m.id));
-      } else if (data.text && data.text.length > 10) {
-        // Got text but no match — if this is the 3rd+ attempt, try full detection
-        if (visionCallCount.current >= 3 && visionCallCount.current % 3 === 0) {
-          setConfidence(40);
-          setStatus("Trying deeper detection...");
-          const res2 = await fetch("/api/scan-card", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: base64, fast: false }),
-          });
-          if (gen !== scanGenRef.current) { pendingScanRef.current = false; return; }
-          const fullData: ScanResult = await res2.json();
-
-          const fullText = [fullData.text, fullData.bestGuess, fullData.cardName, ...(fullData.labels ?? [])].filter(Boolean).join(" ");
-          const fullMatches = matchLocalIndex(fullText, cardIndexRef.current);
-
-          if (fullData.codes && fullData.codes.length > 0) {
-            stopScanning();
-            setConfidence(100);
-            setStatus(`Found: ${fullData.codes[0]}`);
-            await lookupCard(fullData.codes[0]);
-          } else if (fullMatches.length > 0) {
-            stopScanning();
-            setConfidence(85);
-            setStatus(`Matched: ${fullMatches[0].n}`);
-            await lookupCards(fullMatches.map((m) => m.id));
-          } else {
-            setConfidence(Math.min(50, visionCallCount.current * 8));
-            setStatus("Hold steady...");
-          }
-        } else {
-          setConfidence(Math.min(50, visionCallCount.current * 12));
-          setStatus("Reading... hold steady");
-        }
+      } else if (allText.length > 10) {
+        setConfidence(Math.min(50, visionCallCount.current * 10));
+        setStatus("Reading... hold steady");
       } else {
         setConfidence(Math.min(20, visionCallCount.current * 5));
         setStatus("Scanning...");
       }
-    } catch {
-      // Network error — keep scanning
-    }
+    } catch { /* */ }
     pendingScanRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function scanFile(file: File) {
-    setStatus("Reading card...");
-    stopScanning();
-
-    const img = new Image();
-    img.onload = async () => {
-      const canvas = document.createElement("canvas");
-      const w = Math.min(1280, img.width);
-      const h = Math.round((w * img.height) / img.width);
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-      const base64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
-
-      try {
-        const res = await fetch("/api/scan-card", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64 }),
-        });
-        const data: ScanResult = await res.json();
-
-        if (data.codes && data.codes.length > 0) {
-          setConfidence(100);
-          setStatus(`Found: ${data.codes[0]}`);
-          await lookupCard(data.codes[0]);
-        } else {
-          // Try local matching
-          const allText = [data.text, data.bestGuess, data.cardName, ...(data.labels ?? [])].filter(Boolean).join(" ");
-          const localMatches = matchLocalIndex(allText, cardIndexRef.current);
-          if (localMatches.length > 0) {
-            setConfidence(90);
-            setStatus(`Matched: ${localMatches[0].n}`);
-            await lookupCards(localMatches.map((m) => m.id));
-          } else {
-            setStatus(
-              data.bestGuess
-                ? `Detected: ${data.bestGuess} — try a clearer photo`
-                : "Card not recognized — try a clearer photo"
-            );
-          }
-        }
-      } catch {
-        setStatus("API error — try again");
-      }
-    };
-    img.src = URL.createObjectURL(file);
-  }
-
-  async function lookupCardWithVariants(code: string, scanData: ScanResult) {
-    // Get all variants from the card index
-    const variants = cardIndexRef.current.filter(
-      (c) => c.id.toUpperCase() === code.toUpperCase()
-    );
-
-    if (variants.length <= 1) {
-      return lookupCard(code);
-    }
-
-    // Use web detection matching image URLs to identify which artwork
-    const matchUrls = (scanData.matchingImageUrls ?? []).join(" ").toLowerCase();
-    const labels = (scanData.labels ?? []).join(" ").toLowerCase();
-    const bestGuess = (scanData.bestGuess ?? "").toLowerCase();
-
-    // Score each variant by how well its image URL matches web detection results
-    const scored = variants.map((v) => {
-      let score = 0;
-      const imgLower = v.img.toLowerCase();
-
-      // Check if the variant's image URL (or parts of it) appear in web matches
-      const imgParts = imgLower.split("/").pop()?.split("_") ?? [];
-      for (const part of imgParts) {
-        if (part.length > 4 && matchUrls.includes(part)) score += 20;
-      }
-
-      // Check if variant name appears in labels/best guess
-      const nameLower = v.n.toLowerCase();
-      if (labels.includes(nameLower)) score += 10;
-      if (bestGuess.includes(nameLower)) score += 10;
-
-      // Check for "alt art" or artist name mentions
-      if ((labels.includes("alt") || labels.includes("alternate")) && v.img.includes("_")) {
-        score += 5; // Might be alt art
-      }
-
-      return { variant: v, score };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-
-    // Convert to CatalogCard format and show all variants
-    const catalogCards: CatalogCard[] = scored.map((s) => ({
-      cardSetId: s.variant.id,
-      cardName: s.variant.n,
-      setName: "",
-      setId: "",
-      rarity: s.variant.r,
-      cardColor: s.variant.c,
-      cardType: "",
-      cardCost: "",
-      cardPower: "",
-      cardText: "",
-      subTypes: "",
-      life: "",
-      counterAmount: "",
-      imageUrl: s.variant.img,
-      marketPrice: null,
-      inventoryPrice: null,
-    }));
-
-    setMatchedCards(catalogCards);
-    setStatus(`${code} — ${variants.length} variants, pick yours`);
-  }
 
   async function lookupCard(code: string) {
     try {
       const res = await fetch(`/api/search-cards?q=${encodeURIComponent(code)}`);
       const cards: CatalogCard[] = await res.json();
-      if (cards.length > 0) {
+      // Show ALL variants with this code (including alt arts)
+      const variants = cards.filter((c) => c.cardSetId.toUpperCase() === code.toUpperCase());
+      if (variants.length > 0) {
+        setMatchedCards(variants);
+      } else if (cards.length > 0) {
         setMatchedCards(cards.slice(0, 5));
-        setStatus(`Matched: ${cards[0].cardName}`);
       } else {
-        // Fall back to local index
         const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase());
         if (local.length > 0) {
-          const localCards = local.map((c) => ({
-            cardSetId: c.id, cardName: c.n, setName: "", setId: "",
-            rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
-            cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
-          }));
-          setMatchedCards(localCards);
-          setStatus(`Matched: ${local[0].n}`);
-        } else {
-          setMatchedCards([]);
-          setStatus(`Found code ${code} but no match`);
+          setMatchedCards(local.map((c) => ({
+            cardSetId: c.id, cardName: c.n, setName: "", setId: "", rarity: c.r, cardColor: c.c,
+            cardType: "", cardCost: "", cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "",
+            imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+          })));
         }
       }
-    } catch {
-      setStatus(`Found code ${code} — lookup failed`);
-    }
+    } catch { /* */ }
   }
 
   async function lookupCards(codes: string[]) {
-    // Try API for the first code
     try {
       const res = await fetch(`/api/search-cards?q=${encodeURIComponent(codes[0])}`);
       const cards: CatalogCard[] = await res.json();
-      if (cards.length > 0) {
-        setMatchedCards(cards.slice(0, 5));
-        return;
-      }
-    } catch { /* fall through */ }
-
-    // Fall back to local index
-    const local = codes.flatMap((code) =>
-      cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase())
-    );
+      if (cards.length > 0) { setMatchedCards(cards.slice(0, 5)); return; }
+    } catch { /* */ }
+    const local = codes.flatMap((code) => cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase()));
     if (local.length > 0) {
       setMatchedCards(local.slice(0, 5).map((c) => ({
-        cardSetId: c.id, cardName: c.n, setName: "", setId: "",
-        rarity: c.r, cardColor: c.c, cardType: "", cardCost: "",
-        cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "", imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+        cardSetId: c.id, cardName: c.n, setName: "", setId: "", rarity: c.r, cardColor: c.c,
+        cardType: "", cardCost: "", cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "",
+        imageUrl: c.img, marketPrice: null, inventoryPrice: null,
       })));
     }
   }
 
-  const confidenceColor =
-    confidence >= 80 ? "#059669" : confidence >= 40 ? "#FACC15" : "rgba(0,0,0,0.15)";
+  function resetScan() {
+    setResultCard(null);
+    setMatchedCards([]);
+    setConfidence(0);
+    visionCallCount.current = 0;
+    wasRescannedRef.current = true;
+    startScanning();
+  }
+
+  // Add card to collection (single or batch)
+  async function addToCollection(card: CatalogCard) {
+    if (!selectedCollection) return;
+    await addCardAction({
+      collectionId: selectedCollection,
+      cardCode: card.cardSetId,
+      cardName: card.cardName,
+      quantity: 1,
+      condition: "NM",
+      isGraded: false,
+      grade: null,
+      gradedCompany: null,
+      acquiredPrice: null,
+      notes: null,
+      imageUrl: card.imageUrl ?? null,
+      marketPrice: card.marketPrice ?? null,
+    });
+  }
+
+  const confidenceColor = confidence >= 80 ? "#059669" : confidence >= 40 ? "#FACC15" : "rgba(0,0,0,0.15)";
+  const batchTotal = batchCards.reduce((s, b) => s + (b.card.marketPrice ?? 0), 0);
+  const selectedColName = collections.find((c) => c.id === selectedCollection)?.name ?? "";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
-        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+        className="relative bg-bg-elevated border border-[rgba(0,0,0,0.06)] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: "none" }}
       >
         <div ref={swipe.handleRef} className="sm:hidden flex justify-center pt-3 pb-2 cursor-grab" style={{ touchAction: "none" }}>
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[rgba(0,0,0,0.04)] flex-none">
           <h2 className="font-semibold text-sm text-text">
-            {quickMode ? "Quick Scan" : "Scan Card"}
+            {mode === "choose" ? "Scan Card" : mode === "price-check" ? "Price Check" : mode === "add-batch" ? `Batch Add · ${batchCards.length} cards` : "Add to Collection"}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors"
-          >
-            ×
-          </button>
+          {mode !== "choose" && (
+            <button onClick={() => { setMode("choose"); setMatchedCards([]); setResultCard(null); stopScanning(); }} className="text-xs text-text-dim hover:text-text mr-2">
+              ← Back
+            </button>
+          )}
+          <button onClick={onClose} className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors">×</button>
         </div>
 
-        {/* Camera — compact when match found, hidden on result */}
-        {!resultCard && (
-          <div className={`relative bg-white overflow-hidden transition-all ${
-            matchedCards.length > 0 ? "h-[120px]" : "aspect-[3/4] sm:aspect-[4/3]"
+        {/* ═══ MODE CHOOSER ═══ */}
+        {mode === "choose" && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
+            <div className="text-text-dim text-sm mb-2">What do you want to do?</div>
+            <button
+              onClick={() => { setMode("price-check"); if (cameraReady) startScanning(); }}
+              className="w-full bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-4 text-left hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
+            >
+              <div className="text-base font-semibold text-text">Price Check</div>
+              <div className="text-sm text-text-dim mt-0.5">Scan a card to see market price and listings</div>
+            </button>
+            <button
+              onClick={() => { setMode("add-single"); if (cameraReady) startScanning(); }}
+              className="w-full bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-4 text-left hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
+            >
+              <div className="text-base font-semibold text-text">Add Single Card</div>
+              <div className="text-sm text-text-dim mt-0.5">Scan and add one card to your collection</div>
+            </button>
+            <button
+              onClick={() => { setMode("add-batch"); if (cameraReady) startScanning(); }}
+              className="w-full bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-4 text-left hover:bg-[rgba(0,0,0,0.02)] active:opacity-80 transition-colors"
+            >
+              <div className="text-base font-semibold text-text">Batch Scan</div>
+              <div className="text-sm text-text-dim mt-0.5">Scan multiple cards quickly — running total</div>
+            </button>
+          </div>
+        )}
+
+        {/* ═══ CAMERA ═══ */}
+        {mode !== "choose" && !resultCard && (
+          <div className={`relative bg-white overflow-hidden transition-all flex-none ${
+            matchedCards.length > 0 ? "h-[100px]" : "aspect-[3/4] sm:aspect-[4/3]"
           }`}>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
             {scanning && matchedCards.length === 0 && (
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
+                  <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-accent rounded-tl-lg" />
+                  <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-accent rounded-tr-lg" />
+                  <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-accent rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-accent rounded-br-lg" />
                 </div>
               </div>
             )}
-            {/* Confidence bar */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.3)]">
               <div className="h-full transition-all duration-300 ease-out rounded-r-full" style={{ width: `${confidence}%`, backgroundColor: confidenceColor }} />
             </div>
-            {/* Status overlay when compact */}
-            {matchedCards.length > 0 && (
-              <div className="absolute bottom-2 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
-                Scanning...
-              </div>
-            )}
           </div>
         )}
 
-        {/* Status bar — only when no match */}
-        {!resultCard && matchedCards.length === 0 && (
-          <div className="px-4 py-2 flex items-center justify-between">
+        {/* Status */}
+        {mode !== "choose" && !resultCard && matchedCards.length === 0 && (
+          <div className="px-4 py-2 flex items-center justify-between flex-none">
             <span className="text-sm text-text-muted">{status}</span>
-            {scanning && confidence > 0 && (
-              <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>{confidence}%</span>
-            )}
+            {scanning && confidence > 0 && <span className="text-xs font-mono" style={{ color: confidenceColor }}>{confidence}%</span>}
           </div>
         )}
 
-        {/* ═══ MATCH CONFIRMATION — visible without scrolling ═══ */}
+        {/* ═══ VARIANT SELECTION ═══ */}
         {!resultCard && matchedCards.length > 0 && (
           <div className="flex-1 overflow-y-auto">
-            <div className="px-3 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
-              {matchedCards.length === 1 ? "Is this your card?" : "Pick your card"}
+            <div className="px-4 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
+              {matchedCards.length === 1 ? "Is this your card?" : `${matchedCards.length} variants found — pick yours`}
             </div>
             {matchedCards.map((card, i) => (
-              <div key={card.cardSetId + i} className="px-4 py-3">
-                <div className="flex gap-4 items-start mb-3">
-                  <img src={card.imageUrl} alt={card.cardName} className="w-[100px] aspect-[63/88] rounded-xl object-contain flex-none" />
-                  <div className="flex-1 min-w-0 pt-1">
-                    <div className="text-base font-semibold text-text">{card.cardName}</div>
-                    <div className="text-xs text-text-dim mt-0.5">{card.cardSetId} · {card.rarity} · {card.cardColor}</div>
-                    {card.marketPrice != null && card.marketPrice > 0 && (
-                      <div className="font-mono text-lg font-semibold text-[#059669] mt-2">{formatPrice(card.marketPrice)}</div>
-                    )}
-                  </div>
+              <div key={card.cardSetId + card.cardName + i} className="flex items-center gap-3 px-4 py-3 border-b border-[rgba(0,0,0,0.04)] active:bg-[rgba(0,0,0,0.02)]">
+                <img src={card.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain flex-none" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-text truncate">{card.cardName}</div>
+                  <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}</div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setResultCard(card)}
-                    className="flex-1 bg-text text-bg font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
-                  >
-                    Check price
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Quick add to batch
-                      onResult(card);
+                {card.marketPrice != null && card.marketPrice > 0 && (
+                  <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.marketPrice)}</span>
+                )}
+                <button
+                  onClick={() => {
+                    if (mode === "price-check") {
+                      setResultCard(card);
+                    } else if (mode === "add-single") {
+                      setShowCollectionPicker(true);
+                      setResultCard(card);
+                    } else if (mode === "add-batch") {
+                      // Quick add and keep scanning
+                      addToCollection(card);
+                      setBatchCards((prev) => [...prev, { card, addedAt: Date.now() }]);
                       setMatchedCards([]);
                       setConfidence(0);
                       visionCallCount.current = 0;
-                      setStatus("Added! Scan next...");
+                      setStatus(`Added! ${batchCards.length + 1} cards`);
                       setTimeout(() => startScanning(), 300);
-                    }}
-                    className="flex-1 bg-[#059669] text-white font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
-                  >
-                    + Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMatchedCards([]);
-                      setConfidence(0);
-                      visionCallCount.current = 0;
-                      startScanning();
-                    }}
-                    className="bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text-dim font-medium text-sm py-2.5 px-4 rounded-xl active:opacity-70 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
+                    }
+                  }}
+                  className={`text-sm font-medium py-1.5 px-3 rounded-lg flex-none active:opacity-80 transition-colors ${
+                    mode === "add-batch"
+                      ? "bg-[#059669] text-white"
+                      : "bg-text text-bg"
+                  }`}
+                >
+                  {mode === "price-check" ? "Check" : mode === "add-batch" ? "+ Add" : "Select"}
+                </button>
               </div>
+            ))}
+            <div className="px-4 py-2">
+              <button onClick={resetScan} className="text-sm text-text-muted hover:text-text active:opacity-70">
+                Not here? Rescan
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ COLLECTION PICKER (add-single) ═══ */}
+        {mode === "add-single" && resultCard && showCollectionPicker && (
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="flex gap-3 items-start mb-4">
+              <img src={resultCard.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain flex-none" />
+              <div>
+                <div className="text-sm font-semibold text-text">{resultCard.cardName}</div>
+                <div className="text-xs text-text-dim">{resultCard.cardSetId}</div>
+              </div>
+            </div>
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Add to collection</div>
+            {collections.map((col) => (
+              <button
+                key={col.id}
+                onClick={async () => {
+                  setSelectedCollection(col.id);
+                  await addCardAction({
+                    collectionId: col.id,
+                    cardCode: resultCard.cardSetId,
+                    cardName: resultCard.cardName,
+                    quantity: 1, condition: "NM", isGraded: false, grade: null, gradedCompany: null,
+                    acquiredPrice: null, notes: null,
+                    imageUrl: resultCard.imageUrl ?? null, marketPrice: resultCard.marketPrice ?? null,
+                  });
+                  setStatus(`Added to ${col.name}!`);
+                  setShowCollectionPicker(false);
+                  setResultCard(null);
+                  setMatchedCards([]);
+                  setTimeout(() => { setMode("choose"); }, 1500);
+                }}
+                className="w-full text-left px-3 py-3 text-sm font-medium text-text bg-white border border-[rgba(0,0,0,0.06)] rounded-xl mb-1.5 hover:bg-bg-surface active:opacity-70 transition-colors"
+              >
+                {col.name}
+              </button>
             ))}
           </div>
         )}
 
-        {/* ═══ RESULT SCREEN ═══ */}
-        {resultCard && !showManualEntry && (
+        {/* ═══ PRICE CHECK RESULT ═══ */}
+        {mode === "price-check" && resultCard && (
           <>
             <div className="flex-1 overflow-y-auto px-4 py-4">
               <ScanResultScreen
                 card={resultCard}
-                onRescan={() => {
-                  setResultCard(null);
-                  setMatchedCards([]);
-                  setConfidence(0);
-                  visionCallCount.current = 0;
-                  wasRescannedRef.current = true;
-                  startScanning();
-                }}
+                onRescan={resetScan}
                 onManualEntry={() => setShowManualEntry(true)}
                 onAddToCollection={() => onResult(resultCard)}
                 onClose={onClose}
               />
             </div>
             <div className="flex-none flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-bg-elevated">
-              <button
-                onClick={() => {
-                  setResultCard(null);
-                  setMatchedCards([]);
-                  setConfidence(0);
-                  visionCallCount.current = 0;
-                  wasRescannedRef.current = true;
-                  startScanning();
-                }}
-                className="flex-1 bg-white border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70 transition-colors"
-              >
-                Scan another card
+              <button onClick={resetScan} className="flex-1 bg-white border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70">
+                Scan another
               </button>
             </div>
           </>
         )}
 
+        {/* ═══ BATCH SUMMARY BAR ═══ */}
+        {mode === "add-batch" && batchCards.length > 0 && !resultCard && (
+          <div className="flex-none px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-text">{batchCards.length} card{batchCards.length !== 1 ? "s" : ""} added</span>
+              <span className="font-mono text-sm font-semibold text-[#059669]">{formatPrice(batchTotal)}</span>
+            </div>
+            {/* Last 3 added */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              {batchCards.slice(-5).reverse().map((b, i) => (
+                <div key={b.addedAt} className="flex items-center gap-1.5 bg-bg-surface rounded-lg px-2 py-1 flex-none">
+                  <img src={b.card.imageUrl} alt="" className="w-5 aspect-[63/88] rounded object-cover" />
+                  <span className="text-xs text-text-dim truncate max-w-[80px]">{b.card.cardName}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-text-dim mt-1">
+              Adding to: {selectedColName}
+              <button onClick={() => setShowCollectionPicker(true)} className="text-text-muted hover:text-text ml-2">Change</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ BATCH COLLECTION PICKER ═══ */}
+        {mode === "add-batch" && showCollectionPicker && (
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Choose collection</div>
+            {collections.map((col) => (
+              <button
+                key={col.id}
+                onClick={() => { setSelectedCollection(col.id); setShowCollectionPicker(false); }}
+                className={`w-full text-left px-3 py-3 text-sm font-medium rounded-xl mb-1.5 active:opacity-70 transition-colors ${
+                  col.id === selectedCollection ? "bg-text text-bg" : "text-text bg-white border border-[rgba(0,0,0,0.06)]"
+                }`}
+              >
+                {col.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ BOTTOM ACTIONS ═══ */}
+        {mode !== "choose" && !resultCard && matchedCards.length === 0 && !showCollectionPicker && (
+          <div className="flex-none flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) { /* TODO: file scan */ } }} />
+            {!scanning && cameraReady && (
+              <button onClick={startScanning} className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70">
+                Scan again
+              </button>
+            )}
+            <button onClick={() => setShowManualEntry(true)} className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-2.5 rounded-xl active:opacity-70">
+              Enter code
+            </button>
+          </div>
+        )}
+
+        {/* Manual entry */}
         {showManualEntry && (
           <CardPicker
-            onPick={(card) => {
-              setShowManualEntry(false);
-              setResultCard(card);
-            }}
-            onPickMultiple={(cards) => {
-              if (cards[0]) {
-                setShowManualEntry(false);
-                setResultCard(cards[0]);
-              }
-            }}
+            onPick={(card) => { setShowManualEntry(false); if (mode === "price-check") setResultCard(card); else { setMatchedCards([card]); } }}
+            onPickMultiple={(cards) => { if (cards[0]) { setShowManualEntry(false); setMatchedCards(cards); } }}
             onCancel={() => setShowManualEntry(false)}
           />
         )}
 
-        {/* Bottom actions — hidden when result screen is showing */}
-        {!resultCard && (
-          <div className="flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.04)]">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) scanFile(f);
-              }}
-            />
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="flex-1 bg-bg-surface border border-[rgba(0,0,0,0.06)] text-text font-semibold text-sm py-3 px-4 rounded-lg hover:bg-[#E4E4E7] active:opacity-80 transition-colors"
-            >
-              Upload photo
-            </button>
-            {!scanning && cameraReady && matchedCards.length === 0 && (
-              <button
-                onClick={startScanning}
-                className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
-              >
-                Scan again
-              </button>
-            )}
-            {!scanning && matchedCards.length === 0 && (
-              <button
-                onClick={() => setShowManualEntry(true)}
-                className="flex-1 border border-[rgba(0,0,0,0.1)] text-text font-medium text-sm py-3 px-4 rounded-lg hover:bg-[rgba(0,0,0,0.06)] active:opacity-70 transition-colors"
-              >
-                Enter code
-              </button>
-            )}
+        {/* Status toast for add-single */}
+        {mode === "add-single" && !showCollectionPicker && !resultCard && status.includes("Added") && (
+          <div className="flex-none px-4 py-3 text-center">
+            <div className="text-sm font-medium text-[#059669]">{status}</div>
           </div>
         )}
       </div>
