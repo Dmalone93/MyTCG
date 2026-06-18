@@ -1,64 +1,48 @@
 import { NextResponse } from "next/server";
-import { getExtendedCards } from "@/lib/catalog/extended-cards";
-import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
+import { db } from "@/lib/db";
+import { cardCatalog } from "@/lib/db/schema";
 
+/**
+ * GET /api/browse-cards
+ * Returns all cards from our own card_catalog DB table.
+ * No external API dependency — fast, owned data.
+ */
 export async function GET() {
-  const extCards = getExtendedCards();
-  const catalog = await fetchCatalog();
+  const cards = await db.select().from(cardCatalog);
 
-  // Build a lookup map for extended cards by CID (uppercase)
-  const extMap = new Map(extCards.map((e) => [e.cid.toUpperCase(), e]));
-
-  // Build price map
-  const priceMap = new Map(
-    catalog
-      .filter((c) => c.marketPrice != null)
-      .map((c) => [c.cardSetId.toUpperCase(), c.marketPrice])
-  );
-
-  // Track unique filter values
+  // Build filter metadata
   const setMap = new Map<string, { id: string; name: string }>();
+  const colorSet = new Set<string>();
   const raritySet = new Set<string>();
   const typeSet = new Set<string>();
 
-  // Base colors only — multi-color cards get matched via "includes"
   const BASE_COLORS = ["Red", "Blue", "Green", "Purple", "Black", "Yellow"];
 
-  // Enrich all catalog cards with extended data
-  const cards = catalog.map((c) => {
-    const ext = extMap.get(c.cardSetId.toUpperCase());
-
-    const rarity = ext?.rarity ?? c.rarity;
-    const cardColor = ext?.color ?? c.cardColor;
-    const cardType = ext?.type ?? c.cardType;
-
-    // Collect filter values
-    if (c.setId && c.setName) {
-      setMap.set(c.setId, { id: c.setId, name: c.setName });
-    }
-    if (rarity) raritySet.add(rarity);
-    if (cardType) typeSet.add(cardType);
+  const mapped = cards.map((c) => {
+    if (c.setId && c.setName) setMap.set(c.setId, { id: c.setId, name: c.setName });
+    if (c.rarity) raritySet.add(c.rarity);
+    if (c.cardType) typeSet.add(c.cardType);
 
     return {
-      cardSetId: c.cardSetId,
-      cardName: c.cardName,
-      setName: c.setName,
-      setId: c.setId,
-      rarity,
-      cardColor,
-      cardType,
-      cardCost: ext?.cost != null ? String(ext.cost) : c.cardCost,
-      cardPower: ext?.power != null ? String(ext.power) : c.cardPower,
-      cardText: ext?.effect ?? c.cardText,
-      subTypes: ext?.traits ?? c.subTypes,
-      life: ext?.life != null ? String(ext.life) : c.life,
-      counterAmount: ext?.counterPower != null ? String(ext.counterPower) : c.counterAmount,
-      imageUrl: ext?.imageUrl ?? c.imageUrl,
-      marketPrice: priceMap.get(c.cardSetId.toUpperCase()) ?? c.marketPrice ?? null,
+      cardSetId: c.id,
+      cardName: c.name,
+      setName: c.setName ?? "",
+      setId: c.setId ?? "",
+      rarity: c.rarity ?? "",
+      cardColor: c.color ?? "",
+      cardType: c.cardType ?? "",
+      cardCost: c.cost != null ? String(c.cost) : "",
+      cardPower: c.power != null ? String(c.power) : "",
+      cardText: c.effect ?? "",
+      subTypes: c.traits ?? "",
+      life: c.life != null ? String(c.life) : "",
+      counterAmount: c.counterPower != null ? String(c.counterPower) : "",
+      imageUrl: c.imageUrl ?? "",
+      marketPrice: null as number | null, // Prices come from card_prices table
     };
   });
 
-  // Sort sets by prefix then numeric part
+  // Sort sets
   const sets = [...setMap.values()].sort((a, b) => {
     const prefA = a.id.replace(/[\d-]/g, "");
     const prefB = b.id.replace(/[\d-]/g, "");
@@ -68,18 +52,14 @@ export async function GET() {
     return numA - numB;
   });
 
-  const colors = BASE_COLORS;
-  const rarities = [...raritySet].sort((a, b) => a.localeCompare(b));
-  const types = [...typeSet].sort((a, b) => a.localeCompare(b));
-
   return NextResponse.json(
     {
-      cards,
+      cards: mapped,
       filters: {
         sets,
-        colors,
-        rarities,
-        types,
+        colors: BASE_COLORS,
+        rarities: [...raritySet].sort(),
+        types: [...typeSet].sort(),
       },
     },
     {

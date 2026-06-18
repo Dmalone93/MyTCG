@@ -1,22 +1,28 @@
 import { NextResponse } from "next/server";
-import { getExtendedCards } from "@/lib/catalog/extended-cards";
+import { db } from "@/lib/db";
+import { cardCatalog } from "@/lib/db/schema";
 
-/** Lightweight card index for client-side scan matching */
+/**
+ * GET /api/card-index
+ * Lightweight card index for client-side scan matching.
+ * Reads from card_catalog DB.
+ */
 export async function GET() {
-  const cards = getExtendedCards();
+  const cards = await db.select({
+    id: cardCatalog.id,
+    name: cardCatalog.name,
+    rarity: cardCatalog.rarity,
+    color: cardCatalog.color,
+    imageUrl: cardCatalog.imageUrl,
+  }).from(cardCatalog);
 
-  // Only send what's needed for matching — keep payload small
-  // Include all variants (same code, different art)
-  const index = cards
-    .filter((c) => c.type !== "DON")
-    .map((c) => ({
-      id: c.cid,
-      n: c.name,
-      r: c.rarity,
-      c: c.color,
-      img: c.imageUrl,
-      alt: c.altArt ?? undefined,
-    }));
+  const index = cards.map((c) => ({
+    id: c.id,
+    n: c.name,
+    r: c.rarity ?? "",
+    c: c.color ?? "",
+    img: c.imageUrl ?? "",
+  }));
 
   return NextResponse.json(index, {
     headers: {
