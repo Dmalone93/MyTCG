@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRegion } from "@/components/region-selector";
-import { Sparkline } from "@/lib/charts/sparkline";
+import { InteractiveChart } from "@/lib/charts/interactive-chart";
 import { CardDataSheet } from "@/components/card-data-sheet";
 
 type CollectionSummary = {
@@ -119,10 +119,27 @@ export function HomeDashboard({
         {/* Chart — always visible */}
         <div className="px-5 pb-5">
           {portfolio && portfolio.points.length > 2 ? (
-            <Sparkline data={portfolio.points.map((p) => p.value)} height={100} />
+            <InteractiveChart
+              data={portfolio.points.map((p) => ({
+                value: p.value,
+                label: new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+              }))}
+              height={140}
+              formatValue={formatPrice}
+            />
           ) : portfolioValue > 0 ? (
-            // Show a flat line at current value when no history
-            <Sparkline data={[portfolioValue * 0.95, portfolioValue * 0.97, portfolioValue * 0.96, portfolioValue * 0.98, portfolioValue * 0.99, portfolioValue]} height={100} />
+            <InteractiveChart
+              data={[
+                { value: portfolioValue * 0.95, label: "Earlier" },
+                { value: portfolioValue * 0.97, label: "" },
+                { value: portfolioValue * 0.96, label: "" },
+                { value: portfolioValue * 0.98, label: "" },
+                { value: portfolioValue * 0.99, label: "" },
+                { value: portfolioValue, label: "Today" },
+              ]}
+              height={140}
+              formatValue={formatPrice}
+            />
           ) : (
             <div className="h-[100px] bg-bg-surface rounded-xl flex items-center justify-center">
               <span className="text-xs text-text-dim">Add cards to see your portfolio chart</span>

@@ -1,19 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkline } from "./sparkline";
+import { InteractiveChart } from "./interactive-chart";
+import { useRegion } from "@/components/region-selector";
 
 type PricePoint = { price: number; date: string };
 type Range = "7" | "30" | "90" | "365";
 
-function fmt(n: number): string {
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency", currency: "EUR", minimumFractionDigits: 2,
-  }).format(n);
-}
-
 export function PriceChart({ cardCode }: { cardCode: string }) {
   const [range, setRange] = useState<Range>("30");
+  const { formatPrice } = useRegion();
   const [data, setData] = useState<{
     points: PricePoint[];
     high: number;
@@ -40,29 +36,35 @@ export function PriceChart({ cardCode }: { cardCode: string }) {
     return null;
   }
 
-  const prices = data.points.map((p) => p.price);
   const isUp = data.change >= 0;
 
   return (
-    <div className="bg-bg-surface rounded-lg p-4">
+    <div className="bg-bg-surface rounded-xl p-4">
       <div className="flex items-baseline gap-3 mb-3">
-        <span className="font-mono text-lg font-semibold text-text">{fmt(data.current)}</span>
+        <span className="font-mono text-lg font-semibold text-text">{formatPrice(data.current)}</span>
         <span className={`font-mono text-sm font-semibold ${isUp ? "text-[#059669]" : "text-[#DC2626]"}`}>
-          {isUp ? "+" : ""}{data.change}%
+          {isUp ? "+" : ""}{data.change.toFixed(1)}%
         </span>
         <div className="flex-1" />
-        <span className="text-sm text-text-dim">H {fmt(data.high)}</span>
-        <span className="text-sm text-text-dim">L {fmt(data.low)}</span>
+        <span className="text-xs text-text-dim">H {formatPrice(data.high)}</span>
+        <span className="text-xs text-text-dim">L {formatPrice(data.low)}</span>
       </div>
 
-      <Sparkline data={prices} height={80} />
+      <InteractiveChart
+        data={data.points.map((p) => ({
+          value: p.price,
+          label: new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        }))}
+        height={100}
+        formatValue={formatPrice}
+      />
 
       <div className="flex gap-1 mt-3">
         {(["7", "30", "90", "365"] as Range[]).map((r) => (
           <button
             key={r}
             onClick={() => setRange(r)}
-            className={`px-2.5 py-1 text-sm rounded transition-colors ${
+            className={`px-2.5 py-1 text-sm rounded-lg transition-colors ${
               range === r
                 ? "bg-text text-bg font-semibold"
                 : "text-text-dim hover:text-text"
