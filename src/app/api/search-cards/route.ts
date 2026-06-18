@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { cardCatalog } from "@/lib/db/schema";
+import { cardCatalog, cardVariants } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * GET /api/search-cards?q=...
@@ -43,24 +44,61 @@ export async function GET(request: Request) {
     return a.name.localeCompare(b.name);
   });
 
-  const results = matches.slice(0, 30).map((c) => ({
-    cardSetId: c.id,
-    cardName: c.name,
-    setName: c.setName ?? "",
-    setId: c.setId ?? "",
-    rarity: c.rarity ?? "",
-    cardColor: c.color ?? "",
-    cardType: c.cardType ?? "",
-    cardCost: c.cost != null ? String(c.cost) : "",
-    cardPower: c.power != null ? String(c.power) : "",
-    cardText: c.effect ?? "",
-    subTypes: c.traits ?? "",
-    life: c.life != null ? String(c.life) : "",
-    counterAmount: c.counterPower != null ? String(c.counterPower) : "",
-    imageUrl: c.imageUrl ?? "",
-    marketPrice: null as number | null,
-    inventoryPrice: null as number | null,
-  }));
+  const baseResults = matches.slice(0, 30);
+
+  // Expand results with variants — for each base card, include its variants
+  const results: Array<Record<string, unknown>> = [];
+  const codesAdded = new Set<string>();
+
+  for (const c of baseResults) {
+    // Add base card
+    results.push({
+      cardSetId: c.id,
+      cardName: c.name,
+      setName: c.setName ?? "",
+      setId: c.setId ?? "",
+      rarity: c.rarity ?? "",
+      cardColor: c.color ?? "",
+      cardType: c.cardType ?? "",
+      cardCost: c.cost != null ? String(c.cost) : "",
+      cardPower: c.power != null ? String(c.power) : "",
+      cardText: c.effect ?? "",
+      subTypes: c.traits ?? "",
+      life: c.life != null ? String(c.life) : "",
+      counterAmount: c.counterPower != null ? String(c.counterPower) : "",
+      imageUrl: c.imageUrl ?? "",
+      marketPrice: null as number | null,
+      inventoryPrice: null as number | null,
+    });
+
+    // Add variants if not already added
+    if (!codesAdded.has(c.id)) {
+      codesAdded.add(c.id);
+      const variants = await db.select().from(cardVariants).where(eq(cardVariants.baseCardId, c.id));
+      for (const v of variants) {
+        // Skip if it's the same as the base card
+        if (v.variantName === c.name && v.variantType === "standard") continue;
+        results.push({
+          cardSetId: c.id,
+          cardName: v.variantName ?? c.name,
+          setName: c.setName ?? "",
+          setId: c.setId ?? "",
+          rarity: c.rarity ?? "",
+          cardColor: c.color ?? "",
+          cardType: c.cardType ?? "",
+          cardCost: c.cost != null ? String(c.cost) : "",
+          cardPower: c.power != null ? String(c.power) : "",
+          cardText: c.effect ?? "",
+          subTypes: c.traits ?? "",
+          life: c.life != null ? String(c.life) : "",
+          counterAmount: c.counterPower != null ? String(c.counterPower) : "",
+          imageUrl: v.imageUrl ?? c.imageUrl ?? "",
+          marketPrice: v.marketPrice ? Number(v.marketPrice) : null,
+          inventoryPrice: null as number | null,
+        });
+      }
+    }
+  }
 
   return NextResponse.json(results, {
     headers: {

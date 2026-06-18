@@ -1,44 +1,41 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { cardCatalog, cardVariants, missingCardAlerts } from "@/lib/db/schema";
+import { cardCatalog, cardVariants } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 import { fetchCatalog } from "@/lib/catalog/fetch-catalog";
 
-/**
- * POST /api/pipeline/sync
- * Multi-source reconciliation — batch upserts for speed.
- */
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
   const cronAuth = secret && authHeader === `Bearer ${secret}`;
 
   if (!cronAuth) {
-    try {
-      const { userId } = await auth();
-      if (!userId) { /* allow if public route */ }
-    } catch { /* proceed */ }
+    try { const { userId } = await auth(); } catch { /* proceed */ }
   }
 
-  const stats = { catalogCards: 0, upserted: 0, errors: [] as string[] };
+  const stats = { catalogCards: 0, baseCards: 0, variants: 0, errors: [] as string[] };
 
   try {
     const catalog = await fetchCatalog();
     stats.catalogCards = catalog.length;
 
-    // Batch upsert in chunks of 100
-    const BATCH_SIZE = 20; // Neon param limit ~32K, 20 cards × 16 fields = 320 params
-    for (let i = 0; i < catalog.length; i += BATCH_SIZE) {
-      const batch = catalog.slice(i, i + BATCH_SIZE).filter((c) => c.cardSetId && c.cardName);
+    // Group all entries by cardSetId — first entry is base, rest are variants
+    const grouped = new Map<string, typeof catalog>();
+    for (const card of catalog) {
+      if (!card.cardSetId || !card.cardName) continue;
+      const existing = grouped.get(card.cardSetId) ?? [];
+      existing.push(card);
+      grouped.set(card.cardSetId, existing);
+    }
 
-      if (batch.length === 0) continue;
+    // Batch upsert base cards (first entry per code)
+    const BATCH_SIZE = 20;
+    const baseCards = [...grouped.entries()].map(([code, entries]) => entries[0]);
 
-      // Deduplicate by ID within batch (alt arts share same cardSetId)
-      const deduped = new Map<string, typeof batch[0]>();
-      for (const card of batch) deduped.set(card.cardSetId, card);
-
-      const values = [...deduped.values()].map((card) => ({
+    for (let i = 0; i < baseCards.length; i += BATCH_SIZE) {
+      const batch = baseCards.slice(i, i + BATCH_SIZE);
+      const values = batch.map((card) => ({
         id: card.cardSetId,
         name: card.cardName,
         setId: card.setId || null,
@@ -78,11 +75,42 @@ export async function POST(request: Request) {
             updatedAt: sql`now()`,
           },
         });
-        stats.upserted += deduped.size;
+        stats.baseCards += batch.length;
       } catch (e) {
-        stats.errors.push(`Batch ${i}: ${e instanceof Error ? e.message : "unknown"}`);
+        stats.errors.push(`Base batch ${i}: ${e instanceof Error ? e.message.slice(0, 100) : "unknown"}`);
       }
     }
+
+    // Now insert ALL entries as variants (including the base card as "standard")
+    for (const [code, entries] of grouped) {
+      for (let vi = 0; vi < entries.length; vi++) {
+        const card = entries[vi];
+        // Determine variant type from name
+        const nameLower = card.cardName.toLowerCase();
+        let variantType = "standard";
+        if (nameLower.includes("alternate art") || nameLower.includes("alt art")) variantType = "alt-art";
+        else if (nameLower.includes("manga")) variantType = "manga-art";
+        else if (nameLower.includes("(sp)") || nameLower.includes("special")) variantType = "parallel";
+        else if (nameLower.includes("promo")) variantType = "promo-stamped";
+        else if (nameLower.includes("parallel")) variantType = "parallel";
+        else if (vi > 0) variantType = "alt-art"; // Non-first entry with same code = variant
+
+        try {
+          await db.insert(cardVariants).values({
+            baseCardId: code,
+            variantType,
+            variantName: card.cardName,
+            imageUrl: card.imageUrl || null,
+            marketPrice: card.marketPrice != null ? String(card.marketPrice) : null,
+            currency: "EUR",
+            priceFetchedAt: new Date(),
+            source: "optcgapi",
+          }).onConflictDoNothing();
+          stats.variants++;
+        } catch { /* duplicate — ok */ }
+      }
+    }
+
   } catch (e) {
     stats.errors.push(`Pipeline: ${e instanceof Error ? e.message : "unknown"}`);
   }
