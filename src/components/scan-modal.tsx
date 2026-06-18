@@ -296,7 +296,11 @@ export function ScanModal({
     setConfidence(0);
     visionCallCount.current = 0;
     wasRescannedRef.current = true;
-    startScanning();
+    // Re-attach stream after state update renders new video element
+    setTimeout(() => {
+      attachStream();
+      startScanning();
+    }, 50);
   }
 
   // Add card to collection (single or batch)
@@ -447,7 +451,7 @@ export function ScanModal({
                         setBatchCards((prev) => [...prev, { card, addedAt: Date.now() }]);
                         setMatchedCards([]); setConfidence(0); visionCallCount.current = 0;
                         setStatus(`Added! ${batchCards.length + 1} cards`);
-                        setTimeout(() => startScanning(), 300);
+                        setTimeout(() => { attachStream(); startScanning(); }, 300);
                       }
                     }}
                     className={`flex-1 text-sm font-medium py-2 rounded-xl active:opacity-80 transition-colors ${
@@ -462,6 +466,12 @@ export function ScanModal({
                 </div>
               </div>
             ))}
+            {/* Wrong card entirely */}
+            <div className="px-4 py-3 flex items-center justify-center">
+              <button onClick={() => { setMatchedCards([]); setShowManualEntry(true); }} className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">
+                Wrong card? Enter code manually
+              </button>
+            </div>
           </div>
         )}
 
