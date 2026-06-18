@@ -230,33 +230,52 @@ export function ScanModal({
   }, []);
 
   async function lookupCard(code: string) {
+    const codeUp = code.toUpperCase();
     try {
       const res = await fetch(`/api/search-cards?q=${encodeURIComponent(code)}`);
       const cards: CatalogCard[] = await res.json();
-      // Show ALL variants with this code (including alt arts)
-      const variants = cards.filter((c) => c.cardSetId.toUpperCase() === code.toUpperCase());
-      if (variants.length > 0) {
-        setMatchedCards(variants);
-      } else if (cards.length > 0) {
-        setMatchedCards(cards.slice(0, 5));
-      } else {
-        const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase());
-        if (local.length > 0) {
-          setMatchedCards(local.map((c) => ({
-            cardSetId: c.id, cardName: c.n, setName: "", setId: "", rarity: c.r, cardColor: c.c,
-            cardType: "", cardCost: "", cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "",
-            imageUrl: c.img, marketPrice: null, inventoryPrice: null,
-          })));
-        }
+
+      // STRICT: only show exact code matches (including alt arts with same code)
+      const exact = cards.filter((c) => c.cardSetId.toUpperCase() === codeUp);
+      if (exact.length > 0) {
+        setMatchedCards(exact);
+        return;
+      }
+
+      // Fallback: check if any card starts with the same set prefix + number
+      // e.g. OP06-007 should NOT match OP16-006
+      const samePrefix = cards.filter((c) => {
+        const cid = c.cardSetId.toUpperCase();
+        // Must match the full set+number prefix (e.g. OP06-007 matches OP06-007*)
+        return cid.startsWith(codeUp.split("-")[0] + "-");
+      });
+      if (samePrefix.length > 0) {
+        setMatchedCards(samePrefix.slice(0, 5));
+        return;
       }
     } catch { /* */ }
+
+    // Local index fallback — strict match only
+    const local = cardIndexRef.current.filter((c) => c.id.toUpperCase() === codeUp);
+    if (local.length > 0) {
+      setMatchedCards(local.map((c) => ({
+        cardSetId: c.id, cardName: c.n, setName: "", setId: "", rarity: c.r, cardColor: c.c,
+        cardType: "", cardCost: "", cardPower: "", cardText: "", subTypes: "", life: "", counterAmount: "",
+        imageUrl: c.img, marketPrice: null, inventoryPrice: null,
+      })));
+    } else {
+      setStatus(`Code ${code} not found`);
+    }
   }
 
   async function lookupCards(codes: string[]) {
+    const codesUp = new Set(codes.map((c) => c.toUpperCase()));
     try {
       const res = await fetch(`/api/search-cards?q=${encodeURIComponent(codes[0])}`);
       const cards: CatalogCard[] = await res.json();
-      if (cards.length > 0) { setMatchedCards(cards.slice(0, 5)); return; }
+      // Strict: only exact code matches
+      const exact = cards.filter((c) => codesUp.has(c.cardSetId.toUpperCase()));
+      if (exact.length > 0) { setMatchedCards(exact.slice(0, 5)); return; }
     } catch { /* */ }
     const local = codes.flatMap((code) => cardIndexRef.current.filter((c) => c.id.toUpperCase() === code.toUpperCase()));
     if (local.length > 0) {
