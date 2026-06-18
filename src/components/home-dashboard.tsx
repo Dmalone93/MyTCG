@@ -309,49 +309,70 @@ export function HomeDashboard({
       )}
 
       {/* ═══ LATEST NEWS ═══ */}
-      {filteredIntel.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-text uppercase tracking-wide">Latest news</h2>
-            <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {filteredIntel.map((item) => (
-              <Link
-                key={item.id}
-                href="/intel"
-                className="block bg-white rounded-2xl overflow-hidden hover:bg-[rgba(0,0,0,0.01)] active:opacity-80 transition-colors border border-[rgba(0,0,0,0.04)]"
-              >
-                {item.imageUrl && (
-                  <div className="w-full bg-[#E4E4E7] overflow-hidden aspect-[16/9]">
-                    <img
-                      src={item.imageUrl}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
-                    />
-                  </div>
-                )}
-                <div className="px-4 py-3">
-                  {item.category && (
-                    <div className="text-xs text-text-dim uppercase tracking-wider mb-1">{item.category}</div>
-                  )}
-                  <div className="text-sm font-semibold text-text mb-1 line-clamp-2">{item.title}</div>
-                  {item.summary && (
-                    <div className="text-sm text-text-muted line-clamp-2 mb-2">{item.summary}</div>
-                  )}
-                  {(item.source || item.author) && (
-                    <div className="text-xs text-text-dim">
-                      {item.source}{item.author ? ` · ${item.author}` : ""}
+      {filteredIntel.length > 0 && (() => {
+        // Strip HTML tags from summaries
+        const clean = (s: string | null) => s?.replace(/<[^>]*>/g, "").trim() ?? null;
+        const topArticles = filteredIntel.slice(0, 3);
+        const gridArticles = filteredIntel.slice(3, 7);
+
+        return (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold text-text uppercase tracking-wide">Latest news</h2>
+              <Link href="/intel" className="text-sm font-medium text-text-muted hover:text-text active:opacity-70">See all</Link>
+            </div>
+
+            {/* Top 3 — full width with small thumbnail */}
+            {topArticles.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {topArticles.map((item) => (
+                  <Link
+                    key={item.id}
+                    href="/intel"
+                    className="flex items-start gap-3 bg-white rounded-2xl border border-[rgba(0,0,0,0.04)] px-4 py-3 hover:bg-[rgba(0,0,0,0.01)] active:opacity-80 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      {item.category && <div className="text-xs text-text-dim uppercase tracking-wider mb-0.5">{item.category}</div>}
+                      <div className="text-sm font-semibold text-text line-clamp-2">{item.title}</div>
+                      {item.summary && <div className="text-xs text-text-muted line-clamp-1 mt-0.5">{clean(item.summary)}</div>}
                     </div>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+                    {item.imageUrl && (
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#E4E4E7] flex-none">
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy"
+                          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Grid — max 4 square articles */}
+            {gridArticles.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {gridArticles.map((item) => (
+                  <Link
+                    key={item.id}
+                    href="/intel"
+                    className="block bg-white rounded-2xl overflow-hidden border border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.01)] active:opacity-80 transition-colors"
+                  >
+                    {item.imageUrl && (
+                      <div className="w-full bg-[#E4E4E7] overflow-hidden aspect-[16/9]">
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy"
+                          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                      </div>
+                    )}
+                    <div className="px-3 py-2.5">
+                      {item.category && <div className="text-xs text-text-dim uppercase tracking-wider mb-0.5">{item.category}</div>}
+                      <div className="text-xs font-semibold text-text line-clamp-2">{item.title}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })()}
 
       {/* ═══ CARD DETAIL ═══ */}
       {viewCard && (

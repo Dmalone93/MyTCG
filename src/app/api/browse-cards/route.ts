@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { cardCatalog } from "@/lib/db/schema";
+import { cardCatalog, cardPrices } from "@/lib/db/schema";
 
 /**
  * GET /api/browse-cards
@@ -8,7 +8,12 @@ import { cardCatalog } from "@/lib/db/schema";
  * No external API dependency — fast, owned data.
  */
 export async function GET() {
-  const cards = await db.select().from(cardCatalog);
+  const [cards, prices] = await Promise.all([
+    db.select().from(cardCatalog),
+    db.select().from(cardPrices),
+  ]);
+
+  const priceMap = new Map(prices.map((p) => [p.cardCode, Number(p.rawMarket ?? 0)]));
 
   // Build filter metadata
   const setMap = new Map<string, { id: string; name: string }>();
@@ -38,7 +43,7 @@ export async function GET() {
       life: c.life != null ? String(c.life) : "",
       counterAmount: c.counterPower != null ? String(c.counterPower) : "",
       imageUrl: c.imageUrl ?? "",
-      marketPrice: null as number | null, // Prices come from card_prices table
+      marketPrice: priceMap.get(c.id) ?? null,
     };
   });
 
