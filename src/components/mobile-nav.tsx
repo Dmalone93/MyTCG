@@ -2,12 +2,47 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ScanModal } from "./scan-modal";
+import { addCard as addCardAction } from "@/app/actions/collections";
+import type { CatalogCard } from "@/lib/catalog/types";
 
 export function MobileNav() {
   const pathname = usePathname();
   const [showScan, setShowScan] = useState(false);
+  const [addedMsg, setAddedMsg] = useState<string | null>(null);
+  const collectionsCache = useRef<Array<{ id: string; name: string }> | null>(null);
+
+  async function handleQuickAdd(card: CatalogCard) {
+    try {
+      // Fetch collections if not cached
+      if (!collectionsCache.current) {
+        const res = await fetch("/api/collections");
+        if (res.ok) collectionsCache.current = await res.json();
+      }
+      const collections = collectionsCache.current;
+      if (!collections || collections.length === 0) return;
+
+      // Add to first collection
+      await addCardAction({
+        collectionId: collections[0].id,
+        cardCode: card.cardSetId,
+        cardName: card.cardName,
+        quantity: 1,
+        condition: "NM",
+        isGraded: false,
+        grade: null,
+        gradedCompany: null,
+        acquiredPrice: null,
+        notes: null,
+        imageUrl: card.imageUrl ?? null,
+        marketPrice: card.marketPrice ?? null,
+      });
+
+      setAddedMsg(`Added ${card.cardName}`);
+      setTimeout(() => setAddedMsg(null), 1500);
+    } catch { /* */ }
+  }
 
   const tabs = [
     {
@@ -94,10 +129,17 @@ export function MobileNav() {
       {/* Scan modal */}
       {showScan && (
         <ScanModal
-          onResult={() => setShowScan(false)}
+          onResult={(card) => handleQuickAdd(card)}
           onClose={() => setShowScan(false)}
           quickMode
         />
+      )}
+
+      {/* Quick add toast */}
+      {addedMsg && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-lg text-sm text-text font-medium">
+          {addedMsg}
+        </div>
       )}
     </>
   );
