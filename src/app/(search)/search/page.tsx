@@ -440,10 +440,34 @@ export default function SearchPage() {
           </button>
         </div>
 
-        {/* Browse filters */}
-        <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Browse by</div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {(["set", "color", "rarity", "type"] as FilterKey[]).map((key) => {
+        {/* Set pills carousel */}
+        {filterMeta && filterMeta.sets.length > 0 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-4 px-4">
+            <button
+              onClick={() => setFilter("set", null)}
+              className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap flex-none transition-colors ${
+                !filters.set ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+              }`}
+            >
+              All
+            </button>
+            {filterMeta.sets.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setFilter("set", filters.set === s.id ? null : s.id)}
+                className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap flex-none transition-colors ${
+                  filters.set === s.id ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+                }`}
+              >
+                {s.id}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Filter chips: color, rarity, type */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {(["color", "rarity", "type"] as FilterKey[]).map((key) => {
             const isActive = filters[key] !== null;
             const isParsed = !filters[key] && parsed[key];
             const label = filterLabel(key);
@@ -451,12 +475,12 @@ export default function SearchPage() {
               <button
                 key={key}
                 onClick={() => togglePicker(key)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl whitespace-nowrap transition-all flex-none ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-all flex-none ${
                   isActive
                     ? "bg-text text-bg font-medium"
                     : isParsed
                     ? "bg-bg-surface text-text font-medium border border-text/20"
-                    : "bg-white text-text border border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.2)]"
+                    : "text-text-dim hover:text-text"
                 }`}
               >
                 {key === "color" && (isActive || isParsed) && (
@@ -466,7 +490,7 @@ export default function SearchPage() {
                   />
                 )}
                 {isParsed ? (parsed[key] === filters[key] ? label : parsed[key]!) : label}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-50">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-none opacity-50">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>

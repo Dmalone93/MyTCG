@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRegion } from "@/components/region-selector";
 import { Sparkline } from "@/lib/charts/sparkline";
+import { CardDataSheet } from "@/components/card-data-sheet";
 
 type CollectionSummary = {
   id: string;
@@ -65,6 +66,7 @@ export function HomeDashboard({
   const { formatPrice } = useRegion();
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [showQR, setShowQR] = useState<string | null>(null);
+  const [viewCard, setViewCard] = useState<{ code: string; name: string; imageUrl: string | null; value: number } | null>(null);
 
   useEffect(() => {
     fetch("/api/portfolio?range=30")
@@ -211,13 +213,13 @@ export function HomeDashboard({
           <h2 className="text-sm font-bold text-text uppercase tracking-wide mb-3">Most valuable</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
             {topCards.map((card) => (
-              <div key={card.code} className="flex-none w-[90px]">
+              <button key={card.code} onClick={() => setViewCard(card)} className="flex-none w-[90px] text-left active:opacity-80">
                 <div className="aspect-[63/88] rounded-xl overflow-hidden bg-[#E4E4E7] mb-1.5">
                   {card.imageUrl && <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" loading="lazy" />}
                 </div>
                 <div className="text-xs font-medium text-text truncate">{card.name}</div>
                 <div className="font-mono text-xs text-[#059669]">{formatPrice(card.value)}</div>
-              </div>
+              </button>
             ))}
           </div>
         </section>
@@ -377,6 +379,17 @@ export function HomeDashboard({
             ))}
           </div>
         </section>
+      )}
+
+      {/* ═══ CARD DETAIL ═══ */}
+      {viewCard && (
+        <CardDataSheet
+          cardCode={viewCard.code}
+          cardName={viewCard.name}
+          imageUrl={viewCard.imageUrl ?? ""}
+          marketPrice={viewCard.value}
+          onClose={() => setViewCard(null)}
+        />
       )}
 
       {/* ═══ QR SHARE MODAL ═══ */}
