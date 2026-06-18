@@ -215,7 +215,7 @@ export default function SearchPage() {
     }
 
     return arr;
-  }, [allCards, effectiveFilters, textQuery, hasAnyInput]);
+  }, [allCards, effectiveFilters, textQuery, hasAnyInput, showOwnedOnly, ownedCodes]);
 
   // Sort
   function handleSort(key: SortKey) {
@@ -513,19 +513,6 @@ export default function SearchPage() {
               <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
             </svg>
             Filters
-          </button>
-          <button
-            onClick={() => setShowOwnedOnly(!showOwnedOnly)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl border transition-colors ${
-              showOwnedOnly
-                ? "bg-[#059669] text-white font-medium border-[#059669]"
-                : "bg-white text-text-dim border-[rgba(0,0,0,0.1)] hover:text-text"
-            }`}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Owned
           </button>
           <div className="flex-1" />
           {filters.set && ownedCodes.size > 0 && (
