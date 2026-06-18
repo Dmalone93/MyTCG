@@ -89,6 +89,9 @@ export function ScanModal({
   const { formatPrice } = useRegion();
   const swipe = useSwipeDismiss(onClose);
 
+  // Card preview
+  const [previewCard, setPreviewCard] = useState<CatalogCard | null>(null);
+
   // Batch mode state
   const [batchCards, setBatchCards] = useState<BatchCard[]>([]);
   const [collections, setCollections] = useState<Array<{ id: string; name: string }>>([]);
@@ -423,7 +426,9 @@ export function ScanModal({
             {matchedCards.map((card, i) => (
               <div key={card.cardSetId + card.cardName + i} className="px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3">
-                  <img src={card.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain flex-none" />
+                  <button onClick={() => setPreviewCard(card)} className="flex-none active:scale-95 transition-transform">
+                    <img src={card.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain" />
+                  </button>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-text truncate">{card.cardName}</div>
                     <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}</div>
@@ -591,6 +596,33 @@ export function ScanModal({
           </div>
         )}
       </div>
+
+      {/* ═══ CARD PREVIEW OVERLAY ═══ */}
+      {previewCard && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6" onClick={() => setPreviewCard(null)}>
+          <div className="absolute inset-0 bg-black/80" />
+          <div className="relative max-w-[300px] w-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={previewCard.imageUrl}
+              alt={previewCard.cardName}
+              className="w-full rounded-2xl aspect-[63/88] object-contain"
+            />
+            <div className="text-center mt-3">
+              <div className="text-white text-sm font-semibold">{previewCard.cardName}</div>
+              <div className="text-white/60 text-xs mt-0.5">{previewCard.cardSetId} · {previewCard.rarity}</div>
+              {previewCard.marketPrice != null && previewCard.marketPrice > 0 && (
+                <div className="font-mono text-sm font-semibold text-[#059669] mt-1">{formatPrice(previewCard.marketPrice)}</div>
+              )}
+            </div>
+            <button
+              onClick={() => setPreviewCard(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-text shadow-lg active:opacity-70"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
