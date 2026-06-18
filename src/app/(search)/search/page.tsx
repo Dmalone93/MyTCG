@@ -723,6 +723,29 @@ export default function SearchPage() {
         </div>
       )}
 
+      {/* Set completion bar — only when a set is selected */}
+      {!dataLoading && filters.set && sorted.length > 0 && ownedCodes.size > 0 && (() => {
+        const ownedInSet = sorted.filter((c) => ownedCodes.has(c.cardSetId)).length;
+        const pct = Math.round((ownedInSet / sorted.length) * 100);
+        return (
+          <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-xl px-4 py-3 mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-sm font-medium text-text">{filters.set} completion</span>
+              <span className="text-xs text-text-dim font-mono">{ownedInSet}/{sorted.length} · {pct}%</span>
+            </div>
+            <div className="h-2 bg-[rgba(0,0,0,0.06)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: pct >= 75 ? "#059669" : pct >= 40 ? "#CA8A04" : "#9CA3AF",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })()}
+
       {!dataLoading && filtered.length > 0 && (
         <div className="mt-2">
           {/* Results count + sort + view */}

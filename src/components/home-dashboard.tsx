@@ -250,34 +250,6 @@ export function HomeDashboard({
         </section>
       )}
 
-      {/* ═══ SET COMPLETION ═══ */}
-      {setCompletion.length > 0 && (
-        <section>
-          <h2 className="text-sm font-bold text-text uppercase tracking-wide mb-3">Set completion</h2>
-          <div className="space-y-2">
-            {setCompletion.map((s) => {
-              const pct = Math.round((s.owned / s.total) * 100);
-              return (
-                <div key={s.setId} className="bg-white border border-[rgba(0,0,0,0.06)] rounded-xl px-4 py-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-text">{s.setId}</span>
-                    <span className="text-xs text-text-dim">{s.owned}/{s.total} · {pct}%</span>
-                  </div>
-                  <div className="h-1.5 bg-[rgba(0,0,0,0.06)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: pct >= 75 ? "#059669" : pct >= 40 ? "#CA8A04" : "#9CA3AF",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {/* ═══ PRICE MOVERS ═══ */}
       {portfolio && (portfolio.winners.length > 0 || portfolio.losers.length > 0) && (

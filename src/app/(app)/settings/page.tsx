@@ -107,35 +107,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Default view */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold text-text mb-3">Default View</h2>
-        <p className="text-sm text-text-muted mb-3">How cards are displayed in your collections.</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setDefaultView("list")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border transition-colors ${
-              defaultView === "list"
-                ? "border-text bg-bg-surface"
-                : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.12)]"
-            }`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            <span className="text-sm font-medium text-text">List</span>
-          </button>
-          <button
-            onClick={() => setDefaultView("grid")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border transition-colors ${
-              defaultView === "grid"
-                ? "border-text bg-bg-surface"
-                : "border-[rgba(0,0,0,0.06)] hover:border-[rgba(0,0,0,0.12)]"
-            }`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span className="text-sm font-medium text-text">Grid</span>
-          </button>
-        </div>
-      </section>
 
       {/* Collections */}
       <section className="mb-8">
