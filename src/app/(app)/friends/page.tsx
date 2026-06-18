@@ -146,9 +146,38 @@ export default function FriendsPage() {
       {/* ═══ FRIENDS ═══ */}
       {tab === "friends" && (
         <div>
-          {/* Add friend */}
+          {/* Invite — QR + link */}
+          {user && (
+            <div className="mb-6 bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 text-center">
+              <div className="text-sm font-semibold text-text mb-2">Invite a friend</div>
+              <div className="bg-white rounded-xl p-3 inline-block mb-3">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                    typeof window !== "undefined" ? `${window.location.origin}/invite/${user.id}` : `/invite/${user.id}`
+                  )}`}
+                  alt="QR Code"
+                  className="w-[150px] h-[150px]"
+                />
+              </div>
+              <div className="text-xs text-text-dim font-mono mb-3 break-all">
+                {typeof window !== "undefined" ? `${window.location.origin}/invite/${user.id}` : `/invite/${user.id}`}
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/invite/${user.id}`);
+                  setAddMsg("Link copied!");
+                  setTimeout(() => setAddMsg(null), 1500);
+                }}
+                className="bg-text text-bg font-medium text-sm py-2 px-5 rounded-xl active:opacity-80"
+              >
+                Copy invite link
+              </button>
+            </div>
+          )}
+
+          {/* Add friend by ID */}
           <div className="mb-6">
-            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Add friend by user ID</div>
+            <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Or add by user ID</div>
             <div className="flex gap-2">
               <input
                 value={friendCode}

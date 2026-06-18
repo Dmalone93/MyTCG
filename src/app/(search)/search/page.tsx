@@ -172,10 +172,18 @@ export default function SearchPage() {
   const activeFilterCount = Object.values(effectiveFilters).filter(Boolean).length;
   const hasAnyInput = query.length > 0 || activeFilterCount > 0;
 
-  // Filter + search
-  const filtered = useMemo(() => {
-    if (!hasAnyInput) return [];
+  // Owned-only filter
+  const [showOwnedOnly, setShowOwnedOnly] = useState(false);
 
+  // Infinite scroll
+  const [displayCount, setDisplayCount] = useState(60);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset display count when filters change
+  useEffect(() => { setDisplayCount(60); }, [filters, query]);
+
+  // Filter + search — show ALL cards by default
+  const filtered = useMemo(() => {
     let arr = allCards;
 
     // Apply filters
@@ -199,6 +207,11 @@ export default function SearchPage() {
         const haystack = (c.cardName + c.cardSetId).toLowerCase().replace(/[^a-z0-9]/g, "");
         return haystack.includes(q);
       });
+    }
+
+    // Owned-only filter
+    if (showOwnedOnly) {
+      arr = arr.filter((c) => ownedCodes.has(c.cardSetId));
     }
 
     return arr;
@@ -297,10 +310,20 @@ export default function SearchPage() {
     }
   }
 
-  // Limit displayed results for performance
-  const MAX_DISPLAY = 200;
-  const displayed = sorted.slice(0, MAX_DISPLAY);
-  const hasMore = sorted.length > MAX_DISPLAY;
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setDisplayCount((prev) => prev + 60);
+    }, { rootMargin: "200px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  });
+
+  // Lazy load — infinite scroll
+  const displayed = sorted.slice(0, displayCount);
+  const hasMore = sorted.length > displayCount;
 
   // Multi-select functions
   function toggleSelect(idx: number) {
@@ -476,53 +499,41 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Filters toggle + owned counter */}
+        {/* Filter button + owned toggle */}
         <div className="flex items-center gap-2 pb-1">
           <button
             onClick={() => setShowFilterPanel(!showFilterPanel)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              (filters.color || filters.rarity || filters.type) ? "bg-text text-bg font-medium" : "text-text-dim hover:text-text"
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl border transition-colors ${
+              (filters.color || filters.rarity || filters.type)
+                ? "bg-text text-bg font-medium border-text"
+                : "bg-white text-text border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.2)]"
             }`}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
             </svg>
             Filters
-            {(filters.color || filters.rarity || filters.type) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-accent flex-none" />
-            )}
           </button>
-          {filters.set && (
-            <span className="text-xs text-text-dim font-mono">
-              {ownedCodes.size > 0 && `${[...ownedCodes].filter((c) => c.startsWith(filters.set!.replace("-", ""))).length}`} owned
+          <button
+            onClick={() => setShowOwnedOnly(!showOwnedOnly)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-xl border transition-colors ${
+              showOwnedOnly
+                ? "bg-[#059669] text-white font-medium border-[#059669]"
+                : "bg-white text-text-dim border-[rgba(0,0,0,0.1)] hover:text-text"
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Owned
+          </button>
+          <div className="flex-1" />
+          {filters.set && ownedCodes.size > 0 && (
+            <span className="text-xs font-mono text-[#059669]">
+              {sorted.filter((c) => ownedCodes.has(c.cardSetId)).length}/{sorted.length}
             </span>
           )}
         </div>
-
-        {/* Filter panel */}
-        {showFilterPanel && (
-          <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-4 mb-2">
-            {(["color", "rarity", "type"] as FilterKey[]).map((key) => (
-              <div key={key} className="mb-3 last:mb-0">
-                <div className="text-xs text-text-dim uppercase tracking-wider mb-1.5">{key}</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {pickerOptions(key).map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setFilter(key, filters[key] === opt.value ? null : opt.value)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
-                        filters[key] === opt.value ? "bg-text text-bg font-medium" : "bg-bg-surface text-text-dim hover:text-text"
-                      }`}
-                    >
-                      {key === "color" && <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />}
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Active filter summary */}
         {(filters.color || filters.rarity || filters.type) && (
@@ -546,12 +557,11 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Inline picker dropdown */}
-        {openPicker && filterMeta && (
-          <div className="mt-2 bg-white rounded-2xl shadow-lg border border-[rgba(0,0,0,0.08)] max-h-[60vh] overflow-y-auto">
-            {/* Clear option */}
+        {/* Inline picker removed — using slide-out panel */}
+        {openPicker && openPicker !== null && filterMeta && (
+          <div className="hidden">
             <button
-              onClick={() => setFilter(openPicker, null)}
+              onClick={() => setFilter(openPicker as FilterKey, null)}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-bg-surface ${
                 !filters[openPicker] ? "font-medium text-text" : "text-text-dim"
               }`}
@@ -835,8 +845,8 @@ export default function SearchPage() {
                     <div className="aspect-[2.5/3.5] bg-[#E4E4E7] relative">
                       <img src={card.imageUrl} alt={card.cardName} className="w-full h-full object-cover" loading="lazy" />
                       {!selectMode && ownedCodes.has(card.cardSetId) && (
-                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#059669] flex items-center justify-center">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#059669] flex items-center justify-center shadow-sm shadow-[#059669]/30">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
                           </svg>
                         </div>
@@ -858,9 +868,11 @@ export default function SearchPage() {
           )}
 
           {/* Show more indicator */}
+          {/* Infinite scroll trigger */}
+          <div ref={loadMoreRef} className="h-1" />
           {hasMore && (
-            <div className="py-6 text-center text-sm text-text-dim">
-              Showing {MAX_DISPLAY} of {sorted.length} results — narrow your filters to see more
+            <div className="py-4 text-center text-xs text-text-dim animate-pulse">
+              Loading more...
             </div>
           )}
         </div>
@@ -930,6 +942,75 @@ export default function SearchPage() {
       {addedMsg && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-lg text-sm text-text font-medium">
           {addedMsg}
+        </div>
+      )}
+
+      {/* ═══ SLIDE-OUT FILTER PANEL ═══ */}
+      {showFilterPanel && (
+        <div className="fixed inset-0 z-50" onClick={() => setShowFilterPanel(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[280px] bg-bg-elevated shadow-xl overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-4 border-b border-[rgba(0,0,0,0.06)]">
+              <h3 className="text-base font-semibold text-text">Filters</h3>
+              <button onClick={() => setShowFilterPanel(false)} className="text-text-dim hover:text-text text-lg active:opacity-70">×</button>
+            </div>
+
+            <div className="p-4 space-y-5">
+              {/* Owned toggle */}
+              <div>
+                <button
+                  onClick={() => setShowOwnedOnly(!showOwnedOnly)}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl border transition-colors ${
+                    showOwnedOnly ? "bg-[#059669] text-white border-[#059669]" : "bg-white text-text border-[rgba(0,0,0,0.08)]"
+                  }`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span className="text-sm font-medium">Show owned cards only</span>
+                </button>
+              </div>
+
+              {(["color", "rarity", "type"] as FilterKey[]).map((key) => (
+                <div key={key}>
+                  <div className="text-xs text-text-dim uppercase tracking-wider mb-2">{key}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setFilter(key, null)}
+                      className={`px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
+                        !filters[key] ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {pickerOptions(key).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setFilter(key, filters[key] === opt.value ? null : opt.value)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors ${
+                          filters[key] === opt.value ? "bg-text text-bg font-medium" : "bg-white text-text-dim border border-[rgba(0,0,0,0.08)]"
+                        }`}
+                      >
+                        {key === "color" && <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLOR_DOT[opt.value] ?? "#999" }} />}
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Clear all filters */}
+              <button
+                onClick={() => { setFilters({ set: null, color: null, rarity: null, type: null }); setShowOwnedOnly(false); }}
+                className="w-full text-sm text-text-muted py-2 active:opacity-70"
+              >
+                Clear all filters
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
