@@ -502,47 +502,108 @@ export function ScanModal({
           </button>
         </div>
 
-        {/* Camera — hidden once a result is locked in */}
+        {/* Camera — compact when match found, hidden on result */}
         {!resultCard && (
-          <>
-            <div className="relative aspect-[3/4] sm:aspect-[4/3] bg-white overflow-hidden">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-              />
-              {scanning && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
-                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.5)]">
-                    <div
-                      className="h-full transition-all duration-300 ease-out rounded-r-full"
-                      style={{ width: `${confidence}%`, backgroundColor: confidenceColor }}
-                    />
-                  </div>
+          <div className={`relative bg-white overflow-hidden transition-all ${
+            matchedCards.length > 0 ? "h-[120px]" : "aspect-[3/4] sm:aspect-[4/3]"
+          }`}>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            {scanning && matchedCards.length === 0 && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-4 border-2 border-accent/30 rounded-lg">
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent rounded-tl-lg" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent rounded-tr-lg" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent rounded-br-lg" />
                 </div>
-              )}
+              </div>
+            )}
+            {/* Confidence bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[rgba(0,0,0,0.3)]">
+              <div className="h-full transition-all duration-300 ease-out rounded-r-full" style={{ width: `${confidence}%`, backgroundColor: confidenceColor }} />
             </div>
-
-            <div className="px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-text-muted">{status}</span>
-              {scanning && confidence > 0 && (
-                <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>
-                  {confidence}%
-                </span>
-              )}
-            </div>
-          </>
+            {/* Status overlay when compact */}
+            {matchedCards.length > 0 && (
+              <div className="absolute bottom-2 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
+                Scanning...
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Result screen — takes over full modal when a card is locked in */}
+        {/* Status bar — only when no match */}
+        {!resultCard && matchedCards.length === 0 && (
+          <div className="px-4 py-2 flex items-center justify-between">
+            <span className="text-sm text-text-muted">{status}</span>
+            {scanning && confidence > 0 && (
+              <span className="text-xs font-mono font-semibold" style={{ color: confidenceColor }}>{confidence}%</span>
+            )}
+          </div>
+        )}
+
+        {/* ═══ MATCH CONFIRMATION — visible without scrolling ═══ */}
+        {!resultCard && matchedCards.length > 0 && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-3 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
+              {matchedCards.length === 1 ? "Is this your card?" : "Pick your card"}
+            </div>
+            {matchedCards.map((card, i) => (
+              <div key={card.cardSetId + i} className="px-4 py-3">
+                <div className="flex gap-4 items-start mb-3">
+                  <img src={card.imageUrl} alt={card.cardName} className="w-[100px] aspect-[63/88] rounded-xl object-contain flex-none" />
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="text-base font-semibold text-text">{card.cardName}</div>
+                    <div className="text-xs text-text-dim mt-0.5">{card.cardSetId} · {card.rarity} · {card.cardColor}</div>
+                    {card.marketPrice != null && card.marketPrice > 0 && (
+                      <div className="font-mono text-lg font-semibold text-[#059669] mt-2">{formatPrice(card.marketPrice)}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setResultCard(card)}
+                    className="flex-1 bg-text text-bg font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
+                  >
+                    Check price
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Quick add to batch
+                      onResult(card);
+                      setMatchedCards([]);
+                      setConfidence(0);
+                      visionCallCount.current = 0;
+                      setStatus("Added! Scan next...");
+                      setTimeout(() => startScanning(), 300);
+                    }}
+                    className="flex-1 bg-[#059669] text-white font-medium text-sm py-2.5 rounded-xl active:opacity-80 transition-colors"
+                  >
+                    + Add
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMatchedCards([]);
+                      setConfidence(0);
+                      visionCallCount.current = 0;
+                      startScanning();
+                    }}
+                    className="bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text-dim font-medium text-sm py-2.5 px-4 rounded-xl active:opacity-70 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ═══ RESULT SCREEN ═══ */}
         {resultCard && !showManualEntry && (
           <>
             <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -561,7 +622,6 @@ export function ScanModal({
                 onClose={onClose}
               />
             </div>
-            {/* Sticky rescan bar */}
             <div className="flex-none flex gap-2 px-4 py-3 border-t border-[rgba(0,0,0,0.06)] bg-bg-elevated">
               <button
                 onClick={() => {
@@ -578,50 +638,6 @@ export function ScanModal({
               </button>
             </div>
           </>
-        )}
-
-        {!resultCard && matchedCards.length > 0 && (
-          <div className="border-t border-[rgba(0,0,0,0.04)]">
-            <div className="px-3 py-2 text-xs font-medium text-text-dim uppercase tracking-wider">
-              {matchedCards.length === 1 ? "Is this your card?" : "Pick your card"}
-            </div>
-            {matchedCards.map((card, i) => (
-              <div key={card.cardSetId + i} className="border-b border-[rgba(0,0,0,0.04)] px-3 py-3">
-                {/* Big card image for visual confirmation */}
-                <div className="flex justify-center mb-3">
-                  <img src={card.imageUrl} alt={card.cardName} className="w-[140px] aspect-[63/88] rounded-xl object-contain" />
-                </div>
-                <div className="text-center mb-3">
-                  <div className="text-sm font-semibold text-text">{card.cardName}</div>
-                  <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity} · {card.cardColor}</div>
-                  {card.marketPrice != null && card.marketPrice > 0 && (
-                    <div className="font-mono text-sm font-semibold text-[#059669] mt-1">
-                      {formatPrice(card.marketPrice)}
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-2.5">
-                  <button
-                    onClick={() => setResultCard(card)}
-                    className="flex-1 bg-text text-bg font-medium text-sm py-2 px-4 rounded-xl active:opacity-80 transition-colors"
-                  >
-                    {matchedCards.length === 1 ? "Yes, check price" : "Select"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMatchedCards([]);
-                      setConfidence(0);
-                      visionCallCount.current = 0;
-                      startScanning();
-                    }}
-                    className="bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text font-medium text-sm py-2 px-4 rounded-xl active:opacity-70 transition-colors"
-                  >
-                    Rescan
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         )}
 
         {showManualEntry && (
