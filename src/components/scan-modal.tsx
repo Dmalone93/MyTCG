@@ -361,7 +361,7 @@ export function ScanModal({
 
         {/* ═══ CAMERA ═══ */}
         {mode !== "choose" && !resultCard && (
-          <div className="relative bg-white overflow-hidden flex-none h-[45vh] sm:h-[40vh]">
+          <div className="relative bg-white overflow-hidden flex-none h-[55vh] sm:h-[45vh]">
             <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
             {scanning && matchedCards.length === 0 && (
               <div className="absolute inset-0 pointer-events-none">
@@ -402,48 +402,42 @@ export function ScanModal({
               {matchedCards.length === 1 ? "Is this your card?" : `${matchedCards.length} variants found — pick yours`}
             </div>
             {matchedCards.map((card, i) => (
-              <div key={card.cardSetId + card.cardName + i} className="flex items-center gap-3 px-4 py-3 border-b border-[rgba(0,0,0,0.04)] active:bg-[rgba(0,0,0,0.02)]">
-                <img src={card.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain flex-none" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-text truncate">{card.cardName}</div>
-                  <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}</div>
+              <div key={card.cardSetId + card.cardName + i} className="px-4 py-3 border-b border-[rgba(0,0,0,0.04)]">
+                <div className="flex items-center gap-3">
+                  <img src={card.imageUrl} alt="" className="w-14 aspect-[63/88] rounded-lg object-contain flex-none" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-text truncate">{card.cardName}</div>
+                    <div className="text-xs text-text-dim">{card.cardSetId} · {card.rarity}</div>
+                    {card.marketPrice != null && card.marketPrice > 0 && (
+                      <div className="font-mono text-sm font-semibold text-[#059669] mt-0.5">{formatPrice(card.marketPrice)}</div>
+                    )}
+                  </div>
                 </div>
-                {card.marketPrice != null && card.marketPrice > 0 && (
-                  <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(card.marketPrice)}</span>
-                )}
-                <button
-                  onClick={() => {
-                    if (mode === "price-check") {
-                      setResultCard(card);
-                    } else if (mode === "add-single") {
-                      setShowCollectionPicker(true);
-                      setResultCard(card);
-                    } else if (mode === "add-batch") {
-                      // Quick add and keep scanning
-                      addToCollection(card);
-                      setBatchCards((prev) => [...prev, { card, addedAt: Date.now() }]);
-                      setMatchedCards([]);
-                      setConfidence(0);
-                      visionCallCount.current = 0;
-                      setStatus(`Added! ${batchCards.length + 1} cards`);
-                      setTimeout(() => startScanning(), 300);
-                    }
-                  }}
-                  className={`text-sm font-medium py-1.5 px-3 rounded-lg flex-none active:opacity-80 transition-colors ${
-                    mode === "add-batch"
-                      ? "bg-[#059669] text-white"
-                      : "bg-text text-bg"
-                  }`}
-                >
-                  {mode === "price-check" ? "Check" : mode === "add-batch" ? "+ Add" : "Select"}
-                </button>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => {
+                      if (mode === "price-check") setResultCard(card);
+                      else if (mode === "add-single") { setShowCollectionPicker(true); setResultCard(card); }
+                      else if (mode === "add-batch") {
+                        addToCollection(card);
+                        setBatchCards((prev) => [...prev, { card, addedAt: Date.now() }]);
+                        setMatchedCards([]); setConfidence(0); visionCallCount.current = 0;
+                        setStatus(`Added! ${batchCards.length + 1} cards`);
+                        setTimeout(() => startScanning(), 300);
+                      }
+                    }}
+                    className={`flex-1 text-sm font-medium py-2 rounded-xl active:opacity-80 transition-colors ${
+                      mode === "add-batch" ? "bg-[#059669] text-white" : "bg-text text-bg"
+                    }`}
+                  >
+                    {mode === "price-check" ? "Check price" : mode === "add-batch" ? "+ Add" : "Select"}
+                  </button>
+                  <button onClick={resetScan} className="bg-bg-surface border border-[rgba(0,0,0,0.08)] text-text-dim font-medium text-sm py-2 px-4 rounded-xl active:opacity-70 transition-colors">
+                    Rescan
+                  </button>
+                </div>
               </div>
             ))}
-            <div className="px-4 py-2">
-              <button onClick={resetScan} className="text-sm text-text-muted hover:text-text active:opacity-70">
-                Not here? Rescan
-              </button>
-            </div>
           </div>
         )}
 
