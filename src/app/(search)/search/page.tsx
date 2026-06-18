@@ -711,13 +711,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            <div className="flex flex-col items-center pb-4">
-              <img src="/op-search.svg" alt="" className="w-24 h-24 opacity-30 mb-3" />
-              <p className="text-sm text-text-dim/50 italic max-w-[300px] text-center leading-relaxed">
-                &ldquo;Dreams are immortal. We carry them with us and even pass them on, intangible but impervious.&rdquo;
-              </p>
-              <p className="text-xs text-text-dim/40 mt-1">— Blackbeard</p>
-            </div>
           </div>
         );
       })()}
@@ -733,7 +726,14 @@ export default function SearchPage() {
       )}
 
       {!dataLoading && hasAnyInput && filtered.length === 0 && (
-        <div className="py-12 text-center text-text-dim text-sm">No cards match your filters</div>
+        <div className="py-12 flex flex-col items-center text-center">
+          <img src="/op-search.svg" alt="" className="w-24 h-24 opacity-30 mb-3" />
+          <div className="text-sm text-text-dim mb-3">No cards match your filters</div>
+          <p className="text-sm text-text-dim/50 italic max-w-[300px] leading-relaxed">
+            &ldquo;Dreams are immortal. We carry them with us and even pass them on, intangible but impervious.&rdquo;
+          </p>
+          <p className="text-xs text-text-dim/40 mt-1">— Blackbeard</p>
+        </div>
       )}
 
       {!dataLoading && filtered.length > 0 && (
