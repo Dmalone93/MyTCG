@@ -138,7 +138,7 @@ export function ScanModal({
       audio: false,
     }).then((stream) => {
       streamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play().catch(() => {}); }
+      attachStream();
       setCameraReady(true);
       setStatus("Point camera at a card");
     }).catch(() => { setStatus("Camera access denied"); });
@@ -148,6 +148,16 @@ export function ScanModal({
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  // Re-attach stream when video element changes (mode switch)
+  function attachStream() {
+    if (videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }
+
+  useEffect(() => { attachStream(); }, [mode]);
 
   function startScanning() {
     stopScanning();
@@ -316,6 +326,11 @@ export function ScanModal({
           )}
           <button onClick={onClose} className="text-text-dim hover:text-text active:opacity-70 text-lg p-1 transition-colors">×</button>
         </div>
+
+        {/* Hidden video — always in DOM so camera can attach */}
+        {mode === "choose" && (
+          <video ref={videoRef} autoPlay playsInline muted className="hidden" />
+        )}
 
         {/* ═══ MODE CHOOSER ═══ */}
         {mode === "choose" && (
