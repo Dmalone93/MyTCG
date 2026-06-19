@@ -41,6 +41,34 @@ export default function WishlistPage() {
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Typewriter placeholder
+  const EXAMPLES = ["Monkey D. Luffy", "OP16-001", "Roronoa Zoro", "Shanks SR", "Nami", "Portgas D. Ace"];
+  const [placeholder, setPlaceholder] = useState("");
+  const exampleIdx = useRef(0);
+  const charIdx = useRef(0);
+  const isDeleting = useRef(false);
+  const pauseRef = useRef(false);
+
+  useEffect(() => {
+    if (!showAddSheet || searchQuery.length > 0) return;
+    const tick = () => {
+      const current = EXAMPLES[exampleIdx.current];
+      if (pauseRef.current) { pauseRef.current = false; isDeleting.current = true; return; }
+      if (isDeleting.current) {
+        charIdx.current--;
+        setPlaceholder(current.slice(0, charIdx.current));
+        if (charIdx.current === 0) { isDeleting.current = false; exampleIdx.current = (exampleIdx.current + 1) % EXAMPLES.length; }
+      } else {
+        charIdx.current++;
+        setPlaceholder(current.slice(0, charIdx.current));
+        if (charIdx.current === current.length) pauseRef.current = true;
+      }
+    };
+    const interval = setInterval(tick, isDeleting.current ? 40 : 80);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAddSheet, searchQuery]);
+
   useEffect(() => {
     fetch("/api/watchlist")
       .then((r) => r.ok ? r.json() : [])
@@ -52,6 +80,11 @@ export default function WishlistPage() {
   // Auto-focus search input when sheet opens
   useEffect(() => {
     if (showAddSheet) {
+      charIdx.current = 0;
+      exampleIdx.current = 0;
+      isDeleting.current = false;
+      pauseRef.current = false;
+      setPlaceholder("");
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } else {
       setSearchQuery("");
@@ -297,7 +330,7 @@ export default function WishlistPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search by name or code..."
+                  placeholder={searchQuery.length > 0 ? "" : (placeholder || EXAMPLES[0].charAt(0))}
                   className="flex-1 bg-transparent outline-none text-sm text-text placeholder:text-text-dim"
                 />
                 {searchQuery && (
