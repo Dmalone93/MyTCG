@@ -31,11 +31,15 @@ export default function WishlistPage() {
   const [viewCard, setViewCard] = useState<WishlistItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const collectionsCache = useRef<Array<{ id: string; name: string }> | null>(null);
+
+  // Add sheet state
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showScan, setShowScan] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/watchlist")
@@ -44,6 +48,16 @@ export default function WishlistPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  // Auto-focus search input when sheet opens
+  useEffect(() => {
+    if (showAddSheet) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setSearchQuery("");
+      setSearchResults([]);
+    }
+  }, [showAddSheet]);
 
   async function removeCard(cardCode: string) {
     await fetch("/api/watchlist", {
@@ -62,8 +76,7 @@ export default function WishlistPage() {
       }
       const cols = collectionsCache.current;
       if (!cols || cols.length === 0) {
-        setToast("Create a collection first");
-        setTimeout(() => setToast(null), 1500);
+        showToast("Create a collection first");
         return;
       }
       await addCardAction({
@@ -80,10 +93,8 @@ export default function WishlistPage() {
         imageUrl: item.imageUrl ?? null,
         marketPrice: item.currentPrice ? Number(item.currentPrice) : null,
       });
-      // Remove from wishlist after adding
       await removeCard(item.cardCode);
-      setToast(`Added ${item.cardName}`);
-      setTimeout(() => setToast(null), 1500);
+      showToast(`Added ${item.cardName}`);
     } catch { /* */ }
   }
 
@@ -116,15 +127,18 @@ export default function WishlistPage() {
         }),
       });
       if (res.status === 409) {
-        setToast("Already on wishlist");
+        showToast("Already on wishlist");
       } else if (res.ok) {
         const row = await res.json();
         setItems((prev) => [...prev, { ...row, currentPrice: card.marketPrice ? String(card.marketPrice) : null }]);
-        setToast(`Added ${card.cardName}`);
+        showToast(`Added ${card.cardName}`);
+        setShowAddSheet(false);
       }
     } catch { /* */ }
-    setSearchQuery("");
-    setSearchResults([]);
+  }
+
+  function showToast(msg: string) {
+    setToast(msg);
     setTimeout(() => setToast(null), 1500);
   }
 
@@ -133,80 +147,17 @@ export default function WishlistPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-text mb-2">Wishlist</h1>
-      <p className="text-sm text-text-dim mb-4">Cards you want — track prices until you&apos;re ready to buy.</p>
-
-      {/* Search to add */}
-      <div className="relative mb-5">
-        <div className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search cards to add..."
-            className="flex-1 bg-transparent outline-none text-sm text-text placeholder:text-text-dim"
-          />
-          {searchQuery && (
-            <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="text-text-dim text-sm active:opacity-70">
-              ×
-            </button>
-          )}
-          <button
-            onClick={() => setShowScan(true)}
-            className="flex-none p-1 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors"
-            title="Scan card"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Search results dropdown */}
-        {searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl shadow-lg overflow-hidden z-20 max-h-80 overflow-y-auto">
-            {searchResults.map((card) => {
-              const alreadyAdded = items.some((i) => i.cardCode === card.cardSetId);
-              return (
-                <button
-                  key={card.cardSetId}
-                  onClick={() => !alreadyAdded && addToWishlist(card)}
-                  disabled={alreadyAdded}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
-                    alreadyAdded ? "opacity-40" : "hover:bg-bg-surface active:bg-bg-surface"
-                  }`}
-                >
-                  {card.imageUrl ? (
-                    <div className="w-9 aspect-[63/88] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
-                      <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-9 aspect-[63/88] rounded-md bg-[#E4E4E7] flex-none" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-text truncate">{card.cardName}</div>
-                    <div className="text-xs text-text-dim font-mono">{card.cardSetId}</div>
-                  </div>
-                  {alreadyAdded ? (
-                    <span className="text-xs text-text-dim flex-none">Added</span>
-                  ) : (
-                    <span className="text-xs text-[#059669] font-medium flex-none">+ Add</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {searching && searchQuery && searchResults.length === 0 && (
-          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl shadow-lg p-4 text-center text-sm text-text-dim z-20">
-            Searching...
-          </div>
-        )}
+      {/* Header with + Add button */}
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-xl font-bold text-text">Wishlist</h1>
+        <button
+          onClick={() => setShowAddSheet(true)}
+          className="text-sm font-medium text-text-muted hover:text-text active:opacity-70 transition-colors"
+        >
+          + Add
+        </button>
       </div>
+      <p className="text-sm text-text-dim mb-4">Cards you want — track prices until you&apos;re ready to buy.</p>
 
       {/* Summary */}
       {items.length > 0 && (
@@ -244,7 +195,13 @@ export default function WishlistPage() {
       {!loading && items.length === 0 && (
         <div className="py-16 text-center">
           <div className="text-text-dim text-base mb-2">No cards on your wishlist</div>
-          <div className="text-sm text-text-muted">Browse or search for cards, then tap &quot;Add to wishlist&quot;</div>
+          <div className="text-sm text-text-muted mb-4">Track cards you want and their prices</div>
+          <button
+            onClick={() => setShowAddSheet(true)}
+            className="bg-text text-bg font-medium text-sm py-2.5 px-6 rounded-xl active:opacity-80 transition-colors"
+          >
+            + Add your first card
+          </button>
         </div>
       )}
 
@@ -304,6 +261,114 @@ export default function WishlistPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ═══ ADD CARD BOTTOM SHEET ═══ */}
+      {showAddSheet && (
+        <div className="fixed inset-0 z-[60]" onClick={() => setShowAddSheet(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-bg-elevated rounded-t-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: "80vh" }}
+          >
+            {/* Drag handle */}
+            <div className="sm:hidden flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
+            </div>
+
+            {/* Header */}
+            <div className="px-4 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-text">Add to wishlist</h3>
+              <button onClick={() => setShowAddSheet(false)} className="text-sm text-text-muted active:opacity-70">
+                Done
+              </button>
+            </div>
+
+            {/* Search input + scan icon */}
+            <div className="px-4 pb-3">
+              <div className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search by name or code..."
+                  className="flex-1 bg-transparent outline-none text-sm text-text placeholder:text-text-dim"
+                />
+                {searchQuery && (
+                  <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="text-text-dim text-sm active:opacity-70">
+                    ×
+                  </button>
+                )}
+                <button
+                  onClick={() => { setShowAddSheet(false); setShowScan(true); }}
+                  className="flex-none p-1 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors"
+                  title="Scan card"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="overflow-y-auto" style={{ maxHeight: "50vh" }}>
+              {searching && searchQuery && searchResults.length === 0 && (
+                <div className="p-6 text-center text-sm text-text-dim">Searching...</div>
+              )}
+
+              {!searching && searchQuery && searchResults.length === 0 && (
+                <div className="p-6 text-center text-sm text-text-dim">No cards found</div>
+              )}
+
+              {searchResults.map((card) => {
+                const alreadyAdded = items.some((i) => i.cardCode === card.cardSetId);
+                return (
+                  <button
+                    key={card.cardSetId}
+                    onClick={() => !alreadyAdded && addToWishlist(card)}
+                    disabled={alreadyAdded}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-[rgba(0,0,0,0.04)] transition-colors ${
+                      alreadyAdded ? "opacity-40" : "active:bg-bg-surface"
+                    }`}
+                  >
+                    {card.imageUrl ? (
+                      <div className="w-10 aspect-[63/88] rounded-lg overflow-hidden bg-[#E4E4E7] flex-none">
+                        <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 aspect-[63/88] rounded-lg bg-[#E4E4E7] flex-none" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-text truncate">{card.cardName}</div>
+                      <div className="text-xs text-text-dim font-mono">{card.cardSetId}</div>
+                    </div>
+                    {alreadyAdded ? (
+                      <span className="text-xs text-text-dim flex-none">On list</span>
+                    ) : (
+                      <span className="text-xs text-[#059669] font-medium flex-none">+ Add</span>
+                    )}
+                  </button>
+                );
+              })}
+
+              {!searchQuery && (
+                <div className="p-6 text-center text-sm text-text-dim">
+                  Type a card name or code, or scan a card
+                </div>
+              )}
+            </div>
+
+            {/* Safe area padding */}
+            <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
+          </div>
         </div>
       )}
 
