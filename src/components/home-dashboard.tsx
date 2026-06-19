@@ -88,42 +88,42 @@ export function HomeDashboard({
   return (
     <div className="space-y-6">
 
-      {/* ═══ PORTFOLIO HERO — dark card with integrated chart ═══ */}
-      <section className="bg-[#1A1A2E] rounded-2xl overflow-hidden text-white sm:rounded-3xl">
+      {/* ═══ PORTFOLIO HERO — white card with integrated chart ═══ */}
+      <section className="bg-white rounded-2xl overflow-hidden border border-[rgba(0,0,0,0.06)] sm:rounded-3xl">
         {/* Top section — value + stats */}
         <div className="px-5 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4">
-          <div className="text-xs text-white/50 uppercase tracking-wider mb-2">Portfolio value</div>
+          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">Portfolio value</div>
           <div className="flex items-center gap-3 mb-3">
-            <span className="font-mono text-3xl sm:text-5xl font-bold">
+            <span className="font-mono text-3xl sm:text-5xl font-bold text-text">
               {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
             </span>
             {portfolioSpent > 0 && portfolioValue > 0 && (
               <span className={`text-sm font-semibold px-2 py-0.5 rounded-md ${
-                pl >= 0 ? "bg-[#059669]/20 text-[#34D399]" : "bg-[#DC2626]/20 text-[#FCA5A5]"
+                pl >= 0 ? "bg-[#059669]/10 text-[#059669]" : "bg-[#DC2626]/10 text-[#DC2626]"
               }`}>
                 {pl >= 0 ? "↑" : "↓"} {Math.abs(plPct).toFixed(1)}%
               </span>
             )}
             <div className="flex-1" />
-            <span className="text-xs text-white/40">Last 30 days</span>
+            <span className="text-xs text-text-dim">Last 30 days</span>
           </div>
           {/* Stats row */}
-          <div className="flex border-t border-white/10 pt-3 sm:pt-4">
-            <div className="flex-1 text-center border-r border-white/10">
-              <div className="font-mono text-sm font-semibold">{totalCards} Cards</div>
+          <div className="flex border-t border-[rgba(0,0,0,0.06)] pt-3 sm:pt-4">
+            <div className="flex-1 text-center border-r border-[rgba(0,0,0,0.06)]">
+              <div className="font-mono text-sm font-semibold text-text">{totalCards} Cards</div>
             </div>
-            <div className="flex-1 text-center border-r border-white/10">
-              <div className="font-mono text-sm font-semibold">{collections.length} Collection{collections.length !== 1 ? "s" : ""}</div>
+            <div className="flex-1 text-center border-r border-[rgba(0,0,0,0.06)]">
+              <div className="font-mono text-sm font-semibold text-text">{collections.length} Collection{collections.length !== 1 ? "s" : ""}</div>
             </div>
             <div className="flex-1 text-center">
-              <div className="font-mono text-sm font-semibold">
+              <div className="font-mono text-sm font-semibold text-text">
                 {portfolioSpent > 0 ? formatPrice(portfolioSpent) : "—"}
               </div>
-              <div className="text-[10px] text-white/40">Spent</div>
+              <div className="text-[10px] text-text-dim">Spent</div>
             </div>
           </div>
         </div>
-        {/* Chart — integrated into the dark card */}
+        {/* Chart — integrated into the card */}
         <div className="px-3 pb-3 sm:px-6 sm:pb-6">
           {portfolio && portfolio.points.length > 2 ? (
             <InteractiveChart
@@ -132,10 +132,9 @@ export function HomeDashboard({
                 label: new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
               }))}
               height={180}
-              color="#34D399"
-              negativeColor="#FCA5A5"
+              color="#059669"
+              negativeColor="#DC2626"
               formatValue={formatPrice}
-              dark
             />
           ) : portfolioValue > 0 ? (
             <InteractiveChart
@@ -148,14 +147,13 @@ export function HomeDashboard({
                 { value: portfolioValue, label: "Today" },
               ]}
               height={180}
-              color="#34D399"
-              negativeColor="#FCA5A5"
+              color="#059669"
+              negativeColor="#DC2626"
               formatValue={formatPrice}
-              dark
             />
           ) : (
-            <div className="h-[100px] bg-white/5 rounded-xl flex items-center justify-center">
-              <span className="text-xs text-white/30">Add cards to see your portfolio chart</span>
+            <div className="h-[100px] bg-bg-surface rounded-xl flex items-center justify-center">
+              <span className="text-xs text-text-dim">Add cards to see your portfolio chart</span>
             </div>
           )}
         </div>
