@@ -328,7 +328,7 @@ export function ScanModal({
   const selectedColName = collections.find((c) => c.id === selectedCollection)?.name ?? "";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={swipe.sheetRef}
@@ -647,7 +647,7 @@ export function ScanModal({
 
       {/* ═══ CARD PREVIEW OVERLAY ═══ */}
       {previewCard && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6" onClick={() => setPreviewCard(null)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-6" onClick={() => setPreviewCard(null)}>
           <div className="absolute inset-0 bg-black/80" />
           <div className="relative max-w-[300px] w-full" onClick={(e) => e.stopPropagation()}>
             <img
