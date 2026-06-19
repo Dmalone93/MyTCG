@@ -10,12 +10,14 @@ export function InteractiveChart({
   color = "#059669",
   negativeColor = "#DC2626",
   formatValue,
+  dark = false,
 }: {
   data: DataPoint[];
   height?: number;
   color?: string;
   negativeColor?: string;
   formatValue?: (n: number) => string;
+  dark?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(300);
@@ -85,6 +87,11 @@ export function InteractiveChart({
   const hoverX = hoverIdx != null ? getX(hoverIdx) : 0;
   const hoverY = hoverIdx != null ? getY(data[hoverIdx].value) : 0;
 
+  const gridColor = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)";
+  const hoverLineColor = dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)";
+  const labelColor = dark ? "rgba(255,255,255,0.4)" : "#9CA3AF";
+  const fillOpacity = dark ? 0.15 : 0.06;
+
   return (
     <div ref={containerRef} className="w-full relative select-none">
       {/* Hover tooltip */}
@@ -97,7 +104,9 @@ export function InteractiveChart({
             transform: "translateX(-50%)",
           }}
         >
-          <div className="bg-text text-bg text-xs font-mono px-2 py-1 rounded-lg whitespace-nowrap">
+          <div className={`text-xs font-mono px-2 py-1 rounded-lg whitespace-nowrap ${
+            dark ? "bg-white text-[#1A1A2E]" : "bg-text text-bg"
+          }`}>
             {fmt(hoverPoint.value)}
             <div className="text-[10px] opacity-70 text-center">{hoverPoint.label}</div>
           </div>
@@ -118,12 +127,12 @@ export function InteractiveChart({
           const y = chartTop + (1 - pct) * chartH;
           return (
             <line key={pct} x1={chartLeft} y1={y} x2={chartRight} y2={y}
-              stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
+              stroke={gridColor} strokeWidth="1" />
           );
         })}
 
         {/* Fill area */}
-        <polygon points={areaPoints} fill={strokeColor} opacity="0.06" />
+        <polygon points={areaPoints} fill={strokeColor} opacity={fillOpacity} />
 
         {/* Line */}
         <polyline
@@ -139,8 +148,8 @@ export function InteractiveChart({
         {hoverIdx != null && (
           <>
             <line x1={hoverX} y1={chartTop} x2={hoverX} y2={chartBottom}
-              stroke="rgba(0,0,0,0.1)" strokeWidth="1" strokeDasharray="3,3" />
-            <circle cx={hoverX} cy={hoverY} r="4" fill={strokeColor} stroke="white" strokeWidth="2" />
+              stroke={hoverLineColor} strokeWidth="1" strokeDasharray="3,3" />
+            <circle cx={hoverX} cy={hoverY} r="4" fill={strokeColor} stroke={dark ? "#1A1A2E" : "white"} strokeWidth="2" />
           </>
         )}
 
@@ -152,15 +161,15 @@ export function InteractiveChart({
             y={height - 4}
             textAnchor="middle"
             className="text-[10px]"
-            fill="#9CA3AF"
+            fill={labelColor}
           >
             {data[idx].label}
           </text>
         ))}
 
         {/* Y-axis min/max */}
-        <text x={4} y={chartTop + 10} className="text-[10px]" fill="#9CA3AF">{fmt(max)}</text>
-        <text x={4} y={chartBottom - 2} className="text-[10px]" fill="#9CA3AF">{fmt(min)}</text>
+        <text x={4} y={chartTop + 10} className="text-[10px]" fill={labelColor}>{fmt(max)}</text>
+        <text x={4} y={chartBottom - 2} className="text-[10px]" fill={labelColor}>{fmt(min)}</text>
       </svg>
     </div>
   );

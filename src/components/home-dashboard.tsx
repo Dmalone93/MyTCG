@@ -88,44 +88,54 @@ export function HomeDashboard({
   return (
     <div className="space-y-6">
 
-      {/* ═══ PORTFOLIO HERO ═══ */}
-      <section className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] overflow-hidden">
-        <div className="p-5 pb-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-xs text-text-dim uppercase tracking-wider">Portfolio value</div>
-            <div className="text-xs text-text-dim">
-              {totalCards} cards · {collections.length} collection{collections.length !== 1 ? "s" : ""}
+      {/* ═══ PORTFOLIO HERO — dark card with integrated chart ═══ */}
+      <section className="bg-[#1A1A2E] rounded-2xl overflow-hidden text-white sm:rounded-3xl">
+        {/* Top section — value + stats */}
+        <div className="px-5 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4">
+          <div className="text-xs text-white/50 uppercase tracking-wider mb-2">Portfolio value</div>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="font-mono text-3xl sm:text-5xl font-bold">
+              {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
+            </span>
+            {portfolioSpent > 0 && portfolioValue > 0 && (
+              <span className={`text-sm font-semibold px-2 py-0.5 rounded-md ${
+                pl >= 0 ? "bg-[#059669]/20 text-[#34D399]" : "bg-[#DC2626]/20 text-[#FCA5A5]"
+              }`}>
+                {pl >= 0 ? "↑" : "↓"} {Math.abs(plPct).toFixed(1)}%
+              </span>
+            )}
+            <div className="flex-1" />
+            <span className="text-xs text-white/40">Last 30 days</span>
+          </div>
+          {/* Stats row */}
+          <div className="flex border-t border-white/10 pt-3 sm:pt-4">
+            <div className="flex-1 text-center border-r border-white/10">
+              <div className="font-mono text-sm font-semibold">{totalCards} Cards</div>
+            </div>
+            <div className="flex-1 text-center border-r border-white/10">
+              <div className="font-mono text-sm font-semibold">{collections.length} Collection{collections.length !== 1 ? "s" : ""}</div>
+            </div>
+            <div className="flex-1 text-center">
+              <div className="font-mono text-sm font-semibold">
+                {portfolioSpent > 0 ? formatPrice(portfolioSpent) : "—"}
+              </div>
+              <div className="text-[10px] text-white/40">Spent</div>
             </div>
           </div>
-          <div className="font-mono text-4xl font-bold text-text leading-tight">
-            {portfolioValue > 0 ? formatPrice(portfolioValue) : "—"}
-          </div>
-          {portfolioSpent > 0 && portfolioValue > 0 && (
-            <div className="flex items-center gap-4 mt-3">
-              <div>
-                <div className="text-xs text-text-dim">Spent</div>
-                <div className="font-mono text-sm text-text">{formatPrice(portfolioSpent)}</div>
-              </div>
-              <div className="w-px h-8 bg-[rgba(0,0,0,0.08)]" />
-              <div>
-                <div className="text-xs text-text-dim">P/L</div>
-                <div className={`font-mono text-sm font-semibold ${pl >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
-                  {pl >= 0 ? "+" : ""}{formatPrice(pl)} ({pl >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-        {/* Chart — always visible */}
-        <div className="px-5 pb-5">
+        {/* Chart — integrated into the dark card */}
+        <div className="px-3 pb-3 sm:px-6 sm:pb-6">
           {portfolio && portfolio.points.length > 2 ? (
             <InteractiveChart
               data={portfolio.points.map((p) => ({
                 value: p.value,
                 label: new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
               }))}
-              height={140}
+              height={180}
+              color="#34D399"
+              negativeColor="#FCA5A5"
               formatValue={formatPrice}
+              dark
             />
           ) : portfolioValue > 0 ? (
             <InteractiveChart
@@ -137,12 +147,15 @@ export function HomeDashboard({
                 { value: portfolioValue * 0.99, label: "" },
                 { value: portfolioValue, label: "Today" },
               ]}
-              height={140}
+              height={180}
+              color="#34D399"
+              negativeColor="#FCA5A5"
               formatValue={formatPrice}
+              dark
             />
           ) : (
-            <div className="h-[100px] bg-bg-surface rounded-xl flex items-center justify-center">
-              <span className="text-xs text-text-dim">Add cards to see your portfolio chart</span>
+            <div className="h-[100px] bg-white/5 rounded-xl flex items-center justify-center">
+              <span className="text-xs text-white/30">Add cards to see your portfolio chart</span>
             </div>
           )}
         </div>
