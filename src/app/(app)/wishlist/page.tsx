@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRegion } from "@/components/region-selector";
 import { CardDataSheet } from "@/components/card-data-sheet";
+import { addCard as addCardAction } from "@/app/actions/collections";
 
 type WishlistItem = {
   id: string;
@@ -20,6 +21,8 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewCard, setViewCard] = useState<WishlistItem | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const collectionsCache = useRef<Array<{ id: string; name: string }> | null>(null);
 
   useEffect(() => {
     fetch("/api/watchlist")
@@ -36,6 +39,39 @@ export default function WishlistPage() {
       body: JSON.stringify({ cardCode }),
     });
     setItems((prev) => prev.filter((i) => i.cardCode !== cardCode));
+  }
+
+  async function addToCollection(item: WishlistItem) {
+    try {
+      if (!collectionsCache.current) {
+        const res = await fetch("/api/collections");
+        if (res.ok) collectionsCache.current = await res.json();
+      }
+      const cols = collectionsCache.current;
+      if (!cols || cols.length === 0) {
+        setToast("Create a collection first");
+        setTimeout(() => setToast(null), 1500);
+        return;
+      }
+      await addCardAction({
+        collectionId: cols[0].id,
+        cardCode: item.cardCode,
+        cardName: item.cardName,
+        quantity: 1,
+        condition: "NM",
+        isGraded: false,
+        grade: null,
+        gradedCompany: null,
+        acquiredPrice: item.currentPrice ?? null,
+        notes: null,
+        imageUrl: item.imageUrl ?? null,
+        marketPrice: item.currentPrice ? Number(item.currentPrice) : null,
+      });
+      // Remove from wishlist after adding
+      await removeCard(item.cardCode);
+      setToast(`Added ${item.cardName}`);
+      setTimeout(() => setToast(null), 1500);
+    } catch { /* */ }
   }
 
   const totalMarket = items.reduce((s, i) => s + Number(i.currentPrice ?? 0), 0);
@@ -127,6 +163,13 @@ export default function WishlistPage() {
                   )}
                 </div>
                 <button
+                  onClick={() => addToCollection(item)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#059669]/10 hover:bg-[#059669]/20 text-[#059669] text-sm font-bold flex-none active:opacity-70"
+                  title="Add to collection"
+                >
+                  +
+                </button>
+                <button
                   onClick={() => removeCard(item.cardCode)}
                   className="w-7 h-7 flex items-center justify-center rounded-lg bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] text-text-dim text-sm flex-none active:opacity-70"
                 >
@@ -147,6 +190,13 @@ export default function WishlistPage() {
           marketPrice={viewCard.currentPrice ? Number(viewCard.currentPrice) : undefined}
           onClose={() => setViewCard(null)}
         />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3 shadow-lg text-sm text-text font-medium">
+          {toast}
+        </div>
       )}
     </div>
   );
