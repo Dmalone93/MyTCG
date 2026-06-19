@@ -16,6 +16,13 @@ type WishlistItem = {
   createdAt: string;
 };
 
+type SearchResult = {
+  cardSetId: string;
+  cardName: string;
+  imageUrl: string | null;
+  marketPrice: number | null;
+};
+
 export default function WishlistPage() {
   const { formatPrice } = useRegion();
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -23,6 +30,10 @@ export default function WishlistPage() {
   const [viewCard, setViewCard] = useState<WishlistItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const collectionsCache = useRef<Array<{ id: string; name: string }> | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch("/api/watchlist")
@@ -74,13 +85,116 @@ export default function WishlistPage() {
     } catch { /* */ }
   }
 
+  function handleSearch(q: string) {
+    setSearchQuery(q);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (!q.trim()) { setSearchResults([]); return; }
+    searchTimer.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/search-cards?q=${encodeURIComponent(q.trim())}`);
+        if (res.ok) {
+          const all: SearchResult[] = await res.json();
+          setSearchResults(all.slice(0, 8));
+        }
+      } catch { /* */ }
+      setSearching(false);
+    }, 300);
+  }
+
+  async function addToWishlist(card: SearchResult) {
+    try {
+      const res = await fetch("/api/watchlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardCode: card.cardSetId,
+          cardName: card.cardName,
+          imageUrl: card.imageUrl,
+        }),
+      });
+      if (res.status === 409) {
+        setToast("Already on wishlist");
+      } else if (res.ok) {
+        const row = await res.json();
+        setItems((prev) => [...prev, { ...row, currentPrice: card.marketPrice ? String(card.marketPrice) : null }]);
+        setToast(`Added ${card.cardName}`);
+      }
+    } catch { /* */ }
+    setSearchQuery("");
+    setSearchResults([]);
+    setTimeout(() => setToast(null), 1500);
+  }
+
   const totalMarket = items.reduce((s, i) => s + Number(i.currentPrice ?? 0), 0);
   const totalTarget = items.reduce((s, i) => s + Number(i.targetPrice ?? i.currentPrice ?? 0), 0);
 
   return (
     <div>
       <h1 className="text-xl font-bold text-text mb-2">Wishlist</h1>
-      <p className="text-sm text-text-dim mb-4">Cards you want — track prices until you're ready to buy.</p>
+      <p className="text-sm text-text-dim mb-4">Cards you want — track prices until you&apos;re ready to buy.</p>
+
+      {/* Search to add */}
+      <div className="relative mb-5">
+        <div className="flex items-center gap-2 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl px-4 py-3">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-text-dim flex-none">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search cards to add..."
+            className="flex-1 bg-transparent outline-none text-sm text-text placeholder:text-text-dim"
+          />
+          {searchQuery && (
+            <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="text-text-dim text-sm active:opacity-70">
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Search results dropdown */}
+        {searchResults.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl shadow-lg overflow-hidden z-20 max-h-80 overflow-y-auto">
+            {searchResults.map((card) => {
+              const alreadyAdded = items.some((i) => i.cardCode === card.cardSetId);
+              return (
+                <button
+                  key={card.cardSetId}
+                  onClick={() => !alreadyAdded && addToWishlist(card)}
+                  disabled={alreadyAdded}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                    alreadyAdded ? "opacity-40" : "hover:bg-bg-surface active:bg-bg-surface"
+                  }`}
+                >
+                  {card.imageUrl ? (
+                    <div className="w-9 aspect-[63/88] rounded-md overflow-hidden bg-[#E4E4E7] flex-none">
+                      <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-9 aspect-[63/88] rounded-md bg-[#E4E4E7] flex-none" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{card.cardName}</div>
+                    <div className="text-xs text-text-dim font-mono">{card.cardSetId}</div>
+                  </div>
+                  {alreadyAdded ? (
+                    <span className="text-xs text-text-dim flex-none">Added</span>
+                  ) : (
+                    <span className="text-xs text-[#059669] font-medium flex-none">+ Add</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {searching && searchQuery && searchResults.length === 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl shadow-lg p-4 text-center text-sm text-text-dim z-20">
+            Searching...
+          </div>
+        )}
+      </div>
 
       {/* Summary */}
       {items.length > 0 && (
