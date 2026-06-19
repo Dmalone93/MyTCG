@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRegion } from "@/components/region-selector";
 import { CardDataSheet } from "@/components/card-data-sheet";
+import { ScanModal } from "@/components/scan-modal";
 import { addCard as addCardAction } from "@/app/actions/collections";
 
 type WishlistItem = {
@@ -33,6 +34,7 @@ export default function WishlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [showScan, setShowScan] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -152,6 +154,16 @@ export default function WishlistPage() {
               ×
             </button>
           )}
+          <button
+            onClick={() => setShowScan(true)}
+            className="flex-none p-1 rounded-lg text-text-dim hover:text-text active:opacity-70 transition-colors"
+            title="Scan card"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+            </svg>
+          </button>
         </div>
 
         {/* Search results dropdown */}
@@ -303,6 +315,22 @@ export default function WishlistPage() {
           imageUrl={viewCard.imageUrl ?? ""}
           marketPrice={viewCard.currentPrice ? Number(viewCard.currentPrice) : undefined}
           onClose={() => setViewCard(null)}
+        />
+      )}
+
+      {/* Scan modal — scan to add to wishlist */}
+      {showScan && (
+        <ScanModal
+          onResult={(card) => {
+            setShowScan(false);
+            addToWishlist({
+              cardSetId: card.cardSetId,
+              cardName: card.cardName,
+              imageUrl: card.imageUrl,
+              marketPrice: card.marketPrice,
+            });
+          }}
+          onClose={() => setShowScan(false)}
         />
       )}
 

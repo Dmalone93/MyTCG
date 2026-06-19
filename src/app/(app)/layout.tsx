@@ -3,6 +3,7 @@ import { NavLinks } from "@/components/nav-links";
 import Link from "next/link";
 import { RegionPicker } from "@/components/region-selector";
 import { MobileNav } from "@/components/mobile-nav";
+import { MobileSearchBar } from "@/components/mobile-search-bar";
 
 export default function AppLayout({
   children,
@@ -24,15 +25,7 @@ export default function AppLayout({
           <Link href="/" className="sm:hidden flex-none">
             <img src="/logo.svg" alt="MyTCG" className="h-7" style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5765%) hue-rotate(355deg) brightness(87%) contrast(96%)" }} />
           </Link>
-          <Link
-            href="/search"
-            className="sm:hidden flex-1 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 text-text-dim text-sm border border-[rgba(0,0,0,0.06)] active:scale-[0.98] transition-all"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 flex-none">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            Search cards...
-          </Link>
+          <MobileSearchBar />
 
           {/* Desktop search */}
           <Link
