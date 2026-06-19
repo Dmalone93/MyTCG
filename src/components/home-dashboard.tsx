@@ -136,21 +136,6 @@ export function HomeDashboard({
               negativeColor="#DC2626"
               formatValue={formatPrice}
             />
-          ) : portfolioValue > 0 ? (
-            <InteractiveChart
-              data={[
-                { value: portfolioValue * 0.95, label: "Earlier" },
-                { value: portfolioValue * 0.97, label: "" },
-                { value: portfolioValue * 0.96, label: "" },
-                { value: portfolioValue * 0.98, label: "" },
-                { value: portfolioValue * 0.99, label: "" },
-                { value: portfolioValue, label: "Today" },
-              ]}
-              height={180}
-              color="#059669"
-              negativeColor="#DC2626"
-              formatValue={formatPrice}
-            />
           ) : (
             <div className="h-[100px] bg-bg-surface rounded-xl flex items-center justify-center">
               <span className="text-xs text-text-dim">Add cards to see your portfolio chart</span>
