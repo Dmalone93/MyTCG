@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { cardCatalog, cardVariants } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 /**
  * GET /api/search-cards?q=...
@@ -44,9 +44,21 @@ export async function GET(request: Request) {
     return a.name.localeCompare(b.name);
   });
 
-  const baseResults = matches.slice(0, 30);
+  const baseResults = matches.slice(0, 80);
 
-  // Expand results with variants — for each base card, include its variants
+  // Batch-fetch all variants for matched base cards
+  const uniqueIds = [...new Set(baseResults.map((c) => c.id))];
+  const allVariants = uniqueIds.length > 0
+    ? await db.select().from(cardVariants).where(inArray(cardVariants.baseCardId, uniqueIds))
+    : [];
+  const variantMap = new Map<string, typeof allVariants>();
+  for (const v of allVariants) {
+    const arr = variantMap.get(v.baseCardId) ?? [];
+    arr.push(v);
+    variantMap.set(v.baseCardId, arr);
+  }
+
+  // Expand results with variants
   const results: Array<Record<string, unknown>> = [];
   const codesAdded = new Set<string>();
 
@@ -74,9 +86,8 @@ export async function GET(request: Request) {
     // Add variants if not already added
     if (!codesAdded.has(c.id)) {
       codesAdded.add(c.id);
-      const variants = await db.select().from(cardVariants).where(eq(cardVariants.baseCardId, c.id));
+      const variants = variantMap.get(c.id) ?? [];
       for (const v of variants) {
-        // Skip if it's the same as the base card
         if (v.variantName === c.name && v.variantType === "standard") continue;
         results.push({
           cardSetId: c.id,

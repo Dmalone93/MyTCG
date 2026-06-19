@@ -108,7 +108,7 @@ export default function WishlistPage() {
         const res = await fetch(`/api/search-cards?q=${encodeURIComponent(q.trim())}`);
         if (res.ok) {
           const all: SearchResult[] = await res.json();
-          setSearchResults(all.slice(0, 8));
+          setSearchResults(all);
         }
       } catch { /* */ }
       setSearching(false);
