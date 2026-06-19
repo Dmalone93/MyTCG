@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { cardCatalog, cardVariants } from "@/lib/db/schema";
+import { cardCatalog, cardVariants, cardPrices } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 
 /**
@@ -46,8 +46,12 @@ export async function GET(request: Request) {
 
   const baseResults = matches.slice(0, 80);
 
-  // Batch-fetch all variants for matched base cards
+  // Batch-fetch prices + variants for matched base cards
   const uniqueIds = [...new Set(baseResults.map((c) => c.id))];
+  const prices = uniqueIds.length > 0
+    ? await db.select().from(cardPrices).where(inArray(cardPrices.cardCode, uniqueIds))
+    : [];
+  const priceMap = new Map(prices.map((p) => [p.cardCode, Number(p.rawMarket ?? 0)]));
   const allVariants = uniqueIds.length > 0
     ? await db.select().from(cardVariants).where(inArray(cardVariants.baseCardId, uniqueIds))
     : [];
@@ -79,7 +83,7 @@ export async function GET(request: Request) {
       life: c.life != null ? String(c.life) : "",
       counterAmount: c.counterPower != null ? String(c.counterPower) : "",
       imageUrl: c.imageUrl ?? "",
-      marketPrice: null as number | null,
+      marketPrice: priceMap.get(c.id) ?? null,
       inventoryPrice: null as number | null,
     });
 

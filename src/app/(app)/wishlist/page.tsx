@@ -239,7 +239,7 @@ export default function WishlistPage() {
       )}
 
       {!loading && items.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {items.map((item) => {
             const market = Number(item.currentPrice ?? 0);
             const target = Number(item.targetPrice ?? 0);
@@ -248,49 +248,60 @@ export default function WishlistPage() {
             return (
               <div
                 key={item.id}
-                className={`flex items-center gap-3 bg-white border rounded-2xl px-3 py-3 ${
-                  isUnderTarget ? "border-[#059669]/30 bg-[rgba(5,150,105,0.03)]" : "border-[rgba(0,0,0,0.06)]"
+                className={`bg-white border rounded-2xl overflow-hidden ${
+                  isUnderTarget ? "border-[#059669]/30" : "border-[rgba(0,0,0,0.06)]"
                 }`}
               >
-                <button onClick={() => setViewCard(item)} className="flex-none active:opacity-80">
+                {/* Card info row — tappable */}
+                <button
+                  onClick={() => setViewCard(item)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-bg-surface transition-colors"
+                >
                   {item.imageUrl ? (
-                    <div className="w-11 aspect-[63/88] rounded-lg overflow-hidden bg-[#E4E4E7]">
+                    <div className="w-12 aspect-[63/88] rounded-lg overflow-hidden bg-[#E4E4E7] flex-none">
                       <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-11 aspect-[63/88] rounded-lg bg-[#E4E4E7]" />
+                    <div className="w-12 aspect-[63/88] rounded-lg bg-[#E4E4E7] flex-none" />
                   )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{item.cardName}</div>
+                    <div className="text-xs text-text-dim font-mono mt-0.5">{item.cardCode}</div>
+                    {isUnderTarget && (
+                      <div className="text-xs text-[#059669] font-semibold mt-1">Below target!</div>
+                    )}
+                  </div>
+                  <div className="text-right flex-none">
+                    {market > 0 ? (
+                      <div className="font-mono text-base font-bold text-[#059669]">{formatPrice(market)}</div>
+                    ) : (
+                      <div className="text-sm text-text-dim">No price</div>
+                    )}
+                    {target > 0 && (
+                      <div className="font-mono text-xs text-text-dim mt-0.5">target {formatPrice(target)}</div>
+                    )}
+                  </div>
                 </button>
-                <div className="flex-1 min-w-0" onClick={() => setViewCard(item)}>
-                  <div className="text-sm font-medium text-text truncate">{item.cardName}</div>
-                  <div className="text-xs text-text-dim font-mono">{item.cardCode}</div>
-                  {isUnderTarget && (
-                    <div className="text-xs text-[#059669] font-medium mt-0.5">Below target!</div>
-                  )}
+
+                {/* Actions row */}
+                <div className="flex border-t border-[rgba(0,0,0,0.04)]">
+                  <button
+                    onClick={() => addToCollection(item)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-[#059669] active:bg-[#059669]/5 transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Got it
+                  </button>
+                  <div className="w-px bg-[rgba(0,0,0,0.04)]" />
+                  <button
+                    onClick={() => removeCard(item.cardCode)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-text-dim active:bg-[rgba(0,0,0,0.03)] transition-colors"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <div className="text-right flex-none">
-                  {market > 0 ? (
-                    <div className="font-mono text-sm font-semibold text-[#059669]">{formatPrice(market)}</div>
-                  ) : (
-                    <div className="text-xs text-text-dim">—</div>
-                  )}
-                  {target > 0 && (
-                    <div className="font-mono text-xs text-text-dim">target {formatPrice(target)}</div>
-                  )}
-                </div>
-                <button
-                  onClick={() => addToCollection(item)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#059669]/10 hover:bg-[#059669]/20 text-[#059669] text-sm font-bold flex-none active:opacity-70"
-                  title="Add to collection"
-                >
-                  +
-                </button>
-                <button
-                  onClick={() => removeCard(item.cardCode)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] text-text-dim text-sm flex-none active:opacity-70"
-                >
-                  ×
-                </button>
               </div>
             );
           })}
