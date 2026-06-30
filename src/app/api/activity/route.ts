@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { activityFeed, friendships, profiles } from "@/lib/db/schema";
 import { eq, or, and, desc, inArray } from "drizzle-orm";

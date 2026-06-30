@@ -1,37 +1,14 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/login(.*)",
-  "/share(.*)",
-  "/invite(.*)",
-  "/api/refresh-prices",
-  "/api/scan-intel",
-  "/api/browse-cards",
-  "/api/search-cards",
-  "/api/card-sets",
-  "/api/card-info",
-  "/api/card-index",
-  "/api/pipeline/sync",
-]);
-
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    const { userId } = await auth();
-    if (!userId) {
-      const signInUrl = new URL("/sign-in", request.url);
-      signInUrl.searchParams.set("redirect_url", request.url);
-      return NextResponse.redirect(signInUrl);
-    }
-  }
-});
+/** Passthrough middleware — Clerk auth disabled */
+export default function middleware(_request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
     "/(api|trpc)(.*)",
-    "/__clerk/:path*",
   ],
 };

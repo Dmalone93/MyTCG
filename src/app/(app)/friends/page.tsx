@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+// Auth disabled — stub user
+const useUser = () => ({ user: { id: "user_default", firstName: "Collector" } });
 
 type Friend = { id: string; friendId: string; name: string; since: string };
 type PendingRequest = { id: string; fromUserId: string; name: string; createdAt: string };

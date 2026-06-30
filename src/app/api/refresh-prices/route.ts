@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { collectionCards, cardPrices, cardPriceHistory, dealAlerts } from "@/lib/db/schema";
 import { fetchCatalog } from "@/lib/catalog/fetch-catalog";

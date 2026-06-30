@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { intelItems } from "@/lib/db/schema";
