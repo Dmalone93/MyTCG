@@ -1,5 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import { collections, collectionCards, cardPrices, intelItems, dealAlerts, cardCatalog } from "@/lib/db/schema";
 import { eq, desc, count, inArray, sql } from "drizzle-orm";
