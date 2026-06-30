@@ -11,6 +11,8 @@ type RegionConfig = {
   rate: number; // Multiplier from USD base
 };
 
+const EUR_TO_GBP = 0.86;
+
 const REGIONS: Record<Region, RegionConfig> = {
   US: { region: "US", currency: "USD", symbol: "$", rate: 1 },
   EU: { region: "EU", currency: "EUR", symbol: "€", rate: 0.92 },
@@ -21,10 +23,12 @@ const RegionContext = createContext<{
   config: RegionConfig;
   setRegion: (r: Region) => void;
   formatPrice: (usdPrice: number | null | undefined) => string;
+  formatLocalPrice: (eurPrice: number | null | undefined, usdPrice: number | null | undefined) => string;
 }>({
   config: REGIONS.UK,
   setRegion: () => {},
   formatPrice: () => "—",
+  formatLocalPrice: () => "—",
 });
 
 export function useRegion() {
@@ -52,8 +56,25 @@ export function RegionProvider({ children }: { children: React.ReactNode }) {
     return `${config.symbol}${converted.toFixed(2)}`;
   }
 
+  /** Use real Cardmarket EUR prices for UK/EU, TCGPlayer USD for US */
+  function formatLocalPrice(eurPrice: number | null | undefined, usdPrice: number | null | undefined): string {
+    if (config.region === "US") {
+      if (usdPrice == null || usdPrice <= 0) return "—";
+      return `$${usdPrice.toFixed(2)}`;
+    }
+    if (config.region === "UK") {
+      if (eurPrice != null && eurPrice > 0) return `£${(eurPrice * EUR_TO_GBP).toFixed(2)}`;
+      if (usdPrice != null && usdPrice > 0) return `£${(usdPrice * config.rate).toFixed(2)}`;
+      return "—";
+    }
+    // EU
+    if (eurPrice != null && eurPrice > 0) return `€${eurPrice.toFixed(2)}`;
+    if (usdPrice != null && usdPrice > 0) return `€${(usdPrice * config.rate).toFixed(2)}`;
+    return "—";
+  }
+
   return (
-    <RegionContext value={{ config, setRegion, formatPrice }}>
+    <RegionContext value={{ config, setRegion, formatPrice, formatLocalPrice }}>
       {children}
     </RegionContext>
   );

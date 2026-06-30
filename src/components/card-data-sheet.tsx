@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSwipeDismiss } from "@/hooks/use-swipe-dismiss";
 import { useRegion } from "@/components/region-selector";
 import { addCard as addCardAction } from "@/app/actions/collections";
+import { LivePriceBadge, type SelectedVariant } from "@/components/live-price-badge";
+import { LivePriceBadgeInline } from "@/components/live-price-inline";
 
 type ExtCard = {
   cid: string;
@@ -89,6 +91,10 @@ export function CardDataSheet({
 }) {
   const swipe = useSwipeDismiss(onClose);
   const { formatPrice } = useRegion();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeVersion, setActiveVersion] = useState<string | null>(null);
+  const [variantPriceEur, setVariantPriceEur] = useState<number | null | undefined>(undefined);
+  const [variantPriceUsd, setVariantPriceUsd] = useState<number | null | undefined>(undefined);
 
   // Current card (can change when tapping synergies)
   const [cardCode, setCardCode] = useState(initialCode);
@@ -149,6 +155,9 @@ export function CardDataSheet({
     setCardName(syn.name);
     setImageUrl(syn.imageUrl);
     setMarketPrice(null);
+    setActiveVersion(null);
+    setVariantPriceEur(undefined);
+    setVariantPriceUsd(undefined);
     setCatalogProps({ rarity: undefined, color: undefined, type: undefined, cost: undefined, power: undefined, setName: undefined, cardText: undefined, subTypes: undefined, life: undefined, counterAmount: undefined });
   }
 
@@ -157,7 +166,18 @@ export function CardDataSheet({
     if (!prev) return;
     setHistory((h) => h.slice(0, -1));
     setCardCode(prev);
-    // Data will load from the useEffect
+    setActiveVersion(null);
+    setVariantPriceEur(undefined);
+    setVariantPriceUsd(undefined);
+  }
+
+  function selectVariant(v: SelectedVariant) {
+    if (v.image) setImageUrl(v.image);
+    setActiveVersion(v.version);
+    setVariantPriceEur(v.priceEur);
+    setVariantPriceUsd(v.priceUsd);
+    setCatalogProps((prev) => ({ ...prev, rarity: v.rarity }));
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // Data table rows
@@ -185,49 +205,46 @@ export function CardDataSheet({
           <div className="w-10 h-1 rounded-full bg-[rgba(0,0,0,0.12)]" />
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)] flex-none">
+        {/* Header — compact with close + back */}
+        <div className="flex items-center px-4 py-2.5 border-b border-[rgba(0,0,0,0.06)] flex-none">
           {history.length > 0 && (
             <button onClick={goBack} className="text-sm text-text-muted hover:text-text active:opacity-70 mr-2 flex-none">←</button>
           )}
-          <div className="flex-1 min-w-0 mr-3">
+          <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-base text-text truncate">{cardName}</h2>
-            <div className="font-mono text-sm text-text-dim">{cardCode}</div>
+            <div className="font-mono text-xs text-text-dim">{cardCode}</div>
           </div>
-          {marketPrice != null && marketPrice > 0 && (
-            <span className="font-mono text-sm font-semibold text-[#059669] flex-none">{formatPrice(marketPrice)}</span>
-          )}
           <button onClick={onClose} className="text-text-dim hover:text-text text-xl p-1 active:opacity-70 transition-colors flex-none ml-2">×</button>
         </div>
 
         {/* Scrollable content — extra bottom padding for mobile nav */}
-        <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-4">
-          {/* Card image + stat pills */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-4">
+          {/* Hero: Card image + market price + key info */}
           <div className="flex gap-4 p-4">
             <img
               src={imageUrl}
               alt={cardName}
               className="w-[100px] sm:w-[120px] rounded-lg aspect-[63/88] object-contain flex-none"
             />
-            <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              {/* Market price — hero number */}
+              <div>
+                <LivePriceBadgeInline cardCode={cardCode} cardName={cardName} overrideEur={variantPriceEur} overrideUsd={variantPriceUsd} />
+              </div>
+
               {/* Pills */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 {dType && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{dType}</span>}
                 {dColor && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg inline-flex items-center gap-1.5">{colorDot(dColor)}{dColor}</span>}
                 {dRarity && <span className="text-xs font-medium bg-bg-surface px-2 py-1 rounded-lg">{dRarity}</span>}
               </div>
 
-              {/* Traits */}
-              {dTraits && <div className="text-sm text-text-dim">{dTraits}</div>}
-
-              {/* Set */}
-              {dSetName && <div className="text-xs text-text-dim">{dSetName}</div>}
-
-              {/* Alt art */}
-              {dAltArt && <div className="text-xs text-text-dim">Art: {dAltArt}</div>}
+              {/* Set + traits */}
+              {dSetName && <div className="text-xs text-text-dim mt-1.5">{dSetName}</div>}
+              {dTraits && <div className="text-xs text-text-dim">{dTraits}</div>}
 
               {loading && !c && (
-                <div className="space-y-1.5 animate-pulse">
+                <div className="space-y-1.5 animate-pulse mt-2">
                   <div className="h-3 w-20 bg-[#E4E4E7] rounded" />
                   <div className="h-3 w-32 bg-[#E4E4E7] rounded" />
                 </div>
@@ -261,6 +278,11 @@ export function CardDataSheet({
               </div>
             </div>
           )}
+
+          {/* Variants + full price details from Cardmarket */}
+          <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-4">
+            <LivePriceBadge cardCode={cardCode} cardName={cardName} onSelectVariant={selectVariant} activeVersion={activeVersion} />
+          </div>
 
           {/* Add to collection */}
           <div className="border-t border-[rgba(0,0,0,0.06)] px-4 py-3 flex gap-2">

@@ -52,11 +52,12 @@ export function ScanResultScreen({
   onAddToCollection?: () => void;
   onClose: () => void;
 }) {
-  const { formatPrice, config } = useRegion();
+  const { formatPrice, formatLocalPrice, config } = useRegion();
 
   const [grade, setGrade] = useState("Raw");
 
   const [priceData, setPriceData] = useState<PriceData>({ market: card.marketPrice, fetchedAt: null, gradedPrices: null });
+  const [liveEurPrice, setLiveEurPrice] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const [history, setHistory] = useState<HistoryData | null>(null);
@@ -82,12 +83,18 @@ export function ScanResultScreen({
       const res = await fetch(`/api/live-price?${params}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.found && data.price) {
-          setPriceData((prev) => ({
-            ...prev,
-            market: data.price,
-            fetchedAt: new Date().toISOString(),
-          }));
+        if (data.found) {
+          // Store EUR price separately for local formatting
+          if (data.priceEur) setLiveEurPrice(data.priceEur);
+          // Update market price (USD fallback)
+          const usdPrice = data.priceUsd ?? data.price;
+          if (usdPrice) {
+            setPriceData((prev) => ({
+              ...prev,
+              market: usdPrice,
+              fetchedAt: new Date().toISOString(),
+            }));
+          }
         }
       }
     } catch { /* offline — keep stale */ }
@@ -226,7 +233,9 @@ export function ScanResultScreen({
           </div>
         </div>
         <div className="font-mono text-2xl font-bold text-text">
-          {displayPrice != null ? formatPrice(displayPrice) : "—"}
+          {liveEurPrice != null
+            ? formatLocalPrice(liveEurPrice, displayPrice)
+            : displayPrice != null ? formatPrice(displayPrice) : "—"}
         </div>
       </div>
 

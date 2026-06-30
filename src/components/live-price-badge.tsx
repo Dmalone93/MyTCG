@@ -3,30 +3,60 @@
 import { useEffect, useState } from "react";
 import { useRegion } from "./region-selector";
 
-type LivePrice = {
-  found: boolean;
-  price: number | null;
-  change7d: number | null;
-  change30d: number | null;
-  change90d: number | null;
-  avg30d: number | null;
-  yearHigh: number | null;
-  yearLow: number | null;
-  allTimeLow: number | null;
-  trend: "rising" | "falling" | "stable" | null;
-  variants: Array<{
-    condition: string;
-    printing: string;
-    price: number | null;
-    change7d: number | null;
-    change30d: number | null;
-  }>;
+type Variant = {
+  version: string;
+  rarity: string;
+  name: string;
+  image: string | null;
+  priceEur: number | null;
+  priceUsd: number | null;
+  avg30dEur: number | null;
+  avg7dEur: number | null;
+  available: number | null;
 };
 
-export function LivePriceBadge({ cardCode, cardName }: { cardCode: string; cardName?: string }) {
+type LivePrice = {
+  found: boolean;
+  priceEur: number | null;
+  priceUsd: number | null;
+  price: number | null;
+  avg30dEur: number | null;
+  avg7dEur: number | null;
+  lowestNmEur: number | null;
+  availableItems: number | null;
+  tcgMarketUsd: number | null;
+  trend: "rising" | "falling" | "stable" | null;
+  variants: Variant[];
+  source: string;
+};
+
+const VERSION_LABELS: Record<string, string> = {
+  "V.1": "Standard",
+  "V.2": "Alternate Art",
+  "V.3": "Manga Rare",
+  "V.4": "Super Alternate Art",
+  "V.5": "Manga Rare",
+  None: "Standard",
+};
+
+export type SelectedVariant = {
+  version: string;
+  rarity: string;
+  name: string;
+  image: string | null;
+  priceEur: number | null;
+  priceUsd: number | null;
+};
+
+export function LivePriceBadge({ cardCode, cardName, onSelectVariant, activeVersion }: {
+  cardCode: string;
+  cardName?: string;
+  onSelectVariant?: (v: SelectedVariant) => void;
+  activeVersion?: string | null;
+}) {
   const [data, setData] = useState<LivePrice | null>(null);
   const [loading, setLoading] = useState(true);
-  const { config } = useRegion();
+  const { formatLocalPrice, config } = useRegion();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -40,94 +70,153 @@ export function LivePriceBadge({ cardCode, cardName }: { cardCode: string; cardN
       .finally(() => setLoading(false));
   }, [cardCode, cardName]);
 
-  if (loading) return null;
-  if (!data?.found || !data.price) return null;
+  if (loading) {
+    return (
+      <div className="space-y-3 animate-pulse">
+        <div className="h-4 w-32 bg-[#E4E4E7] rounded" />
+        <div className="h-8 w-24 bg-[#E4E4E7] rounded" />
+        <div className="h-16 w-full bg-[#E4E4E7] rounded-xl" />
+      </div>
+    );
+  }
 
-  const fmtPrice = (usd: number | null) => {
-    if (usd == null) return "—";
-    const converted = usd * config.rate;
-    return `${config.symbol}${converted.toFixed(2)}`;
-  };
+  if (!data?.found) return null;
+  if (!data.priceEur && !data.priceUsd && data.variants.length === 0) return null;
+
+  const fmt = (eur: number | null, usd: number | null) => formatLocalPrice(eur, usd);
 
   const trendColor = data.trend === "rising" ? "text-[#059669]" : data.trend === "falling" ? "text-[#DC2626]" : "text-text-muted";
   const trendLabel = data.trend === "rising" ? "↑ Rising" : data.trend === "falling" ? "↓ Falling" : "→ Stable";
+  const sourceLabel = config.region === "US" ? "TCGPlayer" : "Cardmarket";
 
   return (
-    <div className="bg-bg-surface rounded-lg p-4 space-y-3">
+    <div className="space-y-4">
+      {/* Header + source */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-text">Live Market Price</span>
-        <span className="text-xs text-text-dim">via JustTCG</span>
+        <span className="text-xs text-text-dim uppercase tracking-wider">Market Price</span>
+        <span className="text-xs text-text-dim flex items-center gap-1.5">
+          <img
+            src={config.region === "US" ? "/logos/tcgplayer.svg" : "/logos/cardmarket.png"}
+            alt={sourceLabel}
+            className="h-[14px] opacity-60"
+          />
+          {sourceLabel}
+        </span>
       </div>
 
-      {/* Main price + trend */}
+      {/* Hero price */}
       <div className="flex items-baseline gap-3">
-        <span className="font-mono text-xl font-bold text-text">{fmtPrice(data.price)}</span>
-        {data.trend && <span className={`text-sm font-semibold ${trendColor}`}>{trendLabel}</span>}
-      </div>
-
-      {/* Changes */}
-      <div className="flex gap-4 text-sm">
-        {data.change7d != null && (
-          <div>
-            <div className="text-xs text-text-dim">7d</div>
-            <div className={`font-mono font-semibold ${data.change7d >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
-              {data.change7d >= 0 ? "+" : ""}{data.change7d.toFixed(1)}%
-            </div>
-          </div>
-        )}
-        {data.change30d != null && (
-          <div>
-            <div className="text-xs text-text-dim">30d</div>
-            <div className={`font-mono font-semibold ${data.change30d >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
-              {data.change30d >= 0 ? "+" : ""}{data.change30d.toFixed(1)}%
-            </div>
-          </div>
-        )}
-        {data.change90d != null && (
-          <div>
-            <div className="text-xs text-text-dim">90d</div>
-            <div className={`font-mono font-semibold ${data.change90d >= 0 ? "text-[#059669]" : "text-[#DC2626]"}`}>
-              {data.change90d >= 0 ? "+" : ""}{data.change90d.toFixed(1)}%
-            </div>
-          </div>
+        <span className="font-mono text-2xl font-bold text-text">
+          {fmt(data.priceEur, data.priceUsd)}
+        </span>
+        {data.trend && (
+          <span className={`text-sm font-semibold ${trendColor}`}>{trendLabel}</span>
         )}
       </div>
 
-      {/* Range */}
-      {(data.yearHigh || data.yearLow) && (
-        <div className="flex gap-4 text-sm">
-          {data.yearLow != null && (
+      {/* Price stats row */}
+      {config.region !== "US" && (data.avg30dEur || data.avg7dEur || data.lowestNmEur) && (
+        <div className="flex gap-4">
+          {data.lowestNmEur != null && (
             <div>
-              <div className="text-xs text-text-dim">52w Low</div>
-              <div className="font-mono text-text">{fmtPrice(data.yearLow)}</div>
+              <div className="text-xs text-text-dim">Low NM</div>
+              <div className="font-mono text-sm text-text">{fmt(data.lowestNmEur, null)}</div>
             </div>
           )}
-          {data.yearHigh != null && (
+          {data.avg7dEur != null && (
             <div>
-              <div className="text-xs text-text-dim">52w High</div>
-              <div className="font-mono text-text">{fmtPrice(data.yearHigh)}</div>
+              <div className="text-xs text-text-dim">7d Avg</div>
+              <div className="font-mono text-sm text-text">{fmt(data.avg7dEur, null)}</div>
             </div>
           )}
-          {data.avg30d != null && (
+          {data.avg30dEur != null && (
             <div>
               <div className="text-xs text-text-dim">30d Avg</div>
-              <div className="font-mono text-text">{fmtPrice(data.avg30d)}</div>
+              <div className="font-mono text-sm text-text">{fmt(data.avg30dEur, null)}</div>
+            </div>
+          )}
+          {data.availableItems != null && (
+            <div>
+              <div className="text-xs text-text-dim">Listed</div>
+              <div className="font-mono text-sm text-text">{data.availableItems}</div>
             </div>
           )}
         </div>
       )}
 
-      {/* Variant prices */}
-      {data.variants.length > 1 && (
+      {/* TCGPlayer comparison for EU/UK */}
+      {config.region !== "US" && data.tcgMarketUsd != null && (
+        <div className="text-xs text-text-dim">
+          TCGPlayer (US): <span className="font-mono">${data.tcgMarketUsd.toFixed(2)}</span>
+        </div>
+      )}
+
+      {/* ALL Variants — every version with image, rarity, and price */}
+      {data.variants.length > 0 && (
         <div>
-          <div className="text-xs text-text-dim mb-1.5">Variants</div>
-          <div className="space-y-1">
-            {data.variants.slice(0, 5).map((v, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <span className="text-text-muted">{v.printing} · {v.condition}</span>
-                <span className="font-mono text-text">{fmtPrice(v.price)}</span>
-              </div>
-            ))}
+          <div className="text-xs text-text-dim uppercase tracking-wider mb-2">
+            All versions ({data.variants.length})
+          </div>
+          <div className="space-y-2">
+            {data.variants.map((v, i) => {
+              const label = VERSION_LABELS[v.version] ?? v.version ?? "Standard";
+              const hasPrice = v.priceEur != null || v.priceUsd != null;
+              const isActive = activeVersion != null ? v.version === activeVersion : i === 0;
+              return (
+                <button
+                  key={i}
+                  onClick={() => onSelectVariant?.({
+                    version: v.version,
+                    rarity: v.rarity,
+                    name: v.name,
+                    image: v.image,
+                    priceEur: v.priceEur,
+                    priceUsd: v.priceUsd,
+                  })}
+                  className={`w-full flex items-center gap-3 rounded-xl p-2.5 text-left active:opacity-70 transition-all ${
+                    isActive
+                      ? "bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.2)]"
+                      : "bg-bg-surface border border-transparent"
+                  }`}
+                >
+                  {/* Variant image */}
+                  {v.image && (
+                    <img
+                      src={v.image}
+                      alt={`${v.name} ${label}`}
+                      className="w-[44px] h-[62px] rounded-lg object-cover flex-none"
+                    />
+                  )}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text truncate">{label}</div>
+                    <div className="text-xs text-text-dim">{v.rarity}</div>
+                    {v.avg30dEur != null && config.region !== "US" && (
+                      <div className="text-xs text-text-dim mt-0.5">
+                        30d avg: <span className="font-mono">{fmt(v.avg30dEur, null)}</span>
+                      </div>
+                    )}
+                    {v.available != null && (
+                      <div className="text-xs text-text-dim">
+                        {v.available} listed
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Price */}
+                  <div className="flex-none text-right">
+                    {hasPrice ? (
+                      <span className="font-mono text-sm font-semibold text-[#059669]">
+                        {fmt(v.priceEur, v.priceUsd)}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-text-dim">—</span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
